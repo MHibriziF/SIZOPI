@@ -17,26 +17,6 @@ def get_db_connection():
         print(f"Database connection failed: {e}")
         raise
 
-# def execute_query(sql_query, params=None):
-#     with get_db_connection() as conn:
-#         with conn.cursor() as cursor:
-#             cursor.execute(sql_query, params or [])
-#             return cursor.fetchall()
-    
-# def execute_transaction(sql_query, params=None):
-#     try:
-#         with get_db_connection() as conn:
-#             with conn.cursor() as cursor:
-#                 print(f"Executing query: {sql_query}")  
-#                 print(f"With parameters: {params}")     
-#                 cursor.execute(sql_query, params or [])
-#                 conn.commit()
-#                 print("Transaction committed successfully") 
-#                 return True
-#     except Exception as e:
-#         print(f"Error in execute_transaction: {str(e)}")  
-#         return False
-
 
 def execute_query(sql: str, params: tuple | list | None = None) -> list[dict]:
     """
@@ -71,3 +51,23 @@ def execute_transaction(
         return True
     except Exception as e:
         return False
+
+# def execute_query(sql_query, params=None):
+#     with get_db_connection() as conn:
+#         with conn.cursor() as cursor:
+#             cursor.execute(sql_query, params or [])
+#             return cursor.fetchall()
+    
+# def execute_transaction(sql_query, params=None):
+#     try:
+#         with get_db_connection() as conn:
+#             with conn.cursor() as cursor:
+#                 print(f"Executing query: {sql_query}")  
+#                 print(f"With parameters: {params}")     
+#                 cursor.execute(sql_query, params or [])
+#                 conn.commit()
+#                 print("Transaction committed successfully") 
+#                 return True
+#     except Exception as e:
+#         print(f"Error in execute_transaction: {str(e)}")  
+#         return False
