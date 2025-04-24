@@ -1,9 +1,7 @@
--- 1. Schema & Extension
 CREATE SCHEMA IF NOT EXISTS SIZOPI;
 SET search_path TO SIZOPI;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 2. Table Definitions
 
 CREATE TABLE PENGGUNA (
     username        VARCHAR(50) PRIMARY KEY,
