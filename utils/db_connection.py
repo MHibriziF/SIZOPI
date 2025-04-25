@@ -18,15 +18,16 @@ def get_db_connection():
         raise
 
 
-def execute_query(sql: str, params: tuple | list | None = None) -> list[dict]:
-    """
-    Jalankan SELECT (atau query yang mengembalikan baris) dan kembalikan list of dict.
-    """
-    with connection.cursor() as cursor:
-        cursor.execute(sql, params or [])
-        columns = [col[0] for col in cursor.description] if cursor.description else []
-        rows = cursor.fetchall()
-    return [dict(zip(columns, row)) for row in rows]
+def execute_query(sql, params=None):
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql, params or [])
+            cols = [c[0] for c in cur.description] if cur.description else []
+            rows = cur.fetchall()
+        return [dict(zip(cols, r)) for r in rows]
+    finally:
+        conn.close()
 
 def execute_transaction(
     sql_statements: str | list[str],
@@ -51,23 +52,3 @@ def execute_transaction(
         return True
     except Exception as e:
         return False
-
-# def execute_query(sql_query, params=None):
-#     with get_db_connection() as conn:
-#         with conn.cursor() as cursor:
-#             cursor.execute(sql_query, params or [])
-#             return cursor.fetchall()
-    
-# def execute_transaction(sql_query, params=None):
-#     try:
-#         with get_db_connection() as conn:
-#             with conn.cursor() as cursor:
-#                 print(f"Executing query: {sql_query}")  
-#                 print(f"With parameters: {params}")     
-#                 cursor.execute(sql_query, params or [])
-#                 conn.commit()
-#                 print("Transaction committed successfully") 
-#                 return True
-#     except Exception as e:
-#         print(f"Error in execute_transaction: {str(e)}")  
-#         return False

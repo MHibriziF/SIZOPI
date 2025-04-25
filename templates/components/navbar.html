@@ -1,15 +1,26 @@
 {% load static %}
 <nav id="navbar" class="bg-[#6F826A] shadow-md">
   <div class="container mx-auto px-4 py-3 flex items-center justify-between">
-    <a href="{% url 'home' %}">
-      <img src="{% static 'images/logo.png' %}" alt="Logo" class="h-8">
-    </a>
-    <div class="space-x-4">
+    <div class="flex items-center space-x-2">
+      <a href="{% url 'main:home' %}">
+        <img src="{% static 'images/logo.png' %}" alt="Logo" class="h-8">
+      </a>
+      <a href="{% url 'main:home' %}" class="text-white font-bold text-xl">
+        SIZOPI
+      </a>
+    </div>
+    <div class="flex items-center space-x-2">
       {% if user.is_authenticated %}
-        <span class="text-gray-700 font-medium">Fitur 1</span>
+        <span class="text-white font-medium">Fitur 1</span>
       {% else %}
-        <a href="{% url 'login' %}" class="text-gray-700 hover:text-gray-900">Login</a>
-        <a href="{% url 'register' %}" class="text-gray-700 hover:text-gray-900">Register</a>
+        <a href="{% url 'main:login' %}"
+           class="bg-white text-[#6F826A] px-4 py-2 rounded-md font-medium hover:bg-gray-100 transition">
+          Login
+        </a>
+        <a href="{% url 'main:register' %}"
+           class="border border-white text-white px-4 py-2 rounded-md font-medium hover:bg-white hover:text-[#6F826A] transition">
+          Register
+        </a>
       {% endif %}
     </div>
   </div>
