@@ -115,16 +115,18 @@ CREATE TABLE MEMBERI (
 );
 
 CREATE TABLE FASILITAS (
-    nama           VARCHAR(50) PRIMARY KEY,
-    jadwal         TIMESTAMP   NOT NULL,
-    kapasitas_max  INT         NOT NULL
+  nama_atraksi   VARCHAR(50)  PRIMARY KEY,
+  jadwal         TIMESTAMP    NOT NULL,
+  kapasitas_max  INT          NOT NULL
 );
 
 CREATE TABLE ATRAKSI (
-    nama_atraksi VARCHAR(50) PRIMARY KEY,
-    lokasi       VARCHAR(100) NOT NULL,
-    FOREIGN KEY (nama_atraksi) REFERENCES FASILITAS(nama)
-        ON DELETE CASCADE ON UPDATE CASCADE
+  nama_atraksi  VARCHAR(50)   PRIMARY KEY,
+  lokasi        VARCHAR(100)  NOT NULL,
+  FOREIGN KEY (nama_atraksi)
+    REFERENCES SIZOPI.FASILITAS(nama_atraksi)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
 );
 
 CREATE TABLE JADWAL_PENUGASAN (
@@ -140,8 +142,7 @@ CREATE TABLE BERPARTISIPASI (
     nama_fasilitas VARCHAR(50),
     id_hewan       UUID,
     PRIMARY KEY (nama_fasilitas, id_hewan),
-    FOREIGN KEY (nama_fasilitas) REFERENCES FASILITAS(nama)
-        ON DELETE CASCADE ON UPDATE CASCADE,
+	FOREIGN KEY (nama_fasilitas) REFERENCES FASILITAS(nama_atraksi),
     FOREIGN KEY (id_hewan) REFERENCES HEWAN(id)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -495,20 +496,26 @@ INSERT INTO MEMBERI VALUES ('a93ead3f-dbe9-4188-80ad-a1121e4484cf', '2025-04-20 
 	('5541e8a9-11e5-44d9-b1da-2681e88742f7', '2025-04-24 10:00:00', 'user74'),
 	('5f2e9a77-bd81-4c8f-ab58-8969e1a887b5', '2025-04-25 08:00:00', 'user75');
 
-INSERT INTO FASILITAS VALUES ('Petting Zoo Anak-Anak', '2025-05-01 15:00:00', 40),
-	('Safari Edukasi Reptil', '2025-05-01 10:00:00', 30),
-	('Pertunjukan Mamalia Laut', '2025-05-02 11:30:00', 25),
-	('Pertunjukan Burung Eksotik', '2025-05-01 14:00:00', 50),
-	('Ekshibisi Ular', '2025-05-03 09:00:00', 35);
+INSERT INTO FASILITAS (nama_atraksi, jadwal, kapasitas_max) VALUES
+  ('Safari Edukasi Reptil',    '2025-05-01 10:00:00', 30),
+  ('Safari Edukasi Mamalia',    '2025-05-02 10:00:00', 30),
+  ('Ekshibisi Ular',            '2025-05-03 09:00:00', 35),
+  ('Ekshibisi Lumba-Lumba',     '2025-05-02 13:00:00', 45),
+  ('Petting Zoo Anak-Anak',     '2025-05-01 15:00:00', 40),
+  ('Pertunjukan Mamalia Laut',  '2025-05-02 11:30:00', 25),
+  ('Pertunjukan Burung Eksotik','2025-05-01 14:00:00', 50),
+  ('Pertunjukan Koala Cina',    '2025-05-03 16:00:00', 20);
 
-INSERT INTO ATRAKSI VALUES ('Safari Edukasi Reptil', 'Zona Rawa'),
-	('Ekshibisi Ular', 'Galeri Reptil Utara'),
-	('Safari Edukasi Reptil', 'Gerbang Timur'),
-	('Petting Zoo Anak-Anak', 'Area Interaktif Tengah'),
-	('Ekshibisi Ular', 'Galeri Reptil Barat'),
-	('Pertunjukan Mamalia Laut', 'Akuarium Utama'),
-	('Pertunjukan Burung Eksotik', 'Arena Aviary'),
-	('Petting Zoo Anak-Anak', 'Area Interaktif Barat');
+INSERT INTO ATRAKSI (nama_atraksi, lokasi) VALUES
+  ('Safari Edukasi Reptil',    'Zona Rawa'),
+  ('Safari Edukasi Mamalia',   'Gerbang Timur'),
+  ('Ekshibisi Ular',           'Galeri Reptil Utara'),
+  ('Ekshibisi Lumba-Lumba',    'Galeri Ikan Barat'),
+  ('Petting Zoo Anak-Anak',    'Area Interaktif Tengah'),
+  ('Pertunjukan Mamalia Laut', 'Akuarium Utama'),
+  ('Pertunjukan Burung Eksotik','Arena Aviary'),
+  ('Pertunjukan Koala Cina',   'Area Interaktif Barat');
+
 
 INSERT INTO JADWAL_PENUGASAN VALUES ('user76', '2025-05-01 08:00:00', 'Petting Zoo Anak-Anak'),
 	('user77', '2025-05-01 10:00:00', 'Safari Edukasi Reptil'),
