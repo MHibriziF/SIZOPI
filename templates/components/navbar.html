@@ -6,12 +6,16 @@
         <img src="{% static 'images/logo.png' %}" alt="Logo" class="h-8">
       </a>
       <a href="{% url 'main:home' %}" class="text-white font-bold text-xl">
-        SIZOPI
+        SIZOPI-B12
       </a>
     </div>
     <div class="flex items-center space-x-2">
-      {% if user.is_authenticated %}
-        <span class="text-white font-medium">Fitur 1</span>
+      {% if request.session.username %}
+        <span class="text-white font-medium mr-2">Hi, {{ request.session.username }}</span>
+        <form action="{% url 'main:logout' %}" method="post">
+          {% csrf_token %}
+          <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition">Logout</button>
+        </form>
       {% else %}
         <a href="{% url 'main:login' %}"
            class="bg-white text-[#6F826A] px-4 py-2 rounded-md font-medium hover:bg-gray-100 transition">

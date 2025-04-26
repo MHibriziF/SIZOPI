@@ -1,54 +1,46 @@
 import psycopg2
-from django.conf import settings
-from django.db import connection, transaction
+from psycopg2.extras import RealDictCursor
+import os
+from dotenv import load_dotenv
+from pathlib import Path
 
-def get_db_connection():
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(os.path.join(BASE_DIR, '.env'))
+
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+def get_connection():
+    return psycopg2.connect(DATABASE_URL)
+
+def execute_query(query, params=None):
+    """Execute a query and return all rows as dictionaries"""
     try:
-        connection = psycopg2.connect(
-            dbname=settings.DATABASES['default']['NAME'],
-            user=settings.DATABASES['default']['USER'],
-            password=settings.DATABASES['default']['PASSWORD'],
-            host=settings.DATABASES['default']['HOST'],
-            port=settings.DATABASES['default']['PORT'],
-            options="-c search_path=SIZOPI"
-        )
-        return connection
-    except psycopg2.Error as e:
-        print(f"Database connection failed: {e}")
-        raise
+        with get_connection() as conn:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute("SET search_path TO SIZOPI")
+                cursor.execute(query, params)
+                if cursor.description: 
+                    return [dict(row) for row in cursor.fetchall()]
+                return None
+    except Exception as e:
+        print(f"Database error: {e}")
+        return None
 
-
-def execute_query(sql, params=None):
-    conn = get_db_connection()
+def execute_transaction(queries, params_list):
+    """Execute multiple queries in a transaction"""
     try:
-        with conn.cursor() as cur:
-            cur.execute(sql, params or [])
-            cols = [c[0] for c in cur.description] if cur.description else []
-            rows = cur.fetchall()
-        return [dict(zip(cols, r)) for r in rows]
-    finally:
+        conn = get_connection()
+        conn.autocommit = False
+        with conn.cursor() as cursor:
+            cursor.execute("SET search_path TO SIZOPI")
+            for i, query in enumerate(queries):
+                cursor.execute(query, params_list[i])
+        conn.commit()
         conn.close()
-
-def execute_transaction(
-    sql_statements: str | list[str],
-    params_list: list[tuple] | tuple | None = None
-) -> bool:
-    """
-    Jalankan satu atau banyak statement di dalam satu transaksi.
-    - sql_statements: satu string SQL atau list SQL
-    - params_list: None, satu tuple, atau list of tuple sesuai jumlah SQL
-    """
-    try:
-        with transaction.atomic():
-            with connection.cursor() as cursor:
-                if isinstance(sql_statements, str):
-                    cursor.execute(sql_statements, params_list or [])
-                else:
-                    for idx, sql in enumerate(sql_statements):
-                        params = None
-                        if isinstance(params_list, (list, tuple)):
-                            params = params_list[idx] if isinstance(params_list[0], (list, tuple)) else params_list
-                        cursor.execute(sql, params or [])
         return True
     except Exception as e:
+        print(f"Transaction error: {e}")
+        if conn:
+            conn.rollback()
+            conn.close()
         return False
