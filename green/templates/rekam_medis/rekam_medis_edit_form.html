@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block meta %}
+    <title>Edit Rekam Medis</title>
+{% endblock meta %}
+
+{% block content %}
+{% load static %}
+{% include 'components/navbar.html' %}
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>Edit Rekam Medis</h2>
+        <h4>{{ hewan.nama|default:"Tidak ada nama" }} ({{ hewan.spesies }})</h4>
+        <p>Tanggal Pemeriksaan: {{ rekam_medis.tanggal_pemeriksaan|date:"d/m/Y" }}</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'green:rekam_medis_list' %}?id_hewan={{ hewan.id }}" class="btn btn-secondary">Kembali</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">Form Edit Rekam Medis (Status: Sakit)</h5>
+            </div>
+            <div class="card-body">
+                <form action="{% url 'green:rekam_medis_update' hewan.id rekam_medis.tanggal_pemeriksaan|date:'Y-m-d' %}" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="diagnosis_baru" class="form-label">Diagnosa Baru</label>
+                        <input type="text" class="form-control" id="diagnosis_baru" name="diagnosis_baru" value="{{ rekam_medis.diagnosis }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="pengobatan_baru" class="form-label">Pengobatan Baru</label>
+                        <input type="text" class="form-control" id="pengobatan_baru" name="pengobatan_baru" value="{{ rekam_medis.pengobatan }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="catatan_tindak_lanjut" class="form-label">Catatan Tindak Lanjut</label>
+                        <textarea class="form-control" id="catatan_tindak_lanjut" name="catatan_tindak_lanjut" rows="3">{{ rekam_medis.catatan_tindak_lanjut }}</textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-warning">SIMPAN</button>
+                        <a href="{% url 'green:rekam_medis_list' %}?id_hewan={{ hewan.id }}" class="btn btn-secondary">BATAL</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content%}
