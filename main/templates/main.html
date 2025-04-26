@@ -1,9 +1,65 @@
 {% extends 'base.html' %}
 {% block meta %}
-    <title>Main</title>
+    <title>SIZOPI - Sistem Informasi Kebun Binatang</title>
 {% endblock meta %}
 
 {% block content %}
 {% load static %}
 {% include 'components/navbar.html' %}
+
+<div class="bg-gradient-to-b from-green-50 to-white min-h-screen">
+    <div class="container mx-auto px-4 py-12">
+        <div class="text-center mb-16">
+            <h1 class="text-4xl font-bold text-[#4A5A43] mb-4">Selamat Datang di SIZOPI</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">Sistem Informasi Kebun Binatang Terpadu untuk pengelolaan hewan, habitat, dan pengunjung.</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            <div class="bg-white rounded-xl shadow-md overflow-hidden transform transition-all hover:scale-105">
+                <div class="h-40 bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-semibold text-[#4A5A43] mb-2">Kelola Hewan</h3>
+                    <p class="text-gray-600">Pantau kesehatan, pakan, dan habitat hewan dengan sistem terpadu.</p>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-md overflow-hidden transform transition-all hover:scale-105">
+                <div class="h-40 bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-semibold text-[#4A5A43] mb-2">Kelola Pengguna</h3>
+                    <p class="text-gray-600">Atur akses staff, dokter hewan, dan pengunjung dengan mudah.</p>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-md overflow-hidden transform transition-all hover:scale-105">
+                <div class="h-40 bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-semibold text-[#4A5A43] mb-2">Program Adopsi</h3>
+                    <p class="text-gray-600">Kelola program adopsi hewan dan kontribusi dari adopter.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center">
+            <h2 class="text-2xl font-bold text-[#4A5A43] mb-4">Mulai Sekarang</h2>
+            <p class="text-gray-600 mb-6">Daftar atau login untuk mengakses semua fitur SIZOPI</p>
+            <div class="flex justify-center space-x-4">
+                <a href="{% url 'main:login' %}" class="px-6 py-3 bg-[#A7C796] text-white rounded-lg hover:bg-opacity-90 transition">Login</a>
+                <a href="{% url 'main:register' %}" class="px-6 py-3 border-2 border-[#A7C796] text-[#4A5A43] rounded-lg hover:bg-[#A7C796] hover:text-white transition">Daftar</a>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock content %}

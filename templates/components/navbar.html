@@ -3,20 +3,66 @@
   <div class="container mx-auto px-4 py-3 flex items-center justify-between">
     <div class="flex items-center space-x-2">
       <a href="{% url 'main:home' %}">
-        <img src="{% static 'images/logo.png' %}" alt="Logo" class="h-8">
+        <img src="{% static 'images/logo.png' %}" alt="Logo" class="h-8" onerror="this.src='https://via.placeholder.com/32';this.onerror='';">
       </a>
       <a href="{% url 'main:home' %}" class="text-white font-bold text-xl">
         SIZOPI-B12
       </a>
     </div>
-    <div class="flex items-center space-x-2">
-      {% if request.session.username %}
-        <span class="text-white font-medium mr-2">Hi, {{ request.session.username }}</span>
-        <form action="{% url 'main:logout' %}" method="post">
-          {% csrf_token %}
-          <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition">Logout</button>
-        </form>
-      {% else %}
+    
+    {% if request.session.username %}
+      <div class="hidden md:flex space-x-6 text-white">
+        <a href="{% url 'main:home' %}" class="hover:text-green-200 transition">Dashboard</a>
+        
+        {% if 'dokter' in request.session.roles %}
+          <a href="#" class="hover:text-green-200 transition">Rekam Medis Hewan</a>
+        {% endif %}
+        
+        {% if 'penjaga' in request.session.roles %}
+          <a href="#" class="hover:text-green-200 transition">Catatan Perawatan Hewan</a>
+        {% endif %}
+        
+        {% if 'admin' in request.session.roles %}
+          <a href="#" class="hover:text-green-200 transition">Kelola Pengunjung</a>
+          <a href="#" class="hover:text-green-200 transition">Kelola Adopsi</a>
+          <a href="#" class="hover:text-green-200 transition">Kelola Adopter</a>
+        {% endif %}
+        
+        {% if 'pelatih' in request.session.roles %}
+          <a href="#" class="hover:text-green-200 transition">Jadwal Pertunjukan</a>
+        {% endif %}
+        
+        {% if 'pengunjung' in request.session.roles %}
+          <a href="#" class="hover:text-green-200 transition">Informasi Kebun Binatang</a>
+          
+          {% comment %}
+          {% if is_adopter %}
+            <a href="#" class="hover:text-green-200 transition">Hewan Adopsi</a>
+          {% endif %}
+          {% endcomment %}
+        {% endif %}
+      </div>
+      
+      <div class="flex items-center space-x-4">
+        <div class="relative group" x-data="{ isOpen: false }">
+          <button @click="isOpen = !isOpen" class="flex items-center space-x-1 text-white">
+            <span>{{ request.session.username }}</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          
+          <div x-show="isOpen" @click.away="isOpen = false" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+            <a href="{% url 'main:profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Pengaturan Profil</a>
+            <form action="{% url 'main:logout' %}" method="post" class="block">
+              {% csrf_token %}
+              <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <div class="flex items-center space-x-2">
         <a href="{% url 'main:login' %}"
            class="bg-white text-[#6F826A] px-4 py-2 rounded-md font-medium hover:bg-gray-100 transition">
           Login
@@ -25,7 +71,9 @@
            class="border border-white text-white px-4 py-2 rounded-md font-medium hover:bg-white hover:text-[#6F826A] transition">
           Register
         </a>
-      {% endif %}
-    </div>
+      </div>
+    {% endif %}
   </div>
 </nav>
+
+<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>

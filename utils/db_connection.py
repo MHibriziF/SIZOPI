@@ -13,13 +13,12 @@ def get_connection():
     return psycopg2.connect(DATABASE_URL)
 
 def execute_query(query, params=None):
-    """Execute a query and return all rows as dictionaries"""
     try:
         with get_connection() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute("SET search_path TO SIZOPI")
                 cursor.execute(query, params)
-                if cursor.description: 
+                if cursor.description:  
                     return [dict(row) for row in cursor.fetchall()]
                 return None
     except Exception as e:
@@ -27,7 +26,7 @@ def execute_query(query, params=None):
         return None
 
 def execute_transaction(queries, params_list):
-    """Execute multiple queries in a transaction"""
+    conn = None
     try:
         conn = get_connection()
         conn.autocommit = False

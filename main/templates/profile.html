@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% block meta %}
+    <title>Profile | {{ user_data.nama_depan }}</title>
+{% endblock meta %}
+
+{% block content %}
+{% load static %}
+{% include 'components/navbar.html' %}
+
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="md:flex">
+            <div class="md:flex-shrink-0 bg-[#6F826A] text-white p-8 md:w-64">
+                <div class="text-center">
+                    <div class="w-32 h-32 rounded-full bg-green-100 mx-auto flex items-center justify-center">
+                        <span class="text-5xl text-[#6F826A] font-bold">{{ user_data.nama_depan.0 }}{{ user_data.nama_belakang.0 }}</span>
+                    </div>
+                    <h2 class="mt-4 text-xl font-semibold">{{ user_data.nama_depan }} {{ user_data.nama_belakang }}</h2>
+                    <p class="text-green-200">{{ role|title }}</p>
+                </div>
+                
+                <div class="mt-8">
+                    <h3 class="text-lg font-medium border-b border-green-400 pb-2 mb-4">Menu</h3>
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="{% url 'main:home' %}" class="block py-2 px-4 rounded hover:bg-green-600 transition">
+                                Dashboard
+                            </a>
+                        </li>
+                        {% if role == 'pengunjung' %}
+                        <li>
+                            <a href="#" class="block py-2 px-4 rounded hover:bg-green-600 transition">
+                                Informasi Kebun Binatang
+                            </a>
+                        </li>
+                        {% if additional_data.is_adopter %}
+                        <li>
+                            <a href="#" class="block py-2 px-4 rounded hover:bg-green-600 transition">
+                                Hewan Adopsi Saya
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% endif %}
+                        
+                        {% if role == 'dokter' %}
+                        <li>
+                            <a href="#" class="block py-2 px-4 rounded hover:bg-green-600 transition">
+                                Rekam Medis Hewan
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% if role == 'penjaga' %}
+                        <li>
+                            <a href="#" class="block py-2 px-4 rounded hover:bg-green-600 transition">
+                                Catatan Perawatan Hewan
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% if role == 'admin' %}
+                        <li>
+                            <a href="#" class="block py-2 px-4 rounded hover:bg-green-600 transition">
+                                Kelola Pengunjung
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="block py-2 px-4 rounded hover:bg-green-600 transition">
+                                Kelola Adopsi
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="block py-2 px-4 rounded hover:bg-green-600 transition">
+                                Kelola Adopter
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% if role == 'pelatih' %}
+                        <li>
+                            <a href="#" class="block py-2 px-4 rounded hover:bg-green-600 transition">
+                                Jadwal Pertunjukan
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="p-8 md:flex-1">
+                <h1 class="text-2xl font-bold text-[#4A5A43] mb-6 pb-2 border-b border-gray-200">Profil Pengguna</h1>
+                
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-lg font-medium text-[#4A5A43] mb-2">Informasi Dasar</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm text-gray-500">Username</p>
+                                <p class="font-medium">{{ user_data.username }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Email</p>
+                                <p class="font-medium">{{ user_data.email }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Nama Lengkap</p>
+                                <p class="font-medium">
+                                    {{ user_data.nama_depan }} 
+                                    {% if user_data.nama_tengah %}{{ user_data.nama_tengah }} {% endif %}
+                                    {{ user_data.nama_belakang }}
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Nomor Telepon</p>
+                                <p class="font-medium">{{ user_data.no_telepon }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Informasi spesifik role -->
+                    {% if role == 'pengunjung' %}
+                    <div>
+                        <h3 class="text-lg font-medium text-[#4A5A43] mb-2">Informasi Pengunjung</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm text-gray-500">Alamat</p>
+                                <p class="font-medium">{{ additional_data.alamat }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Tanggal Lahir</p>
+                                <p class="font-medium">{{ additional_data.tgl_lahir }}</p>
+                            </div>
+                            {% if additional_data.is_adopter %}
+                            <div>
+                                <p class="text-sm text-gray-500">Status Adopter</p>
+                                <p class="font-medium text-green-600">Terdaftar</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if role == 'dokter' %}
+                    <div>
+                        <h3 class="text-lg font-medium text-[#4A5A43] mb-2">Informasi Dokter Hewan</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm text-gray-500">Nomor STR</p>
+                                <p class="font-medium">{{ additional_data.no_STR }}</p>
+                            </div>
+                            <div class="col-span-2">
+                                <p class="text-sm text-gray-500">Spesialisasi</p>
+                                <div class="flex flex-wrap gap-2 mt-1">
+                                    {% for spesialis in additional_data.spesialisasi %}
+                                    <span class="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">{{ spesialis }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if role == 'penjaga' or role == 'admin' or role == 'pelatih' %}
+                    <div>
+                        <h3 class="text-lg font-medium text-[#4A5A43] mb-2">Informasi Staff</h3>
+                        <div>
+                            <p class="text-sm text-gray-500">ID Staff</p>
+                            <p class="font-medium">{{ additional_data.id_staf }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="pt-4 flex justify-end">
+                        <a href="#" class="px-4 py-2 bg-[#A7C796] text-white rounded-lg hover:bg-opacity-90 transition">Edit Profil</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
