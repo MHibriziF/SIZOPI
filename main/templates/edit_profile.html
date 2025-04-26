@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% block meta %}
+    <title>Edit Profile</title>
+{% endblock meta %}
+
+{% block content %}
+{% load static %}
+{% include 'components/navbar.html' %}
+
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="bg-[#6F826A] px-6 py-4">
+            <h1 class="text-xl font-bold text-white">Pengaturan Profil</h1>
+        </div>
+        
+        {% if messages %}
+        <div class="p-4">
+            {% for message in messages %}
+                <div class="p-3 {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %} rounded">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="p-6">
+            <form action="{% url 'main:edit_profile' %}" method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <div>
+                    <h2 class="text-lg font-medium text-[#4A5A43] mb-4 pb-2 border-b border-gray-200">Informasi Dasar</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="username" class="block text-sm font-medium text-[#6F826A] mb-1">Username</label>
+                            <input type="text" id="username" value="{{ user_data.username }}" disabled
+                                   class="w-full px-4 py-2 rounded-lg border border-green-200 bg-gray-100 text-gray-500"/>
+                            <p class="mt-1 text-xs text-gray-500">Username tidak dapat diubah</p>
+                        </div>
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-[#6F826A] mb-1">Email</label>
+                            <input type="email" name="email" id="email" required value="{{ user_data.email }}"
+                                   class="w-full px-4 py-2 rounded-lg border border-green-200 bg-white focus:outline-none focus:ring-2 focus:ring-green-300"/>
+                        </div>
+                        <div>
+                            <label for="nama_depan" class="block text-sm font-medium text-[#6F826A] mb-1">Nama Depan</label>
+                            <input type="text" name="nama_depan" id="nama_depan" required value="{{ user_data.nama_depan }}"
+                                   class="w-full px-4 py-2 rounded-lg border border-green-200 bg-white focus:outline-none focus:ring-2 focus:ring-green-300"/>
+                        </div>
+                        <div>
+                            <label for="nama_tengah" class="block text-sm font-medium text-[#6F826A] mb-1">Nama Tengah (Opsional)</label>
+                            <input type="text" name="nama_tengah" id="nama_tengah" value="{% if user_data.nama_tengah %}{{ user_data.nama_tengah }}{% endif %}"
+                                   class="w-full px-4 py-2 rounded-lg border border-green-200 bg-white focus:outline-none focus:ring-2 focus:ring-green-300"/>
+                        </div>
+                        <div>
+                            <label for="nama_belakang" class="block text-sm font-medium text-[#6F826A] mb-1">Nama Belakang</label>
+                            <input type="text" name="nama_belakang" id="nama_belakang" required value="{{ user_data.nama_belakang }}"
+                                   class="w-full px-4 py-2 rounded-lg border border-green-200 bg-white focus:outline-none focus:ring-2 focus:ring-green-300"/>
+                        </div>
+                        <div>
+                            <label for="no_telepon" class="block text-sm font-medium text-[#6F826A] mb-1">Nomor Telepon</label>
+                            <input type="tel" name="no_telepon" id="no_telepon" required value="{{ user_data.no_telepon }}"
+                                   class="w-full px-4 py-2 rounded-lg border border-green-200 bg-white focus:outline-none focus:ring-2 focus:ring-green-300"/>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if role == 'pengunjung' %}
+                <div>
+                    <h2 class="text-lg font-medium text-[#4A5A43] mb-4 pb-2 border-b border-gray-200">Informasi Pengunjung</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">
+                            <label for="alamat" class="block text-sm font-medium text-[#6F826A] mb-1">Alamat Lengkap</label>
+                            <textarea name="alamat" id="alamat" rows="3" required
+                                      class="w-full px-4 py-2 rounded-lg border border-green-200 bg-white focus:outline-none focus:ring-2 focus:ring-green-300">{{ additional_data.alamat }}</textarea>
+                        </div>
+                        <div>
+                            <label for="tgl_lahir" class="block text-sm font-medium text-[#6F826A] mb-1">Tanggal Lahir</label>
+                            <input type="date" name="tgl_lahir" id="tgl_lahir" required value="{{ additional_data.tgl_lahir|date:'Y-m-d' }}"
+                                   class="w-full px-4 py-2 rounded-lg border border-green-200 bg-white focus:outline-none focus:ring-2 focus:ring-green-300"/>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if role == 'dokter' %}
+                <div>
+                    <h2 class="text-lg font-medium text-[#4A5A43] mb-4 pb-2 border-b border-gray-200">Informasi Dokter Hewan</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="no_str" class="block text-sm font-medium text-[#6F826A] mb-1">Nomor STR</label>
+                            <input type="text" id="no_str" value="{{ additional_data.no_STR }}" disabled
+                                   class="w-full px-4 py-2 rounded-lg border border-green-200 bg-gray-100 text-gray-500"/>
+                            <p class="mt-1 text-xs text-gray-500">Nomor STR tidak dapat diubah</p>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-[#6F826A] mb-2">Spesialisasi</label>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                <div class="flex items-center">
+                                    <input type="checkbox" name="spesialisasi" value="Mamalia Besar" id="spec-mamalia" 
+                                           {% if "Mamalia Besar" in additional_data.spesialisasi %}checked{% endif %}
+                                           class="w-4 h-4 text-green-600 rounded">
+                                    <label for="spec-mamalia" class="ml-2 text-sm text-gray-700">Mamalia Besar</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" name="spesialisasi" value="Reptil" id="spec-reptil" 
+                                           {% if "Reptil" in additional_data.spesialisasi %}checked{% endif %}
+                                           class="w-4 h-4 text-green-600 rounded">
+                                    <label for="spec-reptil" class="ml-2 text-sm text-gray-700">Reptil</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" name="spesialisasi" value="Burung Eksotis" id="spec-burung" 
+                                           {% if "Burung Eksotis" in additional_data.spesialisasi %}checked{% endif %}
+                                           class="w-4 h-4 text-green-600 rounded">
+                                    <label for="spec-burung" class="ml-2 text-sm text-gray-700">Burung Eksotis</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" name="spesialisasi" value="Primata" id="spec-primata" 
+                                           {% if "Primata" in additional_data.spesialisasi %}checked{% endif %}
+                                           class="w-4 h-4 text-green-600 rounded">
+                                    <label for="spec-primata" class="ml-2 text-sm text-gray-700">Primata</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" name="spesialisasi" value="Mamalia Kecil" id="spec-mamalia-kecil" 
+                                           {% if "Mamalia Kecil" in additional_data.spesialisasi %}checked{% endif %}
+                                           class="w-4 h-4 text-green-600 rounded">
+                                    <label for="spec-mamalia-kecil" class="ml-2 text-sm text-gray-700">Mamalia Kecil</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" name="spesialisasi" value="Unggas" id="spec-unggas"
+                                           {% if "Unggas" in additional_data.spesialisasi %}checked{% endif %}
+                                           class="w-4 h-4 text-green-600 rounded">
+                                    <label for="spec-unggas" class="ml-2 text-sm text-gray-700">Unggas</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" name="spesialisasi" value="Hewan Eksotik" id="spec-eksotik"
+                                           {% if "Hewan Eksotik" in additional_data.spesialisasi %}checked{% endif %}
+                                           class="w-4 h-4 text-green-600 rounded">
+                                    <label for="spec-eksotik" class="ml-2 text-sm text-gray-700">Hewan Eksotik</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" name="spesialisasi" value="Satwa Liar" id="spec-satwa"
+                                           {% if "Satwa Liar" in additional_data.spesialisasi %}checked{% endif %}
+                                           class="w-4 h-4 text-green-600 rounded">
+                                    <label for="spec-satwa" class="ml-2 text-sm text-gray-700">Satwa Liar</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" name="spesialisasi" value="Amfibi" id="spec-amfibi"
+                                           {% if "Amfibi" in additional_data.spesialisasi %}checked{% endif %}
+                                           class="w-4 h-4 text-green-600 rounded">
+                                    <label for="spec-amfibi" class="ml-2 text-sm text-gray-700">Amfibi</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if role == 'penjaga' or role == 'admin' or role == 'pelatih' %}
+                <div>
+                    <h2 class="text-lg font-medium text-[#4A5A43] mb-4 pb-2 border-b border-gray-200">Informasi Staff</h2>
+                    <div>
+                        <label for="id_staf" class="block text-sm font-medium text-[#6F826A] mb-1">ID Staff</label>
+                        <input type="text" id="id_staf" value="{{ additional_data.id_staf }}" disabled
+                               class="w-full px-4 py-2 rounded-lg border border-green-200 bg-gray-100 text-gray-500"/>
+                        <p class="mt-1 text-xs text-gray-500">ID Staff tidak dapat diubah</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="flex justify-between pt-4">
+                    <div>
+                        <a href="{% url 'main:profile' %}" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition">Batal</a>
+                    </div>
+                    <div class="flex space-x-3">
+                        <a href="{% url 'main:change_password' %}" class="px-4 py-2 border border-yellow-500 text-yellow-700 rounded-lg hover:bg-yellow-50 transition">Ubah Password</a>
+                        <button type="submit" class="px-4 py-2 bg-[#A7C796] text-white rounded-lg hover:bg-opacity-90 transition">Simpan</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}

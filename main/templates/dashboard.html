@@ -9,108 +9,367 @@
 
 <div class="container mx-auto px-4 py-8">
     <div class="bg-white rounded-xl shadow-md overflow-hidden p-6 mb-8">
-        <h1 class="text-2xl font-bold text-[#4A5A43] mb-2">Selamat Datang, {{ request.session.full_name }}!</h1>
+        <h1 class="text-2xl font-bold text-[#4A5A43] mb-2">Selamat Datang, {{ user_data.nama_depan }} {{ user_data.nama_belakang }}</h1>
         <p class="text-gray-600">Ini adalah dashboard SIZOPI, sistem informasi kebun binatang terpadu.</p>
     </div>
     
+    <div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+        <div class="bg-[#A7C796] px-6 py-4">
+            <h2 class="text-lg font-semibold text-white">Profil Pengguna</h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-md font-medium text-[#4A5A43] mb-2">Informasi Dasar</h3>
+                    <div class="space-y-2">
+                        <div>
+                            <span class="text-sm text-gray-500">Nama Lengkap:</span>
+                            <span class="text-gray-700">{{ user_data.nama_depan }} {% if user_data.nama_tengah %}{{ user_data.nama_tengah }} {% endif %}{{ user_data.nama_belakang }}</span>
+                        </div>
+                        <div>
+                            <span class="text-sm text-gray-500">Username:</span>
+                            <span class="text-gray-700">{{ user_data.username }}</span>
+                        </div>
+                        <div>
+                            <span class="text-sm text-gray-500">Email:</span>
+                            <span class="text-gray-700">{{ user_data.email }}</span>
+                        </div>
+                        <div>
+                            <span class="text-sm text-gray-500">Nomor Telepon:</span>
+                            <span class="text-gray-700">{{ user_data.no_telepon }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if 'pengunjung' in roles %}
+                <div>
+                    <h3 class="text-md font-medium text-[#4A5A43] mb-2">Informasi Pengunjung</h3>
+                    <div class="space-y-2">
+                        <div>
+                            <span class="text-sm text-gray-500">Alamat:</span>
+                            <span class="text-gray-700">{{ pengunjung_data.alamat }}</span>
+                        </div>
+                        <div>
+                            <span class="text-sm text-gray-500">Tanggal Lahir:</span>
+                            <span class="text-gray-700">{{ pengunjung_data.tgl_lahir }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if 'dokter' in roles %}
+                <div>
+                    <h3 class="text-md font-medium text-[#4A5A43] mb-2">Informasi Dokter Hewan</h3>
+                    <div class="space-y-2">
+                        <div>
+                            <span class="text-sm text-gray-500">Nomor STR:</span>
+                            <span class="text-gray-700">{{ dokter_data.no_STR }}</span>
+                        </div>
+                        <div>
+                            <span class="text-sm text-gray-500">Spesialisasi:</span>
+                            <div class="flex flex-wrap gap-1 mt-1">
+                                {% for spec in spesialisasi %}
+                                <span class="inline-block px-2 py-1 bg-green-100 text-xs text-green-800 rounded-full">{{ spec }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if 'penjaga' in roles or 'admin' in roles or 'pelatih' in roles %}
+                <div>
+                    <h3 class="text-md font-medium text-[#4A5A43] mb-2">Informasi Staff</h3>
+                    <div class="space-y-2">
+                        <div>
+                            <span class="text-sm text-gray-500">
+                                {% if 'penjaga' in roles %}
+                                    ID Penjaga:
+                                {% elif 'admin' in roles %}
+                                    ID Admin:
+                                {% elif 'pelatih' in roles %}
+                                    ID Pelatih:
+                                {% endif %}
+                            </span>
+                            <span class="text-gray-700">
+                                {% if 'penjaga' in roles %}
+                                    {{ penjaga_data.id_staf }}
+                                {% elif 'admin' in roles %}
+                                    {{ admin_data.id_staf }}
+                                {% elif 'pelatih' in roles %}
+                                    {{ pelatih_data.id_staf }}
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    {% if 'pengunjung' in roles %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="bg-[#A7C796] px-6 py-4">
+                <h2 class="text-lg font-semibold text-white">Riwayat Kunjungan</h2>
+            </div>
+            <div class="p-6">
+                {% if riwayat_kunjungan %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durasi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for kunjungan in riwayat_kunjungan %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ kunjungan.tanggal }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ kunjungan.durasi }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-gray-500">Belum ada riwayat kunjungan</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="bg-[#A7C796] px-6 py-4">
+                <h2 class="text-lg font-semibold text-white">Informasi Tiket</h2>
+            </div>
+            <div class="p-6">
+                {% if tiket %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Tiket</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for t in tiket %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ t.id }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ t.tanggal }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ t.jenis }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        {% if t.status == 'Valid' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                        {{ t.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-gray-500">Belum ada tiket</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if 'dokter' in roles %}
+    <div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+        <div class="bg-[#A7C796] px-6 py-4">
+            <h2 class="text-lg font-semibold text-white">Statistik Dokter Hewan</h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-green-50 p-4 rounded-lg text-center">
+                    <span class="text-3xl font-bold text-green-600">{{ jumlah_hewan }}</span>
+                    <p class="text-sm text-gray-500 mt-1">Hewan Ditangani</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg text-center">
+                    <span class="text-3xl font-bold text-green-600">12</span>
+                    <p class="text-sm text-gray-500 mt-1">Pemeriksaan Bulan Ini</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg text-center">
+                    <span class="text-3xl font-bold text-green-600">3</span>
+                    <p class="text-sm text-gray-500 mt-1">Jadwal Hari Ini</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if 'penjaga' in roles %}
+    <div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+        <div class="bg-[#A7C796] px-6 py-4">
+            <h2 class="text-lg font-semibold text-white">Statistik Penjaga Hewan</h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-green-50 p-4 rounded-lg text-center">
+                    <span class="text-3xl font-bold text-green-600">{{ jumlah_pakan }}</span>
+                    <p class="text-sm text-gray-500 mt-1">Hewan Diberi Pakan</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg text-center">
+                    <span class="text-3xl font-bold text-green-600">5</span>
+                    <p class="text-sm text-gray-500 mt-1">Jadwal Pakan Hari Ini</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg text-center">
+                    <span class="text-3xl font-bold text-green-600">18</span>
+                    <p class="text-sm text-gray-500 mt-1">Total Jam Jaga</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if 'admin' in roles %}
+    <div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+        <div class="bg-[#A7C796] px-6 py-4">
+            <h2 class="text-lg font-semibold text-white">Statistik Admin</h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-green-50 p-4 rounded-lg text-center">
+                    <span class="text-3xl font-bold text-green-600">{{ statistik.penjualan_hari_ini }}</span>
+                    <p class="text-sm text-gray-500 mt-1">Penjualan Tiket Hari Ini</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg text-center">
+                    <span class="text-3xl font-bold text-green-600">{{ statistik.pengunjung_hari_ini }}</span>
+                    <p class="text-sm text-gray-500 mt-1">Pengunjung Hari Ini</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg text-center">
+                    <span class="text-xl font-bold text-green-600">{{ statistik.pendapatan_mingguan }}</span>
+                    <p class="text-sm text-gray-500 mt-1">Pendapatan Mingguan</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if 'pelatih' in roles %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="bg-[#A7C796] px-6 py-4">
+                <h2 class="text-lg font-semibold text-white">Jadwal Pertunjukan Hari Ini</h2>
+            </div>
+            <div class="p-6">
+                {% if jadwal_hari_ini %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Atraksi</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waktu</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for jadwal in jadwal_hari_ini %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ jadwal.nama_atraksi }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ jadwal.tgl_penugasan|date:"H:i" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-gray-500">Tidak ada jadwal pertunjukan hari ini</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="bg-[#A7C796] px-6 py-4">
+                <h2 class="text-lg font-semibold text-white">Hewan yang Dilatih</h2>
+            </div>
+            <div class="p-6">
+                {% if hewan_dilatih %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Spesies</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for hewan in hewan_dilatih %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ hewan.id }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ hewan.nama }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ hewan.spesies }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        {% if hewan.status == 'Siap' %}bg-green-100 text-green-800
+                                        {% elif hewan.status == 'Latihan' %}bg-yellow-100 text-yellow-800
+                                        {% else %}bg-blue-100 text-blue-800{% endif %}">
+                                        {{ hewan.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-gray-500">Belum ada hewan yang ditugaskan untuk dilatih</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Menu Fitur-fitur -->
+    <h2 class="text-xl font-bold text-[#4A5A43] mb-4">Fitur Tersedia</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% if 'dokter' in request.session.roles %}
-        <div class="bg-white rounded-xl shadow-md overflow-hidden">
-            <div class="bg-green-100 px-6 py-4">
-                <h2 class="text-lg font-semibold text-[#4A5A43]">Rekam Medis Hewan</h2>
+        {% if 'dokter' in roles %}
+        <div class="bg-white rounded-xl shadow-md overflow-hidden transform transition-all hover:scale-105">
+            <div class="h-32 bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
             </div>
-            <div class="p-6">
-                <p class="text-gray-600 mb-4">Kelola rekam medis dan riwayat pemeriksaan hewan di kebun binatang.</p>
-                <a href="#" class="inline-block px-4 py-2 bg-[#A7C796] text-white rounded-lg hover:bg-opacity-90 transition">Lihat Rekam Medis</a>
+            <div class="p-4">
+                <h3 class="text-lg font-semibold text-[#4A5A43] mb-1">Rekam Medis Hewan</h3>
+                <p class="text-sm text-gray-600 mb-3">Kelola rekam medis dan riwayat pemeriksaan hewan di kebun binatang.</p>
+                <a href="#" class="inline-block px-3 py-1 bg-[#A7C796] text-white rounded-lg hover:bg-opacity-90 transition text-sm">Lihat Informasi</a>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-md overflow-hidden transform transition-all hover:scale-105">
+            <div class="h-32 bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+            </div>
+            <div class="p-4">
+                <h3 class="text-lg font-semibold text-[#4A5A43] mb-1">Program Adopsi Hewan</h3>
+                <p class="text-sm text-gray-600 mb-3">Daftar sebagai adopter dan dukung hewan di kebun binatang kami.</p>
+                <a href="#" class="inline-block px-3 py-1 bg-[#A7C796] text-white rounded-lg hover:bg-opacity-90 transition text-sm">Program Adopsi</a>
             </div>
         </div>
         {% endif %}
         
-        {% if 'penjaga' in request.session.roles %}
-        <div class="bg-white rounded-xl shadow-md overflow-hidden">
-            <div class="bg-green-100 px-6 py-4">
-                <h2 class="text-lg font-semibold text-[#4A5A43]">Catatan Perawatan Hewan</h2>
+        <div class="bg-white rounded-xl shadow-md overflow-hidden transform transition-all hover:scale-105">
+            <div class="h-32 bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
             </div>
-            <div class="p-6">
-                <p class="text-gray-600 mb-4">Kelola jadwal pemberian pakan dan perawatan rutin hewan.</p>
-                <a href="#" class="inline-block px-4 py-2 bg-[#A7C796] text-white rounded-lg hover:bg-opacity-90 transition">Lihat Jadwal</a>
-            </div>
-        </div>
-        {% endif %}
-        
-        {% if 'admin' in request.session.roles %}
-        <div class="bg-white rounded-xl shadow-md overflow-hidden">
-            <div class="bg-green-100 px-6 py-4">
-                <h2 class="text-lg font-semibold text-[#4A5A43]">Kelola Pengunjung</h2>
-            </div>
-            <div class="p-6">
-                <p class="text-gray-600 mb-4">Lihat dan kelola data pengunjung kebun binatang.</p>
-                <a href="#" class="inline-block px-4 py-2 bg-[#A7C796] text-white rounded-lg hover:bg-opacity-90 transition">Kelola Pengunjung</a>
-            </div>
-        </div>
-        
-        <div class="bg-white rounded-xl shadow-md overflow-hidden">
-            <div class="bg-green-100 px-6 py-4">
-                <h2 class="text-lg font-semibold text-[#4A5A43]">Kelola Adopsi</h2>
-            </div>
-            <div class="p-6">
-                <p class="text-gray-600 mb-4">Kelola program adopsi hewan dan pembayaran kontribusi.</p>
-                <a href="#" class="inline-block px-4 py-2 bg-[#A7C796] text-white rounded-lg hover:bg-opacity-90 transition">Kelola Adopsi</a>
-            </div>
-        </div>
-        
-        <div class="bg-white rounded-xl shadow-md overflow-hidden">
-            <div class="bg-green-100 px-6 py-4">
-                <h2 class="text-lg font-semibold text-[#4A5A43]">Kelola Adopter</h2>
-            </div>
-            <div class="p-6">
-                <p class="text-gray-600 mb-4">Lihat dan kelola data adopter dan kontribusi finansial.</p>
-                <a href="#" class="inline-block px-4 py-2 bg-[#A7C796] text-white rounded-lg hover:bg-opacity-90 transition">Kelola Adopter</a>
-            </div>
-        </div>
-        {% endif %}
-        
-        {% if 'pelatih' in request.session.roles %}
-        <div class="bg-white rounded-xl shadow-md overflow-hidden">
-            <div class="bg-green-100 px-6 py-4">
-                <h2 class="text-lg font-semibold text-[#4A5A43]">Jadwal Pertunjukan</h2>
-            </div>
-            <div class="p-6">
-                <p class="text-gray-600 mb-4">Kelola jadwal pertunjukan dan atraksi hewan di kebun binatang.</p>
-                <a href="#" class="inline-block px-4 py-2 bg-[#A7C796] text-white rounded-lg hover:bg-opacity-90 transition">Lihat Jadwal</a>
-            </div>
-        </div>
-        {% endif %}
-        
-        {% if 'pengunjung' in request.session.roles %}
-        <div class="bg-white rounded-xl shadow-md overflow-hidden">
-            <div class="bg-green-100 px-6 py-4">
-                <h2 class="text-lg font-semibold text-[#4A5A43]">Informasi Kebun Binatang</h2>
-            </div>
-            <div class="p-6">
-                <p class="text-gray-600 mb-4">Lihat informasi tentang hewan, habitat, dan atraksi di kebun binatang.</p>
-                <a href="#" class="inline-block px-4 py-2 bg-[#A7C796] text-white rounded-lg hover:bg-opacity-90 transition">Lihat Informasi</a>
-            </div>
-        </div>
-        
-        <div class="bg-white rounded-xl shadow-md overflow-hidden">
-            <div class="bg-green-100 px-6 py-4">
-                <h2 class="text-lg font-semibold text-[#4A5A43]">Program Adopsi Hewan</h2>
-            </div>
-            <div class="p-6">
-                <p class="text-gray-600 mb-4">Daftar sebagai adopter dan dukung hewan di kebun binatang kami.</p>
-                <a href="#" class="inline-block px-4 py-2 bg-[#A7C796] text-white rounded-lg hover:bg-opacity-90 transition">Program Adopsi</a>
-            </div>
-        </div>
-        {% endif %}
-        
-        <div class="bg-white rounded-xl shadow-md overflow-hidden">
-            <div class="bg-green-100 px-6 py-4">
-                <h2 class="text-lg font-semibold text-[#4A5A43]">Pengaturan Profil</h2>
-            </div>
-            <div class="p-6">
-                <p class="text-gray-600 mb-4">Lihat dan perbarui informasi profil akun Anda.</p>
-                <a href="#" class="inline-block px-4 py-2 bg-[#A7C796] text-white rounded-lg hover:bg-opacity-90 transition">Kelola Profil</a>
+            <div class="p-4">
+                <h3 class="text-lg font-semibold text-[#4A5A43] mb-1">Pengaturan Profil</h3>
+                <p class="text-sm text-gray-600 mb-3">Lihat dan perbarui informasi profil akun Anda.</p>
+                <a href="{% url 'main:edit_profile' %}" class="inline-block px-3 py-1 bg-[#A7C796] text-white rounded-lg hover:bg-opacity-90 transition text-sm">Kelola Profil</a>
             </div>
         </div>
     </div>
