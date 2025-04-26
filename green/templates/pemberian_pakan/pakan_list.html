@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% block meta %}
+    <title>Pemberian Pakan</title>
+{% endblock meta %}
+
+{% block content %}
+{% load static %}
+{% include 'components/navbar.html' %}
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>Pemberian Pakan: {{ hewan.nama|default:"Tidak ada nama" }} ({{ hewan.spesies }})</h2>
+        <p>Status Kesehatan: 
+            {% if hewan.status_kesehatan == 'Sehat' %}
+                <span class="badge bg-success">{{ hewan.status_kesehatan }}</span>
+            {% elif hewan.status_kesehatan == 'Sakit' %}
+                <span class="badge bg-danger">{{ hewan.status_kesehatan }}</span>
+            {% else %}
+                <span class="badge bg-warning text-dark">{{ hewan.status_kesehatan }}</span>
+            {% endif %}
+        </p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'green:pemberian_pakan_list' %}" class="btn btn-secondary mb-2">Kembali ke Daftar Hewan</a>
+        <button type="button" class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#tambahPakanModal">
+            <i class="bi bi-plus-circle"></i> Tambah Jadwal Pemberian Pakan
+        </button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Daftar Jadwal Pemberian Pakan</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Jenis Pakan</th>
+                                <th>Jumlah Pakan (gram)</th>
+                                <th>Jadwal</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pakan in pakan_list %}
+                            <tr>
+                                <td>{{ pakan.jenis }}</td>
+                                <td>{{ pakan.jumlah }}</td>
+                                <td>{{ pakan.jadwal|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    {% if pakan.status == 'Menunggu Pemberian' %}
+                                        <span class="badge bg-warning text-dark">{{ pakan.status }}</span>
+                                    {% else %}
+                                        <span class="badge bg-success">{{ pakan.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if pakan.status == 'Menunggu Pemberian' %}
+                                        <form action="{% url 'green:pemberian_pakan_beri' hewan.id pakan.jadwal|date:'Y-m-d H:i:s' %}" method="post" style="display:inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-success">Beri Pakan</button>
+                                        </form>
+                                    {% endif %}
+                                    
+                                    <a href="{% url 'green:pemberian_pakan_update' hewan.id pakan.jadwal|date:'Y-m-d H:i:s' %}" class="btn btn-sm btn-warning">Edit</a>
+                                    
+                                    <button type="button" class="btn btn-sm btn-danger" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#hapusPakanModal" 
+                                            data-jadwal="{{ pakan.jadwal|date:'Y-m-d H:i:s' }}">
+                                        Hapus
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center">Belum ada jadwal pemberian pakan</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Tambah Jadwal Pemberian Pakan -->
+<div class="modal fade" id="tambahPakanModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Tambah Jadwal Pemberian Pakan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'green:pemberian_pakan_create' hewan.id %}" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="jenis_pakan" class="form-label">Jenis Pakan</label>
+                        <input type="text" class="form-control" id="jenis_pakan" name="jenis_pakan" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="jumlah_pakan" class="form-label">Jumlah Pakan (gram)</label>
+                        <input type="number" class="form-control" id="jumlah_pakan" name="jumlah_pakan" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="jadwal" class="form-label">Jadwal</label>
+                        <input type="datetime-local" class="form-control" id="jadwal" name="jadwal" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">BATAL</button>
+                    <button type="submit" class="btn btn-primary">SIMPAN</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Hapus Jadwal Pemberian Pakan -->
+<div class="modal fade" id="hapusPakanModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Konfirmasi Hapus</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Apakah Anda yakin ingin menghapus data pemberian pakan ini?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">TIDAK</button>
+                <form id="hapusPakanForm" method="post" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">YA</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set URL untuk hapus jadwal pakan
+        const hapusPakanModal = document.getElementById('hapusPakanModal');
+        hapusPakanModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const jadwal = button.getAttribute('data-jadwal');
+            const form = document.getElementById('hapusPakanForm');
+            form.action = "{% url 'green:pemberian_pakan_delete' hewan.id '0000-00-00 00:00:00' %}".replace('0000-00-00 00:00:00', jadwal);
+        });
+    });
+</script>
+{% endblock %}
+
+{% endblock content %}

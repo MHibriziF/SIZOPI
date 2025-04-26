@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block meta %}
+    <title>Edit Jadwal Pemberian Pakan</title>
+{% endblock meta %}
+
+{% block content %}
+{% load static %}
+{% include 'components/navbar.html' %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>Edit Jadwal Pemberian Pakan</h2>
+        <h4>{{ hewan.nama|default:"Tidak ada nama" }} ({{ hewan.spesies }})</h4>
+        <p>Jadwal Saat Ini: {{ pakan.jadwal|date:"d/m/Y H:i" }}</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'green:pemberian_pakan_list' %}?id_hewan={{ hewan.id }}" class="btn btn-secondary">Kembali</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">Form Edit Jadwal Pemberian Pakan</h5>
+            </div>
+            <div class="card-body">
+                <form action="{% url 'green:pemberian_pakan_update' hewan.id pakan.jadwal|date:'Y-m-d H:i:s' %}" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="jenis_pakan_baru" class="form-label">Jenis Pakan Baru</label>
+                        <input type="text" class="form-control" id="jenis_pakan_baru" name="jenis_pakan_baru" value="{{ pakan.jenis }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="jumlah_pakan_baru" class="form-label">Jumlah Pakan Baru (gram)</label>
+                        <input type="number" class="form-control" id="jumlah_pakan_baru" name="jumlah_pakan_baru" value="{{ pakan.jumlah }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="jadwal_baru" class="form-label">Jadwal Baru</label>
+                        <input type="datetime-local" class="form-control" id="jadwal_baru" name="jadwal_baru" value="{{ pakan.jadwal|date:'Y-m-d\TH:i' }}" required>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-warning">SIMPAN</button>
+                        <a href="{% url 'green:pemberian_pakan_list' %}?id_hewan={{ hewan.id }}" class="btn btn-secondary">BATAL</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
