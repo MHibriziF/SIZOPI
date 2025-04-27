@@ -1,63 +1,85 @@
 {% extends 'base.html' %}
+
 {% block meta %}
     <title>Daftar Hewan - Rekam Medis</title>
+    <style>
+      /* overlay putih semi-transparan untuk container & card */
+      .overlay-bg {
+        background-color: rgba(255, 255, 255, 0.85) !important;
+        border-radius: 0.25rem;
+      }
+      /* header tabel gelap semi-transparan */
+      .table-header-overlay th {
+        background-color: rgba(0, 0, 0, 0.6) !important;
+        color: #fff !important;
+      }
+      /* baris tabel putih semi-transparan */
+      .table-row-overlay td {
+        background-color: rgba(255, 255, 255, 0.8);
+      }
+    </style>
 {% endblock meta %}
 
 {% block content %}
 {% load static %}
 {% include 'components/navbar.html' %}
 
-<div class="row mb-4">
+<div class="container py-4 overlay-bg">
+  <div class="row mb-4">
     <div class="col">
-        <h2>Daftar Hewan</h2>
-        <p class="text-muted">Pilih hewan untuk melihat rekam medisnya</p>
+      <h2>Daftar Hewan</h2>
+      <p class="text-muted">Pilih hewan untuk melihat rekam medisnya</p>
     </div>
-</div>
+  </div>
 
-<div class="row">
-    <div class="col">
-        <div class="table-responsive">
-            <table class="table table-striped table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Nama</th>
-                        <th>Spesies</th>
-                        <th>Asal</th>
-                        <th>Tanggal Lahir</th>
-                        <th>Habitat</th>
-                        <th>Status Kesehatan</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for hewan in hewan_list %}
-                    <tr>
-                        <td>{{ hewan.nama|default:"Tidak ada nama" }}</td>
-                        <td>{{ hewan.spesies }}</td>
-                        <td>{{ hewan.asal_hewan }}</td>
-                        <td>{{ hewan.tanggal_lahir|date:"d/m/Y"|default:"-" }}</td>
-                        <td>{{ hewan.nama_habitat }}</td>
-                        <td>
-                            {% if hewan.status_kesehatan == 'Sehat' %}
-                                <span class="badge bg-success">{{ hewan.status_kesehatan }}</span>
-                            {% elif hewan.status_kesehatan == 'Sakit' %}
-                                <span class="badge bg-danger">{{ hewan.status_kesehatan }}</span>
-                            {% else %}
-                                <span class="badge bg-warning text-dark">{{ hewan.status_kesehatan }}</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <a href="{% url 'green:rekam_medis_list' %}?id_hewan={{ hewan.id }}" class="btn btn-sm btn-primary">Lihat Rekam Medis</a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="7" class="text-center">Tidak ada data hewan</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+  <div class="card shadow-sm overlay-bg">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-header-overlay">
+            <tr>
+              <th class="px-3 py-3">Nama</th>
+              <th class="px-3 py-3">Spesies</th>
+              <th class="px-3 py-3">Asal</th>
+              <th class="px-3 py-3">Tanggal Lahir</th>
+              <th class="px-3 py-3">Habitat</th>
+              <th class="px-3 py-3">Status Kesehatan</th>
+              <th class="px-3 py-3">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for hewan in hewan_list %}
+            <tr class="table-row-overlay">
+              <td class="px-3 py-3">{{ hewan.nama|default:"Tidak ada nama" }}</td>
+              <td class="px-3 py-3">{{ hewan.spesies }}</td>
+              <td class="px-3 py-3">{{ hewan.asal_hewan }}</td>
+              <td class="px-3 py-3">{{ hewan.tanggal_lahir|date:"d/m/Y"|default:"-" }}</td>
+              <td class="px-3 py-3">{{ hewan.nama_habitat }}</td>
+              <td class="px-3 py-3">
+                {% if hewan.status_kesehatan == 'Sehat' %}
+                  <span class="badge bg-success">{{ hewan.status_kesehatan }}</span>
+                {% elif hewan.status_kesehatan == 'Sakit' %}
+                  <span class="badge bg-danger">{{ hewan.status_kesehatan }}</span>
+                {% else %}
+                  <span class="badge bg-warning text-dark">{{ hewan.status_kesehatan }}</span>
+                {% endif %}
+              </td>
+              <td class="px-3 py-3">
+                <a href="{% url 'green:rekam_medis_list' %}?id_hewan={{ hewan.id }}"
+                   class="btn btn-sm btn-primary">
+                  <i class="bi bi-clipboard-data"></i> Lihat Rekam Medis
+                </a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr class="table-row-overlay">
+              <td colspan="7" class="text-center py-4">Tidak ada data hewan</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock content %}

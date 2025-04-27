@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block meta %}
+    <title>Tambah Rekam Medis</title>
+{% endblock meta %}
+
+{% block content %}
+{% load static %}
+{% include 'components/navbar.html' %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-[#4A5A43]">Tambah Rekam Medis</h1>
+        <a href="{% url 'green:rekam_medis_list' %}?id_hewan={{ hewan.id }}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
+            Kembali
+        </a>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-md overflow-hidden p-6 mb-8">
+        <div class="mb-4">
+            <h2 class="text-xl font-semibold text-[#4A5A43] mb-2">Informasi Hewan</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p><span class="font-medium">Nama:</span> {{ hewan.nama|default:"Tidak ada nama" }}</p>
+                    <p><span class="font-medium">Spesies:</span> {{ hewan.spesies }}</p>
+                    <p><span class="font-medium">Asal:</span> {{ hewan.asal_hewan }}</p>
+                </div>
+                <div>
+                    <p><span class="font-medium">Tanggal Lahir:</span> {{ hewan.tanggal_lahir|date:"d/m/Y"|default:"-" }}</p>
+                    <p><span class="font-medium">Habitat:</span> {{ hewan.nama_habitat }}</p>
+                    <p><span class="font-medium">Status Kesehatan:</span> 
+                        {% if hewan.status_kesehatan == 'Sehat' %}
+                            <span class="inline-block px-2 py-1 bg-green-100 text-xs text-green-800 rounded-full">{{ hewan.status_kesehatan }}</span>
+                        {% elif hewan.status_kesehatan == 'Sakit' %}
+                            <span class="inline-block px-2 py-1 bg-red-100 text-xs text-red-800 rounded-full">{{ hewan.status_kesehatan }}</span>
+                        {% else %}
+                            <span class="inline-block px-2 py-1 bg-yellow-100 text-xs text-yellow-800 rounded-full">{{ hewan.status_kesehatan }}</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <form method="post" class="mt-6">
+            {% csrf_token %}
+            
+            {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-2" role="alert">
+                    <span class="block sm:inline">{{ message }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <div class="mb-4">
+                <label for="tanggal_pemeriksaan" class="block text-gray-700 font-medium mb-2">Tanggal Pemeriksaan</label>
+                <input type="date" id="tanggal_pemeriksaan" name="tanggal_pemeriksaan" 
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#A7C796]" 
+                       required>
+            </div>
+            
+            <div class="mb-4">
+                <label for="status_kesehatan" class="block text-gray-700 font-medium mb-2">Status Kesehatan</label>
+                <select id="status_kesehatan" name="status_kesehatan" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#A7C796]"
+                        required>
+                    <option value="Sehat">Sehat</option>
+                    <option value="Sakit">Sakit</option>
+                    <option value="Dalam pemantauan">Dalam pemantauan</option>
+                </select>
+            </div>
+            
+            <div id="diagnosa-pengobatan" class="hidden">
+                <div class="mb-4">
+                    <label for="diagnosis" class="block text-gray-700 font-medium mb-2">Diagnosa</label>
+                    <input type="text" id="diagnosis" name="diagnosis" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#A7C796]">
+                    <p class="text-sm text-gray-500 mt-1">Wajib diisi jika status Sakit</p>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="pengobatan" class="block text-gray-700 font-medium mb-2">Pengobatan</label>
+                    <input type="text" id="pengobatan" name="pengobatan" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#A7C796]">
+                    <p class="text-sm text-gray-500 mt-1">Wajib diisi jika status Sakit</p>
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+                <a href="{% url 'green:rekam_medis_list' %}?id_hewan={{ hewan.id }}" 
+                   class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
+                    Batal
+                </a>
+                <button type="submit" class="bg-[#A7C796] hover:bg-[#8EAF7B] text-white font-bold py-2 px-4 rounded">
+                    Simpan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const statusKesehatan = document.getElementById('status_kesehatan');
+        const diagnosaPengobatan = document.getElementById('diagnosa-pengobatan');
+        
+        // Function to toggle diagnosa-pengobatan fields
+        function toggleDiagnosaPengobatan() {
+            if (statusKesehatan.value === 'Sakit') {
+                diagnosaPengobatan.classList.remove('hidden');
+                document.getElementById('diagnosis').setAttribute('required', 'required');
+                document.getElementById('pengobatan').setAttribute('required', 'required');
+            } else {
+                diagnosaPengobatan.classList.add('hidden');
+                document.getElementById('diagnosis').removeAttribute('required');
+                document.getElementById('pengobatan').removeAttribute('required');
+            }
+        }
+        
+        // Initial setup
+        toggleDiagnosaPengobatan();
+        
+        // Add event listener
+        statusKesehatan.addEventListener('change', toggleDiagnosaPengobatan);
+    });
+</script>
+{% endblock content %}

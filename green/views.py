@@ -1,4 +1,4 @@
-# green/views.py
+# views.py
 import uuid
 import psycopg2
 from datetime import datetime
@@ -6,24 +6,47 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.db import connection
 from django.http import HttpResponse, JsonResponse
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 
 # Helper functions untuk cek role pengguna
-def is_dokter_hewan(user):
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT COUNT(*) FROM SIZOPI.DOKTER_HEWAN 
-            WHERE username_DH = %s
-        """, [user.username])
-        return cursor.fetchone()[0] > 0
+def is_dokter_hewan(request):
+    """Cek apakah pengguna adalah dokter hewan"""
+    if not request.session.get('username'):
+        return False
+    
+    username = request.session.get('username')
+    roles = request.session.get('roles', [])
+    
+    return 'dokter' in roles
 
-def is_penjaga_hewan(user):
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT COUNT(*) FROM SIZOPI.PENJAGA_HEWAN 
-            WHERE username_jh = %s
-        """, [user.username])
-        return cursor.fetchone()[0] > 0
+def is_penjaga_hewan(request):
+    """Cek apakah pengguna adalah penjaga hewan"""
+    if not request.session.get('username'):
+        return False
+    
+    username = request.session.get('username')
+    roles = request.session.get('roles', [])
+    
+    return 'penjaga' in roles
+
+# Decorator untuk memeriksa apakah user adalah dokter hewan
+def dokter_hewan_required(view_func):
+    def wrapper(request, *args, **kwargs):
+        if not is_dokter_hewan(request):
+            messages.error(request, "Anda tidak memiliki akses untuk halaman ini. Hanya dokter hewan yang diizinkan.")
+            return redirect('main:login')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+# Decorator untuk memeriksa apakah user adalah penjaga hewan
+def penjaga_hewan_required(view_func):
+    def wrapper(request, *args, **kwargs):
+        if not is_penjaga_hewan(request):
+            messages.error(request, "Anda tidak memiliki akses untuk halaman ini. Hanya penjaga hewan yang diizinkan.")
+            return redirect('main:login')
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
 # Mendapatkan data hewan berdasarkan ID
 def get_hewan_by_id(id_hewan):
@@ -76,15 +99,14 @@ A. CRUD Rekam Medis Hewan
 -------------------------
 """
 
-@login_required
-@user_passes_test(is_dokter_hewan)
+@dokter_hewan_required
 def rekam_medis_list(request):
     id_hewan = request.GET.get('id_hewan')
     
     if not id_hewan:
         # Jika id_hewan tidak ada, tampilkan daftar hewan
         hewan_list = get_all_hewan()
-        return render(request, 'green/rekam_medis/hewan_list.html', {'hewan_list': hewan_list})
+        return render(request, 'rekam_medis/hewan_list.html', {'hewan_list': hewan_list})
     
     # Ambil data hewan
     hewan = get_hewan_by_id(id_hewan)
@@ -119,10 +141,9 @@ def rekam_medis_list(request):
         'rekam_medis_list': rekam_medis_list
     }
     
-    return render(request, 'green/rekam_medis/rekam_medis_list.html', context)
+    return render(request, 'rekam_medis/rekam_medis_list.html', context)
 
-@login_required
-@user_passes_test(is_dokter_hewan)
+@dokter_hewan_required
 def rekam_medis_create(request, id_hewan):
     # Ambil data hewan
     hewan = get_hewan_by_id(id_hewan)
@@ -139,11 +160,11 @@ def rekam_medis_create(request, id_hewan):
         # Validasi
         if not tanggal_pemeriksaan:
             messages.error(request, "Tanggal pemeriksaan harus diisi")
-            return render(request, 'green/rekam_medis/rekam_medis_form.html', {'hewan': hewan})
+            return render(request, 'rekam_medis/rekam_medis_form.html', {'hewan': hewan})
         
         if status_kesehatan == 'Sakit' and (not diagnosis or not pengobatan):
             messages.error(request, "Diagnosis dan pengobatan harus diisi untuk status sakit")
-            return render(request, 'green/rekam_medis/rekam_medis_form.html', {'hewan': hewan})
+            return render(request, 'rekam_medis/rekam_medis_form.html', {'hewan': hewan})
         
         try:
             with connection.cursor() as cursor:
@@ -155,13 +176,13 @@ def rekam_medis_create(request, id_hewan):
                 
                 if cursor.fetchone()[0] > 0:
                     messages.error(request, "Rekam medis untuk tanggal ini sudah ada")
-                    return render(request, 'green/rekam_medis/rekam_medis_form.html', {'hewan': hewan})
+                    return render(request, 'rekam_medis/rekam_medis_form.html', {'hewan': hewan})
                 
                 # Simpan rekam medis baru
                 cursor.execute("""
                     INSERT INTO SIZOPI.CATATAN_MEDIS (id_hewan, username_dh, tanggal_pemeriksaan, diagnosis, pengobatan, status_kesehatan, catatan_tindak_lanjut)
                     VALUES (%s, %s, %s, %s, %s, %s, NULL)
-                """, [id_hewan, request.user.username, tanggal_pemeriksaan, diagnosis, pengobatan, status_kesehatan])
+                """, [id_hewan, request.session.get('username'), tanggal_pemeriksaan, diagnosis, pengobatan, status_kesehatan])
                 
                 # Update status kesehatan di tabel HEWAN
                 cursor.execute("""
@@ -175,10 +196,9 @@ def rekam_medis_create(request, id_hewan):
         except Exception as e:
             messages.error(request, f"Terjadi kesalahan: {str(e)}")
     
-    return render(request, 'green/rekam_medis/rekam_medis_form.html', {'hewan': hewan})
+    return render(request, 'rekam_medis/rekam_medis_form.html', {'hewan': hewan})
 
-@login_required
-@user_passes_test(is_dokter_hewan)
+@dokter_hewan_required
 def rekam_medis_update(request, id_hewan, tanggal):
     # Ambil data hewan
     hewan = get_hewan_by_id(id_hewan)
@@ -238,10 +258,9 @@ def rekam_medis_update(request, id_hewan, tanggal):
         'rekam_medis': rekam_medis
     }
     
-    return render(request, 'green/rekam_medis/rekam_medis_edit_form.html', context)
+    return render(request, 'rekam_medis/rekam_medis_edit_form.html', context)
 
-@login_required
-@user_passes_test(is_dokter_hewan)
+@dokter_hewan_required
 def rekam_medis_delete(request, id_hewan, tanggal):
     if request.method == 'POST':
         try:
@@ -264,15 +283,14 @@ B. CR Penjadwalan Pemeriksaan Kesehatan
 ---------------------------------------
 """
 
-@login_required
-@user_passes_test(is_dokter_hewan)
+@dokter_hewan_required
 def jadwal_pemeriksaan_list(request):
     id_hewan = request.GET.get('id_hewan')
     
     if not id_hewan:
         # Jika id_hewan tidak ada, tampilkan daftar hewan
         hewan_list = get_all_hewan()
-        return render(request, 'green/jadwal_pemeriksaan/hewan_list.html', {'hewan_list': hewan_list})
+        return render(request, 'jadwal_pemeriksaan/hewan_list.html', {'hewan_list': hewan_list})
     
     # Ambil data hewan
     hewan = get_hewan_by_id(id_hewan)
@@ -311,13 +329,13 @@ def jadwal_pemeriksaan_list(request):
     context = {
         'hewan': hewan,
         'jadwal_list': jadwal_list,
-        'frekuensi': frekuensi
+        'frekuensi': frekuensi,
+        'today': datetime.now().date()
     }
     
-    return render(request, 'green/jadwal_pemeriksaan/jadwal_list.html', context)
+    return render(request, 'jadwal_pemeriksaan/jadwal_list.html', context)
 
-@login_required
-@user_passes_test(is_dokter_hewan)
+@dokter_hewan_required
 def jadwal_pemeriksaan_create(request, id_hewan):
     # Ambil data hewan
     hewan = get_hewan_by_id(id_hewan)
@@ -343,7 +361,7 @@ def jadwal_pemeriksaan_create(request, id_hewan):
         
         if not tanggal_pemeriksaan:
             messages.error(request, "Tanggal pemeriksaan harus diisi")
-            return render(request, 'green/jadwal_pemeriksaan/jadwal_form.html', {'hewan': hewan})
+            return render(request, 'jadwal_pemeriksaan/jadwal_form.html', {'hewan': hewan})
         
         try:
             with connection.cursor() as cursor:
@@ -355,7 +373,7 @@ def jadwal_pemeriksaan_create(request, id_hewan):
                 
                 if cursor.fetchone()[0] > 0:
                     messages.error(request, "Jadwal pemeriksaan untuk tanggal ini sudah ada")
-                    return render(request, 'green/jadwal_pemeriksaan/jadwal_form.html', {'hewan': hewan})
+                    return render(request, 'jadwal_pemeriksaan/jadwal_form.html', {'hewan': hewan})
                 
                 # Simpan jadwal pemeriksaan baru
                 cursor.execute("""
@@ -368,7 +386,7 @@ def jadwal_pemeriksaan_create(request, id_hewan):
         except Exception as e:
             messages.error(request, f"Terjadi kesalahan: {str(e)}")
     
-    return render(request, 'green/jadwal_pemeriksaan/jadwal_form.html', {'hewan': hewan})
+    return render(request, 'jadwal_pemeriksaan/jadwal_form.html', {'hewan': hewan})
 
 """
 ----------------------
@@ -376,15 +394,14 @@ C. CRUD Pemberian Pakan
 ----------------------
 """
 
-@login_required
-@user_passes_test(is_penjaga_hewan)
+@penjaga_hewan_required
 def pemberian_pakan_list(request):
     id_hewan = request.GET.get('id_hewan')
     
     if not id_hewan:
         # Jika id_hewan tidak ada, tampilkan daftar hewan
         hewan_list = get_all_hewan()
-        return render(request, 'green/pemberian_pakan/hewan_list.html', {'hewan_list': hewan_list})
+        return render(request, 'pemberian_pakan/hewan_list.html', {'hewan_list': hewan_list})
     
     # Ambil data hewan
     hewan = get_hewan_by_id(id_hewan)
@@ -415,12 +432,13 @@ def pemberian_pakan_list(request):
         'pakan_list': pakan_list
     }
     
-    return render(request, 'green/pemberian_pakan/pakan_list.html', context)
+    return render(request, 'pemberian_pakan/pakan_list.html', context)
 
-@login_required
-@user_passes_test(is_penjaga_hewan)
+@penjaga_hewan_required
 def riwayat_pemberian_pakan(request):
     # Ambil riwayat pemberian pakan oleh penjaga hewan yang sedang login
+    username = request.session.get('username')
+    
     with connection.cursor() as cursor:
         cursor.execute("""
             SELECT h.nama, h.spesies, h.asal_hewan, h.tanggal_lahir, h.nama_habitat, h.status_kesehatan,
@@ -430,7 +448,7 @@ def riwayat_pemberian_pakan(request):
             JOIN SIZOPI.PAKAN p ON m.id_hewan = p.id_hewan AND m.jadwal = p.jadwal
             WHERE m.username_jh = %s
             ORDER BY p.jadwal DESC
-        """, [request.user.username])
+        """, [username])
         
         riwayat_list = []
         for row in cursor.fetchall():
@@ -446,10 +464,9 @@ def riwayat_pemberian_pakan(request):
                 'jadwal': row[8]
             })
     
-    return render(request, 'green/pemberian_pakan/riwayat_pakan.html', {'riwayat_list': riwayat_list})
+    return render(request, 'pemberian_pakan/riwayat_pakan.html', {'riwayat_list': riwayat_list})
 
-@login_required
-@user_passes_test(is_penjaga_hewan)
+@penjaga_hewan_required
 def pemberian_pakan_create(request, id_hewan):
     # Ambil data hewan
     hewan = get_hewan_by_id(id_hewan)
@@ -465,7 +482,7 @@ def pemberian_pakan_create(request, id_hewan):
         # Validasi
         if not jenis_pakan or not jumlah_pakan or not jadwal:
             messages.error(request, "Semua field harus diisi")
-            return render(request, 'green/pemberian_pakan/pakan_form.html', {'hewan': hewan})
+            return render(request, 'pemberian_pakan/pakan_form.html', {'hewan': hewan})
         
         try:
             with connection.cursor() as cursor:
@@ -477,7 +494,7 @@ def pemberian_pakan_create(request, id_hewan):
                 
                 if cursor.fetchone()[0] > 0:
                     messages.error(request, "Jadwal pemberian pakan untuk waktu ini sudah ada")
-                    return render(request, 'green/pemberian_pakan/pakan_form.html', {'hewan': hewan})
+                    return render(request, 'pemberian_pakan/pakan_form.html', {'hewan': hewan})
                 
                 # Simpan jadwal pemberian pakan baru
                 cursor.execute("""
@@ -490,10 +507,9 @@ def pemberian_pakan_create(request, id_hewan):
         except Exception as e:
             messages.error(request, f"Terjadi kesalahan: {str(e)}")
     
-    return render(request, 'green/pemberian_pakan/pakan_form.html', {'hewan': hewan})
+    return render(request, 'pemberian_pakan/pakan_form.html', {'hewan': hewan})
 
-@login_required
-@user_passes_test(is_penjaga_hewan)
+@penjaga_hewan_required
 def pemberian_pakan_update(request, id_hewan, jadwal):
     # Ambil data hewan
     hewan = get_hewan_by_id(id_hewan)
@@ -529,7 +545,7 @@ def pemberian_pakan_update(request, id_hewan, jadwal):
         # Validasi
         if not jenis_pakan_baru or not jumlah_pakan_baru or not jadwal_baru:
             messages.error(request, "Semua field harus diisi")
-            return render(request, 'green/pemberian_pakan/pakan_edit_form.html', {'hewan': hewan, 'pakan': pakan})
+            return render(request, 'pemberian_pakan/pakan_edit_form.html', {'hewan': hewan, 'pakan': pakan})
         
         try:
             with connection.cursor() as cursor:
@@ -542,7 +558,7 @@ def pemberian_pakan_update(request, id_hewan, jadwal):
                     
                     if cursor.fetchone()[0] > 0:
                         messages.error(request, "Jadwal pemberian pakan untuk waktu ini sudah ada")
-                        return render(request, 'green/pemberian_pakan/pakan_edit_form.html', {'hewan': hewan, 'pakan': pakan})
+                        return render(request, 'pemberian_pakan/pakan_edit_form.html', {'hewan': hewan, 'pakan': pakan})
                 
                 # Update pemberian pakan
                 cursor.execute("""
@@ -561,10 +577,9 @@ def pemberian_pakan_update(request, id_hewan, jadwal):
         'pakan': pakan
     }
     
-    return render(request, 'green/pemberian_pakan/pakan_edit_form.html', context)
+    return render(request, 'pemberian_pakan/pakan_edit_form.html', context)
 
-@login_required
-@user_passes_test(is_penjaga_hewan)
+@penjaga_hewan_required
 def pemberian_pakan_delete(request, id_hewan, jadwal):
     if request.method == 'POST':
         try:
@@ -581,8 +596,7 @@ def pemberian_pakan_delete(request, id_hewan, jadwal):
     
     return redirect('green:pemberian_pakan_list')
 
-@login_required
-@user_passes_test(is_penjaga_hewan)
+@penjaga_hewan_required
 def pemberian_pakan_beri(request, id_hewan, jadwal):
     if request.method == 'POST':
         try:
@@ -598,7 +612,7 @@ def pemberian_pakan_beri(request, id_hewan, jadwal):
                 cursor.execute("""
                     INSERT INTO SIZOPI.MEMBERI (id_hewan, jadwal, username_jh)
                     VALUES (%s, %s, %s)
-                """, [id_hewan, jadwal, request.user.username])
+                """, [id_hewan, jadwal, request.session.get('username')])
                 
                 messages.success(request, "Pakan berhasil diberikan")
         except Exception as e:
