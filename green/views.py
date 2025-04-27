@@ -71,7 +71,6 @@ def get_hewan_by_id(id_hewan):
             }
         return None
 
-# Mendapatkan daftar hewan
 def get_all_hewan():
     with connection.cursor() as cursor:
         cursor.execute("""

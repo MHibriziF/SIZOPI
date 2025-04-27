@@ -2,16 +2,199 @@
 {% block meta %}
     <title>Rekam Medis Hewan</title>
     <style>
+      :root {
+        --primary-color: #4A5A43;
+        --secondary-color: #A7C796;
+        --light-green: #D4E7C5;
+        --accent-red: #E76F51;
+        --accent-yellow: #F9C74F;
+        --dark-text: #2D3748;
+        --light-text: #718096;
+      }
+      
+      body {
+        font-family: 'Poppins', sans-serif;
+      }
+      
       .overlay-bg {
-        background-color: rgba(255, 255, 255, 0.85) !important;
-        border-radius: 0.25rem;
+        background-color: rgba(255, 255, 255, 0.9) !important;
+        border-radius: 1rem !important;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
       }
+      
+      .page-header {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: 1rem;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+      
+      .page-header h2 {
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+      }
+      
+      .animal-info {
+        display: flex;
+        align-items: center;
+      }
+      
+      .animal-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background-color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        font-weight: bold;
+        color: var(--primary-color);
+        margin-right: 1rem;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+      
       .table-header-overlay th {
-        background-color: rgba(0, 0, 0, 0.6) !important;
-        color: #fff !important;
+        background: linear-gradient(to right, var(--primary-color), rgba(74, 90, 67, 0.8)) !important;
+        color: white !important;
+        padding: 1rem 0.75rem !important;
+        font-weight: 500;
+        border: none !important;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
       }
+      
       .table-row-overlay td {
-        background-color: rgba(255, 255, 255, 0.8) !important;
+        background-color: rgba(255, 255, 255, 0.9) !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+        padding: 1rem 0.75rem !important;
+        vertical-align: middle;
+      }
+      
+      .table-hover tbody tr:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+      }
+      
+      .badge {
+        padding: 0.5em 1em;
+        font-weight: 500;
+        border-radius: 50rem;
+        font-size: 0.85rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      
+      .bg-success {
+        background-color: #28a745 !important;
+        color: white !important;
+      }
+      
+      .bg-danger {
+        background-color: var(--accent-red) !important;
+        color: white !important;
+      }
+      
+      .bg-warning {
+        background-color: var(--accent-yellow) !important;
+        color: #664d03 !important;
+      }
+      
+      .btn {
+        border-radius: 0.5rem;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+      }
+      
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      
+      .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+      }
+      
+      .btn-primary:hover {
+        background-color: #3a4a33;
+        border-color: #3a4a33;
+      }
+      
+      .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+      }
+      
+      .btn-warning {
+        background-color: #ffc107;
+        border-color: #ffc107;
+        color: #212529;
+      }
+      
+      .btn-danger {
+        background-color: var(--accent-red);
+        border-color: var(--accent-red);
+      }
+      
+      .btn i {
+        margin-right: 0.25rem;
+      }
+      
+      .empty-state {
+        padding: 3rem 1rem;
+        text-align: center;
+      }
+      
+      .empty-icon {
+        font-size: 3rem;
+        color: #dee2e6;
+        margin-bottom: 1rem;
+      }
+      
+      .card {
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+      }
+      
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      
+      .animate-fade-in {
+        animation: fadeIn 0.5s ease forwards;
+      }
+      
+      .timeline-dot {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: var(--secondary-color);
+        margin-right: 0.5rem;
+      }
+      
+      @media (max-width: 767.98px) {
+        .container {
+          padding-left: 1rem;
+          padding-right: 1rem;
+        }
+        
+        .btn {
+          padding: 0.375rem 0.75rem;
+        }
+        
+        .page-header {
+          padding: 1.25rem;
+        }
       }
     </style>
 {% endblock meta %}
@@ -20,87 +203,197 @@
 {% load static %}
 {% include 'components/navbar.html' %}
 
-<div class="container py-4 overlay-bg">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h2>Rekam Medis: {{ hewan.nama|default:"Tidak ada nama" }} ({{ hewan.spesies }})</h2>
-            <p>Status Kesehatan:
-                {% if hewan.status_kesehatan == 'Sehat' %}
-                    <span class="badge bg-success">{{ hewan.status_kesehatan }}</span>
-                {% elif hewan.status_kesehatan == 'Sakit' %}
-                    <span class="badge bg-danger">{{ hewan.status_kesehatan }}</span>
-                {% else %}
-                    <span class="badge bg-warning text-dark">{{ hewan.status_kesehatan }}</span>
-                {% endif %}
-            </p>
-        </div>
-        <div class="col-md-4 text-end">
-            <a href="{% url 'green:rekam_medis_list' %}" class="btn btn-secondary mb-2">
-                <i class="bi bi-arrow-left"></i> Kembali ke Daftar Hewan
-            </a>
-            <a href="{% url 'green:rekam_medis_create' hewan.id %}" class="btn btn-primary mb-2">
-                <i class="bi bi-plus-circle bg-black"></i> Tambah Rekam Medis
-            </a>
+<div class="container py-4">
+    <div class="page-header animate-fade-in">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="animal-info">
+                    <div class="animal-avatar">
+                        {{ hewan.nama|default:"?"|slice:":1"|upper }}
+                    </div>
+                    <div>
+                        <h2 class="mb-1">Rekam Medis Hewan</h2>
+                        <h5 class="mb-2">{{ hewan.nama|default:"Tidak ada nama" }} ({{ hewan.spesies }})</h5>
+                        <div>
+                            <span class="text-white-50 me-2">Status Kesehatan:</span>
+                            {% if hewan.status_kesehatan == 'Sehat' %}
+                                <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>{{ hewan.status_kesehatan }}</span>
+                            {% elif hewan.status_kesehatan == 'Sakit' %}
+                                <span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ hewan.status_kesehatan }}</span>
+                            {% else %}
+                                <span class="badge bg-warning"><i class="bi bi-eye-fill me-1"></i>{{ hewan.status_kesehatan }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-end d-flex flex-column flex-md-row align-items-end justify-content-end mt-3 mt-md-0">
+                <a href="{% url 'green:rekam_medis_list' %}" class="btn btn-light mb-2 mb-md-0 me-md-2">
+                    <i class="bi bi-arrow-left"></i> Kembali
+                </a>
+                <a href="{% url 'green:rekam_medis_create' hewan.id %}" class="btn btn-light">
+                    <i class="bi bi-plus-circle"></i> Tambah
+                </a>
+            </div>
         </div>
     </div>
 
-    <div class="card shadow-sm overlay-bg">
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3 mb-md-0 animate-fade-in" style="animation-delay: 0.1s;">
+            <div class="card overlay-bg h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="me-3 text-center" style="width: 50px;">
+                        <i class="bi bi-geo-alt-fill" style="font-size: 2rem; color: var(--primary-color);"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1 text-muted">Asal</h6>
+                        <p class="mb-0 fw-semibold">{{ hewan.asal_hewan }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3 mb-md-0 animate-fade-in" style="animation-delay: 0.2s;">
+            <div class="card overlay-bg h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="me-3 text-center" style="width: 50px;">
+                        <i class="bi bi-calendar-date-fill" style="font-size: 2rem; color: var(--primary-color);"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1 text-muted">Tanggal Lahir</h6>
+                        <p class="mb-0 fw-semibold">{{ hewan.tanggal_lahir|date:"d/m/Y"|default:"-" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 animate-fade-in" style="animation-delay: 0.3s;">
+            <div class="card overlay-bg h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="me-3 text-center" style="width: 50px;">
+                        <i class="bi bi-tree-fill" style="font-size: 2rem; color: var(--primary-color);"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1 text-muted">Habitat</h6>
+                        <p class="mb-0 fw-semibold">{{ hewan.nama_habitat }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm overlay-bg animate-fade-in" style="animation-delay: 0.4s;">
+        <div class="card-header bg-white py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-primary"><i class="bi bi-clipboard2-pulse me-2"></i>Catatan Pemeriksaan Medis</h5>
+                <span class="badge bg-primary">{{ rekam_medis_list|length }} catatan</span>
+            </div>
+        </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead class="table-header-overlay">
                         <tr>
-                            <th class="px-3 py-3">Tanggal Pemeriksaan</th>
-                            <th class="px-3 py-3">Nama Dokter</th>
-                            <th class="px-3 py-3">Status Kesehatan</th>
-                            <th class="px-3 py-3">Diagnosa</th>
-                            <th class="px-3 py-3">Pengobatan</th>
-                            <th class="px-3 py-3">Catatan Tindak Lanjut</th>
-                            <th class="px-3 py-3">Aksi</th>
+                            <th class="px-3 py-3"><i class="bi bi-calendar-event me-1"></i>Tanggal</th>
+                            <th class="px-3 py-3"><i class="bi bi-person me-1"></i>Dokter</th>
+                            <th class="px-3 py-3"><i class="bi bi-heart-pulse me-1"></i>Status</th>
+                            <th class="px-3 py-3"><i class="bi bi-clipboard me-1"></i>Diagnosa</th>
+                            <th class="px-3 py-3"><i class="bi bi-bandaid me-1"></i>Pengobatan</th>
+                            <th class="px-3 py-3"><i class="bi bi-journals me-1"></i>Catatan</th>
+                            <th class="px-3 py-3"><i class="bi bi-gear me-1"></i>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for rekam in rekam_medis_list %}
                         <tr class="table-row-overlay">
-                            <td class="px-3 py-3">{{ rekam.tanggal_pemeriksaan|date:"d/m/Y" }}</td>
+                            <td class="px-3 py-3">
+                                <div class="d-flex align-items-center">
+                                    <span class="timeline-dot"></span>
+                                    {{ rekam.tanggal_pemeriksaan|date:"d/m/Y" }}
+                                </div>
+                            </td>
                             <td class="px-3 py-3">{{ rekam.nama_dokter }}</td>
                             <td class="px-3 py-3">
                                 {% if rekam.status_kesehatan == 'Sehat' %}
-                                    <span class="badge bg-success">{{ rekam.status_kesehatan }}</span>
+                                    <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>{{ rekam.status_kesehatan }}</span>
                                 {% elif rekam.status_kesehatan == 'Sakit' %}
-                                    <span class="badge bg-danger">{{ rekam.status_kesehatan }}</span>
+                                    <span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ rekam.status_kesehatan }}</span>
                                 {% else %}
-                                    <span class="badge bg-warning text-dark">{{ rekam.status_kesehatan }}</span>
+                                    <span class="badge bg-warning"><i class="bi bi-eye-fill me-1"></i>{{ rekam.status_kesehatan }}</span>
                                 {% endif %}
                             </td>
-                            <td class="px-3 py-3">{{ rekam.diagnosis|default:"-" }}</td>
-                            <td class="px-3 py-3">{{ rekam.pengobatan|default:"-" }}</td>
-                            <td class="px-3 py-3">{{ rekam.catatan_tindak_lanjut|default:"-" }}</td>
                             <td class="px-3 py-3">
-                                {% if rekam.status_kesehatan == 'Sakit' %}
-                                    <a href="{% url 'green:rekam_medis_update' hewan.id rekam.tanggal_pemeriksaan|date:'Y-m-d' %}"
-                                       class="btn btn-sm btn-warning">
-                                        <i class="bi bi-pencil"></i> Edit
-                                    </a>
+                                {% if rekam.diagnosis %}
+                                    {{ rekam.diagnosis }}
+                                {% else %}
+                                    <span class="text-muted fst-italic">-</span>
                                 {% endif %}
-                                
-                                <form method="post" action="{% url 'green:rekam_medis_delete' hewan.id rekam.tanggal_pemeriksaan|date:'Y-m-d' %}" 
-                                      style="display:inline;" 
-                                      onsubmit="return confirm('Apakah Anda yakin ingin menghapus rekam medis ini?');">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-danger">
-                                        <i class="bi bi-trash"></i> Hapus
-                                    </button>
-                                </form>
+                            </td>
+                            <td class="px-3 py-3">
+                                {% if rekam.pengobatan %}
+                                    {{ rekam.pengobatan }}
+                                {% else %}
+                                    <span class="text-muted fst-italic">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-3 py-3">
+                                {% if rekam.catatan_tindak_lanjut %}
+                                    {{ rekam.catatan_tindak_lanjut }}
+                                {% else %}
+                                    <span class="text-muted fst-italic">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-3 py-3">
+                                <div class="d-flex gap-2">
+                                    {% if rekam.status_kesehatan == 'Sakit' %}
+                                        <a href="{% url 'green:rekam_medis_update' hewan.id rekam.tanggal_pemeriksaan|date:'Y-m-d' %}"
+                                        class="btn btn-sm btn-warning">
+                                            <i class="bi bi-pencil-fill"></i> Edit
+                                        </a>
+                                    {% endif %}
+                                    
+                                    <form method="post" action="{% url 'green:rekam_medis_delete' hewan.id rekam.tanggal_pemeriksaan|date:'Y-m-d' %}" 
+                                        style="display:inline;" 
+                                        onsubmit="return confirm('Apakah Anda yakin ingin menghapus rekam medis ini?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="bi bi-trash-fill"></i> Hapus
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                         {% empty %}
                         <tr class="table-row-overlay">
-                            <td colspan="7" class="text-center py-4">Belum ada rekam medis</td>
+                            <td colspan="7">
+                                <div class="empty-state">
+                                    <i class="bi bi-clipboard-x empty-icon"></i>
+                                    <h5>Belum Ada Rekam Medis</h5>
+                                    <p class="text-muted mb-4">Belum ada catatan pemeriksaan kesehatan untuk hewan ini.</p>
+                                    <a href="{% url 'green:rekam_medis_create' hewan.id %}" class="btn btn-primary">
+                                        <i class="bi bi-plus-circle"></i> Tambah Rekam Medis Pertama
+                                    </a>
+                                </div>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card overlay-bg mt-4 animate-fade-in" style="animation-delay: 0.5s;">
+        <div class="card-body">
+            <div class="d-flex">
+                <div class="me-3">
+                    <i class="bi bi-info-circle-fill text-primary" style="font-size: 1.5rem;"></i>
+                </div>
+                <div>
+                    <h5 class="card-title">Tip Kesehatan Hewan</h5>
+                    <p class="card-text mb-0">
+                        Pantau secara rutin kesehatan hewan dengan memperhatikan pola makan, aktivitas, dan perilaku. 
+                        Pemeriksaan rutin dapat membantu mencegah masalah kesehatan yang lebih serius di kemudian hari.
+                    </p>
+                </div>
             </div>
         </div>
     </div>
@@ -121,6 +414,13 @@
             
             statusKesehatan.dispatchEvent(new Event('change'));
         }
+        
+        setTimeout(() => {
+            document.querySelectorAll('.animate-fade-in').forEach(el => {
+                el.style.opacity = 1;
+                el.style.transform = 'translateY(0)';
+            });
+        }, 100);
     });
 </script>
 {% endblock extra_js %}

@@ -3,19 +3,162 @@
 {% block meta %}
     <title>Daftar Hewan - Rekam Medis</title>
     <style>
-      /* overlay putih semi-transparan untuk container & card */
+      :root {
+        --primary-color: #4A5A43;
+        --secondary-color: #A7C796;
+        --accent-color: #D4E7C5;
+        --dark-overlay: rgba(0, 0, 0, 0.7);
+        --light-overlay: rgba(255, 255, 255, 0.9);
+        --medium-overlay: rgba(255, 255, 255, 0.85);
+      }
+      
+      body {
+        font-family: 'Poppins', sans-serif;
+      }
+      
+      .page-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+      
+      .page-header h2 {
+        margin-bottom: 0.25rem;
+        font-weight: 600;
+      }
+      
+      .page-header p {
+        margin-bottom: 0;
+        opacity: 0.9;
+      }
+      
       .overlay-bg {
-        background-color: rgba(255, 255, 255, 0.85) !important;
-        border-radius: 0.25rem;
+        background-color: var(--medium-overlay) !important;
+        border-radius: 0.5rem !important;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
       }
-      /* header tabel gelap semi-transparan */
+      
+      .card.overlay-bg {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      
+      .card.overlay-bg:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+      }
+      
       .table-header-overlay th {
-        background-color: rgba(0, 0, 0, 0.6) !important;
+        background-color: var(--dark-overlay) !important;
         color: #fff !important;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        border: none;
+        padding: 1rem 0.75rem;
       }
-      /* baris tabel putih semi-transparan */
+      
       .table-row-overlay td {
-        background-color: rgba(255, 255, 255, 0.8);
+        background-color: var(--light-overlay);
+        vertical-align: middle;
+        padding: 0.75rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      }
+      
+      .table-hover tbody tr:hover {
+        transform: translateX(5px);
+        transition: transform 0.2s ease;
+      }
+      
+      .badge {
+        padding: 0.5em 0.75em;
+        font-weight: 500;
+        border-radius: 50rem;
+      }
+      
+      .badge.bg-success {
+        background-color: rgba(40, 167, 69, 0.9) !important;
+      }
+      
+      .badge.bg-danger {
+        background-color: rgba(220, 53, 69, 0.9) !important;
+      }
+      
+      .badge.bg-warning {
+        background-color: rgba(255, 193, 7, 0.9) !important;
+      }
+      
+      .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        transition: all 0.3s ease;
+      }
+      
+      .btn-primary:hover {
+        background-color: #3a4a33;
+        border-color: #3a4a33;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      
+      .btn i {
+        margin-right: 0.25rem;
+        transition: transform 0.3s ease;
+      }
+      
+      .btn:hover i {
+        transform: translateY(-2px);
+      }
+      
+      .search-container {
+        margin-bottom: 1.5rem;
+      }
+      
+      .search-input {
+        background-color: var(--light-overlay);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 50rem;
+        padding: 0.75rem 1.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+      }
+      
+      .search-input:focus {
+        box-shadow: 0 0 0 0.25rem rgba(167, 199, 150, 0.4);
+        border-color: var(--secondary-color);
+      }
+      
+      .animal-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--accent-color);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.75rem;
+        font-weight: bold;
+        color: var(--primary-color);
+      }
+      
+      @media (max-width: 992px) {
+        .container {
+          max-width: 100%;
+        }
+      }
+      
+      @keyframes shimmer {
+        0% { background-position: -1000px 0; }
+        100% { background-position: 1000px 0; }
+      }
+      
+      .shimmer {
+        animation: shimmer 2s infinite linear;
+        background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 100%);
+        background-size: 1000px 100%;
       }
     </style>
 {% endblock meta %}
@@ -24,56 +167,104 @@
 {% load static %}
 {% include 'components/navbar.html' %}
 
-<div class="container py-4 overlay-bg">
-  <div class="row mb-4">
-    <div class="col">
-      <h2>Daftar Hewan</h2>
-      <p class="text-muted">Pilih hewan untuk melihat rekam medisnya</p>
+<div class="container py-4">
+  <div class="page-header">
+    <div class="row align-items-center">
+      <div class="col-md-6">
+        <h2><i class="bi bi-clipboard-pulse me-2"></i>Rekam Medis Hewan</h2>
+        <p>Pilih hewan untuk melihat dan mengelola rekam medisnya</p>
+      </div>
+      <div class="col-md-6 text-md-end mt-3 mt-md-0">
+        <a href="{% url 'main:dashboard' %}" class="btn btn-light btn-sm">
+          <i class="bi bi-house"></i> Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="search-container">
+    <div class="row">
+      <div class="col-md-6 mb-3 mb-md-0">
+        <div class="input-group">
+          <span class="input-group-text bg-transparent border-end-0">
+            <i class="bi bi-search text-muted"></i>
+          </span>
+          <input type="text" id="searchInput" class="form-control search-input border-start-0" 
+                 placeholder="Cari berdasarkan nama atau spesies...">
+        </div>
+      </div>
+      <div class="col-md-3 mb-3 mb-md-0">
+        <select id="filterStatus" class="form-select search-input">
+          <option value="">Semua Status</option>
+          <option value="Sehat">Sehat</option>
+          <option value="Sakit">Sakit</option>
+          <option value="Dalam pemantauan">Dalam pemantauan</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select id="filterHabitat" class="form-select search-input">
+          <option value="">Semua Habitat</option>
+          {% for hewan in hewan_list %}
+            {% if hewan.nama_habitat not in habitat_list %}
+              <option value="{{ hewan.nama_habitat }}">{{ hewan.nama_habitat }}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+      </div>
     </div>
   </div>
 
   <div class="card shadow-sm overlay-bg">
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-hover mb-0">
+        <table class="table table-hover mb-0" id="hewanTable">
           <thead class="table-header-overlay">
             <tr>
-              <th class="px-3 py-3">Nama</th>
-              <th class="px-3 py-3">Spesies</th>
-              <th class="px-3 py-3">Asal</th>
-              <th class="px-3 py-3">Tanggal Lahir</th>
-              <th class="px-3 py-3">Habitat</th>
-              <th class="px-3 py-3">Status Kesehatan</th>
-              <th class="px-3 py-3">Aksi</th>
+              <th class="px-3 py-3"><i class="bi bi-person-badge me-1"></i>Nama</th>
+              <th class="px-3 py-3"><i class="bi bi-tags me-1"></i>Spesies</th>
+              <th class="px-3 py-3"><i class="bi bi-globe me-1"></i>Asal</th>
+              <th class="px-3 py-3"><i class="bi bi-calendar me-1"></i>Tanggal Lahir</th>
+              <th class="px-3 py-3"><i class="bi bi-tree me-1"></i>Habitat</th>
+              <th class="px-3 py-3"><i class="bi bi-activity me-1"></i>Status Kesehatan</th>
+              <th class="px-3 py-3"><i class="bi bi-gear me-1"></i>Aksi</th>
             </tr>
           </thead>
           <tbody>
             {% for hewan in hewan_list %}
             <tr class="table-row-overlay">
-              <td class="px-3 py-3">{{ hewan.nama|default:"Tidak ada nama" }}</td>
+              <td class="px-3 py-3 d-flex align-items-center">
+                <div class="animal-avatar">
+                  {{ hewan.nama|default:"?"| slice:":1" }}
+                </div>
+                {{ hewan.nama|default:"Tidak ada nama" }}
+              </td>
               <td class="px-3 py-3">{{ hewan.spesies }}</td>
               <td class="px-3 py-3">{{ hewan.asal_hewan }}</td>
               <td class="px-3 py-3">{{ hewan.tanggal_lahir|date:"d/m/Y"|default:"-" }}</td>
               <td class="px-3 py-3">{{ hewan.nama_habitat }}</td>
               <td class="px-3 py-3">
                 {% if hewan.status_kesehatan == 'Sehat' %}
-                  <span class="badge bg-success">{{ hewan.status_kesehatan }}</span>
+                  <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>{{ hewan.status_kesehatan }}</span>
                 {% elif hewan.status_kesehatan == 'Sakit' %}
-                  <span class="badge bg-danger">{{ hewan.status_kesehatan }}</span>
+                  <span class="badge bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>{{ hewan.status_kesehatan }}</span>
                 {% else %}
-                  <span class="badge bg-warning text-dark">{{ hewan.status_kesehatan }}</span>
+                  <span class="badge bg-warning text-dark"><i class="bi bi-eye me-1"></i>{{ hewan.status_kesehatan }}</span>
                 {% endif %}
               </td>
               <td class="px-3 py-3">
                 <a href="{% url 'green:rekam_medis_list' %}?id_hewan={{ hewan.id }}"
-                   class="btn btn-sm btn-primary">
-                  <i class="bi bi-clipboard-data"></i> Lihat Rekam Medis
+                   class="btn btn-sm btn-primary rounded-xl text-white">
+                  <i class="bi bi-clipboard-data text-white"></i> Lihat Rekam Medis
                 </a>
               </td>
             </tr>
             {% empty %}
             <tr class="table-row-overlay">
-              <td colspan="7" class="text-center py-4">Tidak ada data hewan</td>
+              <td colspan="7" class="text-center py-5">
+                <i class="bi bi-clipboard-x fs-1 text-muted mb-3 d-block"></i>
+                <p class="mb-2">Tidak ada data hewan yang tersedia</p>
+                <p class="small text-muted">Silakan hubungi administrator jika ini merupakan kesalahan</p>
+              </td>
             </tr>
             {% endfor %}
           </tbody>
@@ -81,5 +272,67 @@
       </div>
     </div>
   </div>
+  
+  <div class="row mt-4">
+    <div class="col-md-12">
+      <div class="card overlay-bg">
+        <div class="card-body">
+          <h5 class="card-title"><i class="bi bi-info-circle me-2"></i>Informasi</h5>
+          <p class="card-text mb-0">
+            Halaman ini menampilkan daftar hewan yang dapat Anda kelola rekam medisnya sebagai dokter hewan.
+            Klik tombol "Lihat Rekam Medis" untuk melihat, menambah, mengedit, atau menghapus rekam medis hewan.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const filterStatus = document.getElementById('filterStatus');
+    const filterHabitat = document.getElementById('filterHabitat');
+    const table = document.getElementById('hewanTable');
+    const rows = table.getElementsByTagName('tr');
+    
+    function filterTable() {
+      const searchText = searchInput.value.toLowerCase();
+      const statusFilter = filterStatus.value;
+      const habitatFilter = filterHabitat.value;
+      
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const cells = row.getElementsByTagName('td');
+        
+        if (cells.length <= 1) continue;
+        
+        const nameCell = cells[0].textContent.toLowerCase();
+        const speciesCell = cells[1].textContent.toLowerCase();
+        const habitatCell = cells[4].textContent;
+        const statusCell = cells[5].textContent;
+        
+        const matchesSearch = nameCell.includes(searchText) || speciesCell.includes(searchText);
+        const matchesStatus = statusFilter === '' || statusCell.includes(statusFilter);
+        const matchesHabitat = habitatFilter === '' || habitatCell === habitatFilter;
+        
+        row.style.display = (matchesSearch && matchesStatus && matchesHabitat) ? '' : 'none';
+      }
+    }
+    
+    if (searchInput) searchInput.addEventListener('keyup', filterTable);
+    if (filterStatus) filterStatus.addEventListener('change', filterTable);
+    if (filterHabitat) filterHabitat.addEventListener('change', filterTable);
+    
+    const tableCells = document.querySelectorAll('td, th');
+    tableCells.forEach(cell => {
+      cell.classList.add('shimmer');
+      setTimeout(() => {
+        cell.classList.remove('shimmer');
+      }, 1000);
+    });
+  });
+</script>
+{% endblock extra_js %}
 {% endblock content %}
