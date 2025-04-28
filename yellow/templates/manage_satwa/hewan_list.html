@@ -1,61 +1,397 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}
-    Animal Management System
-{% endblock %}
+{% block meta %}
+<title>Animal List - SIZOPI</title>
+{% endblock meta %}
 
 {% block content %}
-<div class="container">
-    <div class="animal-list-header">
-        <h2 class="title">Animal List</h2>
-        <div class="search-bar">
-            <input type="text" class="search-input" placeholder="Search...">
-            <button class="search-button">🔍</button>
+{% include 'components/navbar.html' %}
+<div class="min-h-screen flex flex-col">
+    <!-- Main Content -->
+    <div class="flex-grow bg-[rgba(236,240,202,0.5)] p-4 md:p-6 lg:p-8">
+        <div class="w-full max-w-full mx-auto bg-[#61785f] rounded-xl p-3 md:p-4 shadow-md text-white">
+            <!-- Header and Search -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                <h1 class="text-xl sm:text-2xl font-bold">Animal List</h1>
+                <div class="relative w-full sm:w-auto">
+                    <input 
+                        type="text" 
+                        placeholder="Search..." 
+                        class="w-full sm:w-64 rounded-lg py-2 px-4 pr-8 text-gray-700 focus:outline-none"
+                    >
+                    <button class="absolute right-3 top-2.5 text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Action Buttons and Sort -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                <button class="bg-[#546d52] hover:bg-[#3e513c] text-white rounded-lg px-4 py-2 flex items-center gap-2 add-modal-trigger">
+                    <span class="font-bold">+</span> Add Animal
+                </button>
+                <div class="flex items-center gap-2">
+                    <span class="text-sm">sort by</span>
+                    <div class="relative">
+                        <select class="bg-[#667f64] text-white rounded px-4 py-2 pr-8 appearance-none">
+                            <option>habitat</option>
+                            <option>species</option>
+                            <option>status</option>
+                            <option>name</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2">
+                            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table with scrollable functionality -->
+            <div class="bg-[#f5f7e1] rounded-lg overflow-hidden">
+                <div class="max-h-[50vh] overflow-y-auto overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-[#e8edce] text-[#61785f] border-b border-[#ccd4a7] sticky top-0">
+                            <tr>
+                                <th class="py-3 px-2 sm:px-4">Gambar</th>
+                                <th class="py-3 px-2 sm:px-4">Nama</th>
+                                <th class="py-3 px-2 sm:px-4 hidden sm:table-cell">Species</th>
+                                <th class="py-3 px-2 sm:px-4 hidden md:table-cell">Asal Hewan</th>
+                                <th class="py-3 px-2 sm:px-4 hidden md:table-cell">Tanggal Lahir</th>
+                                <th class="py-3 px-2 sm:px-4 hidden md:table-cell">Status</th>
+                                <th class="py-3 px-2 sm:px-4 hidden lg:table-cell">Habitat</th>
+                                <th class="py-3 px-2 sm:px-4 text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-700">
+                            {% for i in "1234567" %}
+                            <tr class="border-b border-[#e1e8c3]">
+                                <td class="py-2 sm:py-3 px-2 sm:px-4">
+                                    <img src="{% static 'images/default_animal.png' %}" alt="Animal" class="h-8 w-8 sm:h-12 sm:w-12 object-cover rounded-full">
+                                </td>
+                                <td class="py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-base">Antoni E.</td>
+                                <td class="py-2 sm:py-3 px-2 sm:px-4 hidden sm:table-cell">Primata</td>
+                                <td class="py-2 sm:py-3 px-2 sm:px-4 hidden md:table-cell">Indonesia</td>
+                                <td class="py-2 sm:py-3 px-2 sm:px-4 hidden md:table-cell">15-03-2020</td>
+                                <td class="py-2 sm:py-3 px-2 sm:px-4 hidden md:table-cell">
+                                    <span class="px-2 py-1 rounded-full text-xs 
+                                          {% if i|divisibleby:3 %}bg-green-100 text-green-800
+                                          {% elif i|divisibleby:2 %}bg-yellow-100 text-yellow-800
+                                          {% else %}bg-red-100 text-red-800{% endif %}">
+                                        {% if i|divisibleby:3 %}Sehat
+                                        {% elif i|divisibleby:2 %}Rehabilitasi
+                                        {% else %}Tidak Sehat{% endif %}
+                                    </span>
+                                </td>
+                                <td class="py-2 sm:py-3 px-2 sm:px-4 hidden lg:table-cell">Lab komputer</td>
+                                <td class="py-2 sm:py-3 px-2 sm:px-4 text-right">
+                                    <button class="text-blue-600 hover:text-blue-800 edit-modal-trigger">
+                                        <span class="fa fa-pencil"></span>
+                                    </button>
+                                    <button class="text-red-600 hover:text-red-800 ml-3">
+                                        <span class="fa fa-trash"></span>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
     
-    <div class="actions">
-        <button class="add-btn">
-            <span>+</span> Add Animal
-        </button>
-        <div class="filter-options">
-            <span class="sort-label">sort by</span>
-            <select class="filter-dropdown">
-                <option>habitat</option>
-                <option>species</option>
-                <option>status</option>
-                <option>name</option>
-            </select>
+    <!-- Footer -->
+    <div class="bg-[#61785f] text-white p-2 text-right text-xs">
+        <div class="max-w-7xl mx-auto">
+            Image by: Freepik
         </div>
-    </div>
-    
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nama</th>
-                    <th>Species</th>
-                    <th>Status</th>
-                    <th>Habitat</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>12345677</td>
-                    <td>Antoni E.</td>
-                    <td>Primata</td>
-                    <td>Masuk angin</td>
-                    <td>Lab komputer</td>
-                    <td class="action-buttons">
-                        <button class="edit-btn">✏️</button>
-                        <button class="delete-btn">🗑️</button>
-                    </td>
-                </tr>
-                <!-- Additional rows here -->
-            </tbody>
-        </table>
     </div>
 </div>
-{% endblock %}
+
+<!-- Add Animal Modal -->
+<div id="addAnimalModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg max-w-md w-full mx-4 overflow-y-auto" style="max-height: 90vh;">
+        <!-- Modal Header -->
+        <div class="bg-[#61785f] text-white px-4 py-3 flex items-center justify-between rounded-t-lg sticky top-0 z-10">
+            <h3 class="font-bold">Tambah Hewan Baru</h3>
+            <button class="close-add-modal text-white hover:text-gray-200">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Modal Body -->
+        <div class="p-6">
+            <form>
+                <!-- Animal Image URL -->
+                <div class="mb-4">
+                    <label for="newAnimalImageUrl" class="block text-sm font-medium text-gray-700 mb-1">URL Gambar</label>
+                    <input type="url" id="newAnimalImageUrl" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" placeholder="https://example.com/image.jpg">
+                    <div class="mt-2">
+                        <img src="{% static 'images/default_animal.png' %}" class="h-24 w-24 object-cover rounded-lg mx-auto" alt="Animal Preview">
+                    </div>
+                </div>
+                
+                <!-- Animal Name -->
+                <div class="mb-4">
+                    <label for="newAnimalName" class="block text-sm font-medium text-gray-700 mb-1">Nama</label>
+                    <input type="text" id="newAnimalName" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" placeholder="Masukkan nama hewan">
+                </div>
+                
+                <!-- Animal Species -->
+                <div class="mb-4">
+                    <label for="newAnimalSpecies" class="block text-sm font-medium text-gray-700 mb-1">Species</label>
+                    <input type="text" id="newAnimalSpecies" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" placeholder="contoh: Mamalia, Reptil, dll">
+                </div>
+                
+                <!-- Animal Origin -->
+                <div class="mb-4">
+                    <label for="newAnimalOrigin" class="block text-sm font-medium text-gray-700 mb-1">Asal Hewan</label>
+                    <input type="text" id="newAnimalOrigin" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" placeholder="contoh: Indonesia, Australia, dll">
+                </div>
+                
+                <!-- Animal Birth Date -->
+                <div class="mb-4">
+                    <label for="newAnimalBirthDate" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Lahir</label>
+                    <input type="date" id="newAnimalBirthDate" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
+                </div>
+                
+                <!-- Animal Status -->
+                <div class="mb-4">
+                    <label for="newAnimalStatus" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select id="newAnimalStatus" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
+                        <option value="">-- Pilih Status --</option>
+                        <option value="sehat">Sehat</option>
+                        <option value="rehabilitasi">Rehabilitasi</option>
+                        <option value="tidak_sehat">Tidak Sehat</option>
+                    </select>
+                </div>
+                
+                <!-- Animal Habitat -->
+                <div class="mb-4">
+                    <label for="newAnimalHabitat" class="block text-sm font-medium text-gray-700 mb-1">Habitat</label>
+                    <input type="text" id="newAnimalHabitat" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" placeholder="contoh: Hutan, Savana, dll">
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" class="close-add-modal bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded">
+                        Batal
+                    </button>
+                    <button type="submit" class="bg-[#546d52] hover:bg-[#3e513c] text-white py-2 px-4 rounded">
+                        Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Animal Modal -->
+<div id="editAnimalModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg max-w-md w-full mx-4 overflow-y-auto" style="max-height: 90vh;">
+        <!-- Modal Header -->
+        <div class="bg-[#61785f] text-white px-4 py-3 flex items-center justify-between rounded-t-lg sticky top-0 z-10">
+            <h3 class="font-bold">Edit Animal</h3>
+            <button class="close-modal text-white hover:text-gray-200">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Modal Body -->
+        <div class="p-6">
+            <form>
+                <!-- Animal Image URL -->
+                <div class="mb-4">
+                    <label for="animalImageUrl" class="block text-sm font-medium text-gray-700 mb-1">URL Gambar</label>
+                    <input type="url" id="animalImageUrl" value="https://example.com/image.jpg" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" placeholder="https://example.com/image.jpg">
+                    <div class="mt-2">
+                        <img src="{% static 'images/default_animal.png' %}" class="h-24 w-24 object-cover rounded-lg mx-auto" alt="Animal Preview">
+                    </div>
+                </div>
+                
+                <!-- Animal Name -->
+                <div class="mb-4">
+                    <label for="animalName" class="block text-sm font-medium text-gray-700 mb-1">Nama</label>
+                    <input type="text" id="animalName" value="Antoni E." class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
+                </div>
+                
+                <!-- Animal Species -->
+                <div class="mb-4">
+                    <label for="animalSpecies" class="block text-sm font-medium text-gray-700 mb-1">Species</label>
+                    <input type="text" id="animalSpecies" value="Primata" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
+                </div>
+                
+                <!-- Animal Origin -->
+                <div class="mb-4">
+                    <label for="animalOrigin" class="block text-sm font-medium text-gray-700 mb-1">Asal Hewan</label>
+                    <input type="text" id="animalOrigin" value="Indonesia" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
+                </div>
+                
+                <!-- Animal Birth Date -->
+                <div class="mb-4">
+                    <label for="animalBirthDate" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Lahir</label>
+                    <input type="date" id="animalBirthDate" value="2020-03-15" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
+                </div>
+                
+                <!-- Animal Status -->
+                <div class="mb-4">
+                    <label for="animalStatus" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select id="animalStatus" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
+                        <option value="sehat">Sehat</option>
+                        <option value="rehabilitasi">Rehabilitasi</option>
+                        <option value="tidak_sehat">Tidak Sehat</option>
+                    </select>
+                </div>
+                
+                <!-- Animal Habitat -->
+                <div class="mb-4">
+                    <label for="animalHabitat" class="block text-sm font-medium text-gray-700 mb-1">Habitat</label>
+                    <input type="text" id="animalHabitat" value="Lab komputer" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" class="close-modal bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded">
+                        Batal
+                    </button>
+                    <button type="button" class="bg-[#546d52] hover:bg-[#3e513c] text-white py-2 px-4 rounded">
+                        Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add JavaScript for Modal Functionality -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get both modals
+        const editModal = document.getElementById('editAnimalModal');
+        const addModal = document.getElementById('addAnimalModal');
+        
+        // Get all modal trigger buttons
+        const editModalTriggers = document.querySelectorAll('.edit-modal-trigger');
+        const addModalTriggers = document.querySelectorAll('.add-modal-trigger');
+        
+        // Get all close modal buttons
+        const closeEditButtons = document.querySelectorAll('.close-modal');
+        const closeAddButtons = document.querySelectorAll('.close-add-modal');
+        
+        // Function to open edit modal
+        function openEditModal() {
+            editModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling behind modal
+        }
+        
+        // Function to close edit modal
+        function closeEditModal() {
+            editModal.classList.add('hidden');
+            document.body.style.overflow = ''; // Re-enable scrolling
+        }
+        
+        // Function to open add modal
+        function openAddModal() {
+            addModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling behind modal
+        }
+        
+        // Function to close add modal
+        function closeAddModal() {
+            addModal.classList.add('hidden');
+            document.body.style.overflow = ''; // Re-enable scrolling
+        }
+        
+        // Add click event to all edit trigger buttons
+        editModalTriggers.forEach(button => {
+            button.addEventListener('click', openEditModal);
+        });
+        
+        // Add click event to all add trigger buttons
+        addModalTriggers.forEach(button => {
+            button.addEventListener('click', openAddModal);
+        });
+        
+        // Add click event to all edit close buttons
+        closeEditButtons.forEach(button => {
+            button.addEventListener('click', closeEditModal);
+        });
+        
+        // Add click event to all add close buttons
+        closeAddButtons.forEach(button => {
+            button.addEventListener('click', closeAddModal);
+        });
+        
+        // Close edit modal when clicking outside the modal content
+        editModal.addEventListener('click', function(e) {
+            if (e.target === editModal) {
+                closeEditModal();
+            }
+        });
+        
+        // Close add modal when clicking outside the modal content
+        addModal.addEventListener('click', function(e) {
+            if (e.target === addModal) {
+                closeAddModal();
+            }
+        });
+        
+        // Close modals with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (!editModal.classList.contains('hidden')) {
+                    closeEditModal();
+                }
+                if (!addModal.classList.contains('hidden')) {
+                    closeAddModal();
+                }
+            }
+        });
+
+        // Image URL preview for edit modal
+        const imageUrlInput = document.getElementById('animalImageUrl');
+        const imagePreview = imageUrlInput.nextElementSibling.querySelector('img');
+        
+        imageUrlInput.addEventListener('change', function() {
+            const url = this.value;
+            if (url && url.trim() !== '') {
+                imagePreview.src = url;
+            } else {
+                imagePreview.src = "{% static 'images/default_animal.png' %}";
+            }
+        });
+        
+        // Image URL preview for add modal
+        const newImageUrlInput = document.getElementById('newAnimalImageUrl');
+        const newImagePreview = newImageUrlInput.nextElementSibling.querySelector('img');
+        
+        newImageUrlInput.addEventListener('change', function() {
+            const url = this.value;
+            if (url && url.trim() !== '') {
+                newImagePreview.src = url;
+            } else {
+                newImagePreview.src = "{% static 'images/default_animal.png' %}";
+            }
+        });
+        
+        // Add form submission handling
+        const addForm = addModal.querySelector('form');
+        addForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Here you would add code to submit the form data to your backend
+            // For now, we'll just close the modal
+            closeAddModal();
+            // You might want to refresh the table or add the new entry directly
+        });
+    });
+</script>
+{% endblock content %}
