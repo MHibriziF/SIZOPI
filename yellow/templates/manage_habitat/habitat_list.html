@@ -31,7 +31,7 @@
 
              <!-- Action Buttons and Sort -->
              <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-                <button class="bg-[#546d52] hover:bg-[#3e513c] text-white rounded-lg px-4 py-2 flex items-center gap-2 add-modal-trigger">
+                <button class="bg-[#546d52] hover:bg-[#3e513c] text-white rounded-lg px-4 py-2 flex items-center gap-2 add-habitat-trigger">
                     <span class="font-bold">+</span> Add Habitat
                 </button>
                 <div class="flex items-center gap-2">
@@ -75,7 +75,7 @@
                                     <button class="text-blue-600 hover:text-blue-800 edit-habitat-trigger" data-id="1">
                                         <span class="fa fa-pencil"></span>
                                     </button>
-                                    <button class="text-red-600 hover:text-red-800 ml-3">
+                                    <button class="text-red-600 hover:text-red-800 ml-3" onclick="return confirmDelete()">
                                         <span class="fa fa-trash"></span>
                                     </button>
                                     <a href="#" class="ml-3 bg-blue-500 hover:bg-blue-700 text-white py-1 px-3 rounded text-sm">Detail</a>
@@ -378,6 +378,9 @@
 
 <!-- JS MODAL HANDLING -->
 <script>
+        function confirmDelete() {
+        return confirm("Apakah Anda yakin ingin menghapus habitat ini?");
+    }
     document.addEventListener('DOMContentLoaded', () => {
         // Habitat dummy data for demo purposes
         const habitatData = [
