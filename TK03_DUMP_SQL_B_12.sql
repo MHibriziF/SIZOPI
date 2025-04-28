@@ -115,7 +115,7 @@ CREATE TABLE MEMBERI (
 );
 
 CREATE TABLE FASILITAS (
-  nama_atraksi   VARCHAR(50)  PRIMARY KEY,
+  nama   VARCHAR(50)  PRIMARY KEY,
   jadwal         TIMESTAMP    NOT NULL,
   kapasitas_max  INT          NOT NULL
 );
@@ -159,6 +159,8 @@ CREATE TABLE JADWAL_PEMERIKSAAN_KESEHATAN (
 CREATE TABLE WAHANA (
     nama_wahana VARCHAR(50) PRIMARY KEY,
     peraturan   TEXT        NOT NULL
+	FOREIGN KEY(nama_wahana) REFERENCES FASILITAS(nama)
+		ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE ADOPTER (
@@ -197,6 +199,19 @@ CREATE TABLE ADOPSI (
         ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (id_hewan) REFERENCES HEWAN(id)
         ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE RESERVASI (
+	username_p  VARCHAR(50),
+	nama_fasilitas VARCHAR(50),
+	tanggal_kunjungan DATE NOT NULL,
+	jumlah_tiket INT NOT NULL,
+	status VARCHAR(50) NOT NULL,
+	PRIMARY KEY (username_p, nama_fasilitas, tanggal_kunjungan),
+	FOREIGN KEY (username_p) REFERENCES PENGUNJUNG(username_p)
+		ON DELETE CASCADE ON UPDATE CASCADE,
+	FOREIGN KEY (nama_fasilitas) REFERENCES FASILITAS(nama_fasilitas)
+		ON DELETE CASCADE ON UPDATE CASCADE		
 );
 
 INSERT INTO PENGGUNA VALUES ('user1','user1@example.com','H!4NQpP8','Prasetya',NULL,'Andriani',628156593877.0),
@@ -631,3 +646,9 @@ INSERT INTO ADOPSI VALUES ('41f524af-78b0-42d5-b6f1-66d7768caa10', 'a93ead3f-dbe
 	('54d9cb36-bfa0-4bda-93a7-39e8d0b9488d', '302ab435-288b-4db7-9b15-e3ccd65d036e', 'lunas', '2023-07-03', '2023-10-03', 1150000),
 	('2eec2f5a-42eb-4a47-9b10-03cf113ccff0', 'c73cad48-3420-4ccd-be73-02bffe28d40f', 'lunas', '2023-10-09', '2023-11-09', 850000),
 	('e5ecfbb2-46a8-4d61-bfff-98b0c2b84c51', 'd485123f-117c-493a-9df9-d002984f84bb', 'tertunda', '2024-01-30', '2024-07-30', 3200000);
+
+INSERT INTO RESERVASI VALUES ('user9','Safari Edukasi Reptil','2025-05-01 00:00:00',1.0,'Terjadwal'),
+	('user7','Safari Edukasi Mamalia','2025-05-02 00:00:00',7.0,'Terjadwal'),
+	('user2','Ekshibisi Ular','2025-05-03 00:00:00',3.0,'Dibatalkan'),
+	('user3','Ekshibisi Lumba-Lumba','2025-05-04 00:00:00',2.0,'Terjadwal'),
+	('user20','Pertunjukan Koala Cina','2025-05-03 00:00:00',5.0,'Terjadwal');
