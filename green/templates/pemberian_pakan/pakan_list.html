@@ -1,144 +1,528 @@
 {% extends 'base.html' %}
 {% block meta %}
     <title>Pemberian Pakan</title>
+    <style>
+        :root {
+            --primary-color: #4A5A43;
+            --primary-light: #8EAF7B;
+            --primary-dark: #3a4a33;
+            --accent-color: #A7C796;
+            --text-color: #333333;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+        
+        body {
+            background-color: var(--light-bg);
+            color: var(--text-color);
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .content-wrapper {
+            background-color: #fff;
+            color: var(--text-color);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: var(--card-shadow);
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .page-header {
+            background-color: #fff;
+            border-radius: 1rem;
+            box-shadow: var(--card-shadow);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .page-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 8px;
+            height: 100%;
+            background-color: var(--primary-color);
+        }
+        
+        .page-header h2 {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1.75rem;
+        }
+        
+        .animal-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .animal-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 1.5rem;
+            border: 3px solid var(--accent-color);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+        
+        .table-container {
+            background-color: #fff;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 2rem;
+        }
+        
+        .card-header {
+            background-color: var(--primary-color) !important;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-bottom: none;
+        }
+        
+        .card-header h5 {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            margin-bottom: 0;
+        }
+        
+        .card-header h5 i {
+            margin-right: 0.75rem;
+            font-size: 1.2rem;
+        }
+        
+        .table {
+            margin-bottom: 0;
+        }
+        
+        .table thead th {
+            background-color: var(--primary-dark);
+            color: #fff;
+            font-weight: 500;
+            padding: 1rem;
+            border: none;
+        }
+        
+        .table tbody td {
+            padding: 0.75rem 1rem;
+            vertical-align: middle;
+            border-color: #f0f0f0;
+        }
+        
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(248, 249, 250, 0.5);
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: rgba(167, 199, 150, 0.1);
+        }
+        
+        .badge {
+            padding: 0.5em 0.75em;
+            font-weight: 500;
+            border-radius: 0.5rem;
+        }
+        
+        .badge.bg-success {
+            background-color: #28a745 !important;
+        }
+        
+        .badge.bg-warning {
+            background-color: #ffc107 !important;
+            color: #212529 !important;
+        }
+        
+        .badge.bg-danger {
+            background-color: #dc3545 !important;
+        }
+        
+        .btn {
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            border-color: #5a6268;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-success {
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+        
+        .btn-success:hover {
+            background-color: #218838;
+            border-color: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-warning {
+            background-color: #ffc107;
+            border-color: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e0a800;
+            border-color: #e0a800;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c82333;
+            border-color: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn i {
+            margin-right: 0.5rem;
+        }
+        
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .empty-state {
+            padding: 3rem;
+            text-align: center;
+            color: #6c757d;
+        }
+        
+        .modal-content {
+            border-radius: 1rem;
+            overflow: hidden;
+            border: none;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .modal-header {
+            border-bottom: none;
+            padding: 1.5rem;
+        }
+        
+        .modal-footer {
+            border-top: none;
+            padding: 1.5rem;
+        }
+        
+        .form-control {
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 0.25rem rgba(142, 175, 123, 0.25);
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+        
+        .action-cell {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+        }
+        
+
+        @media (max-width: 767.98px) {
+            .content-wrapper {
+                padding: 1.5rem;
+            }
+            
+            .page-header {
+                padding: 1.25rem;
+            }
+            
+            .animal-info {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .animal-avatar {
+                margin-bottom: 1rem;
+            }
+            
+            .action-buttons {
+                justify-content: flex-start;
+                margin-top: 1rem;
+            }
+            
+            .table thead {
+                display: none;
+            }
+            
+            .table, .table tbody, .table tr, .table td {
+                display: block;
+                width: 100%;
+            }
+            
+            .table tr {
+                margin-bottom: 1rem;
+                border: 1px solid #e9ecef;
+                border-radius: 0.5rem;
+                overflow: hidden;
+            }
+            
+            .table td {
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+                border-bottom: 1px solid #e9ecef;
+            }
+            
+            .table td:before {
+                content: attr(data-label);
+                position: absolute;
+                left: 1rem;
+                top: 0.75rem;
+                font-weight: 600;
+                text-align: left;
+            }
+            
+            .table td:last-child {
+                border-bottom: none;
+                text-align: center;
+                padding-left: 1rem;
+            }
+            
+            .action-cell {
+                justify-content: center;
+            }
+        }
+    </style>
 {% endblock meta %}
 
 {% block content %}
 {% load static %}
 {% include 'components/navbar.html' %}
 
-<div class="row mb-4">
-    <div class="col-md-8">
-        <h2>Pemberian Pakan: {{ hewan.nama|default:"Tidak ada nama" }} ({{ hewan.spesies }})</h2>
-        <p>Status Kesehatan: 
-            {% if hewan.status_kesehatan == 'Sehat' %}
-                <span class="badge bg-success">{{ hewan.status_kesehatan }}</span>
-            {% elif hewan.status_kesehatan == 'Sakit' %}
-                <span class="badge bg-danger">{{ hewan.status_kesehatan }}</span>
-            {% else %}
-                <span class="badge bg-warning text-dark">{{ hewan.status_kesehatan }}</span>
-            {% endif %}
-        </p>
-    </div>
-    <div class="col-md-4 text-end">
-        <a href="{% url 'green:pemberian_pakan_list' %}" class="btn btn-secondary mb-2">Kembali ke Daftar Hewan</a>
-        <button type="button" class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#tambahPakanModal">
-            <i class="bi bi-plus-circle"></i> Tambah Jadwal Pemberian Pakan
-        </button>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col">
-        <div class="card">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0">Daftar Jadwal Pemberian Pakan</h5>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Jenis Pakan</th>
-                                <th>Jumlah Pakan (gram)</th>
-                                <th>Jadwal</th>
-                                <th>Status</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for pakan in pakan_list %}
-                            <tr>
-                                <td>{{ pakan.jenis }}</td>
-                                <td>{{ pakan.jumlah }}</td>
-                                <td>{{ pakan.jadwal|date:"d/m/Y H:i" }}</td>
-                                <td>
-                                    {% if pakan.status == 'Menunggu Pemberian' %}
-                                        <span class="badge bg-warning text-dark">{{ pakan.status }}</span>
-                                    {% else %}
-                                        <span class="badge bg-success">{{ pakan.status }}</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if pakan.status == 'Menunggu Pemberian' %}
-                                        <form action="{% url 'green:pemberian_pakan_beri' hewan.id pakan.jadwal|date:'Y-m-d H:i:s' %}" method="post" style="display:inline;">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-sm btn-success">Beri Pakan</button>
-                                        </form>
-                                    {% endif %}
-                                    
-                                    <a href="{% url 'green:pemberian_pakan_update' hewan.id pakan.jadwal|date:'Y-m-d H:i:s' %}" class="btn btn-sm btn-warning">Edit</a>
-                                    
-                                    <button type="button" class="btn btn-sm btn-danger" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#hapusPakanModal" 
-                                            data-jadwal="{{ pakan.jadwal|date:'Y-m-d H:i:s' }}">
-                                        Hapus
-                                    </button>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="5" class="text-center">Belum ada jadwal pemberian pakan</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+<div class="container content-wrapper mt-4">
+    <div class="page-header">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="animal-info">
+                    <img src="{{ hewan.url_foto|default:'https://via.placeholder.com/60?text=🦁' }}" alt="{{ hewan.nama }}" class="animal-avatar">
+                    <div>
+                        <h2><i class="bi bi-basket me-2"></i>Pemberian Pakan</h2>
+                        <h5 class="text-muted mb-2">{{ hewan.nama|default:"Tidak ada nama" }} ({{ hewan.spesies }})</h5>
+                        <p class="mb-0">Status Kesehatan: 
+                            {% if hewan.status_kesehatan == 'Sehat' %}
+                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>{{ hewan.status_kesehatan }}</span>
+                            {% elif hewan.status_kesehatan == 'Sakit' %}
+                                <span class="badge bg-danger"><i class="bi bi-exclamation-circle me-1"></i>{{ hewan.status_kesehatan }}</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark"><i class="bi bi-eye me-1"></i>{{ hewan.status_kesehatan }}</span>
+                            {% endif %}
+                        </p>
+                    </div>
                 </div>
             </div>
+            <div class="col-md-4">
+                <div class="action-buttons">
+                    <a href="{% url 'green:pemberian_pakan_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Kembali
+                    </a>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tambahPakanModal">
+                        <i class="bi bi-plus-circle"></i> Tambah Jadwal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+        {% for message in messages %}
+            {{ message }}
+        {% endfor %}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    <div class="table-container">
+        <div class="card-header">
+            <h5><i class="bi bi-calendar-check"></i> Daftar Jadwal Pemberian Pakan</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Jenis Pakan</th>
+                        <th>Jumlah Pakan (gram)</th>
+                        <th>Jadwal</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pakan in pakan_list %}
+                    <tr>
+                        <td data-label="Jenis Pakan">{{ pakan.jenis }}</td>
+                        <td data-label="Jumlah Pakan">{{ pakan.jumlah }} gram</td>
+                        <td data-label="Jadwal">
+                            <i class="bi bi-clock me-1"></i>{{ pakan.jadwal|date:"d/m/Y H:i" }}
+                        </td>
+                        <td data-label="Status">
+                            {% if pakan.status == 'Menunggu Pemberian' %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-hourglass-split me-1"></i>{{ pakan.status }}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check2-all me-1"></i>{{ pakan.status }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td data-label="Aksi" class="action-cell">
+                            {% if pakan.status == 'Menunggu Pemberian' %}
+                                <form action="{% url 'green:pemberian_pakan_beri' hewan.id pakan.jadwal|date:'Y-m-d H:i:s' %}" method="post" style="display:inline-block;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-success">
+                                        <i class="bi bi-check2"></i> Beri
+                                    </button>
+                                </form>
+                            {% endif %}
+                            
+                            <a href="{% url 'green:pemberian_pakan_update' hewan.id pakan.jadwal|date:'Y-m-d H:i:s' %}" class="btn btn-sm btn-warning">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a>
+                            
+                            <button type="button" class="btn btn-sm btn-danger hapus-btn" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#hapusPakanModal" 
+                                    data-jadwal="{{ pakan.jadwal|date:'Y-m-d H:i:s' }}"
+                                    data-jenis="{{ pakan.jenis }}">
+                                <i class="bi bi-trash"></i> Hapus
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="empty-state">
+                            <i class="bi bi-calendar-x fs-1 d-block mb-3 text-muted"></i>
+                            <p class="mb-0">Belum ada jadwal pemberian pakan</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
 <!-- Modal Tambah Jadwal Pemberian Pakan -->
-<div class="modal fade" id="tambahPakanModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">Tambah Jadwal Pemberian Pakan</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<div class="modal fade" id="tambahPakanModal" tabindex="-1" aria-labelledby="tambahPakanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background-image: url('/static/images/bg-pattern.jpg'); background-size: cover; border: none;">
+            <div class="modal-header border-0" style="background: rgba(74, 90, 67, 0.9); color: white;">
+                <h5 class="modal-title" id="tambahPakanModalLabel">
+                    <i class="bi bi-plus-circle me-2"></i>Tambah Jadwal
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="{% url 'green:pemberian_pakan_create' hewan.id %}" method="post">
                 {% csrf_token %}
-                <div class="modal-body">
+                <div class="modal-body" style="background: rgba(255, 255, 255, 0.95);">
                     <div class="mb-3">
                         <label for="jenis_pakan" class="form-label">Jenis Pakan</label>
-                        <input type="text" class="form-control" id="jenis_pakan" name="jenis_pakan" required>
+                        <input type="text" class="form-control" id="jenis_pakan" name="jenis_pakan" placeholder="Contoh: Rumput, Dedak, dll" required>
                     </div>
                     <div class="mb-3">
                         <label for="jumlah_pakan" class="form-label">Jumlah Pakan (gram)</label>
-                        <input type="number" class="form-control" id="jumlah_pakan" name="jumlah_pakan" required>
+                        <input type="number" class="form-control" id="jumlah_pakan" name="jumlah_pakan" placeholder="Masukkan jumlah dalam gram" required>
                     </div>
                     <div class="mb-3">
                         <label for="jadwal" class="form-label">Jadwal</label>
                         <input type="datetime-local" class="form-control" id="jadwal" name="jadwal" required>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">BATAL</button>
-                    <button type="submit" class="btn btn-primary">SIMPAN</button>
+                <div class="modal-footer border-0" style="background: rgba(255, 255, 255, 0.95);">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x"></i> Batal
+                    </button>
+                    <button type="submit" class="btn" style="background-color: var(--primary-color); color: white;">
+                        <i class="bi bi-save"></i> Simpan
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Modal Hapus Jadwal Pemberian Pakan -->
-<div class="modal fade" id="hapusPakanModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">Konfirmasi Hapus</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- Modal Hapus Jadwal Pemberian Pakan - Fixed Version -->
+<div class="modal fade" id="hapusPakanModal" tabindex="-1" aria-labelledby="hapusPakanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content" style="background-image: url('/static/images/bg-pattern.jpg'); background-size: cover; border: none; border-radius: 1rem; overflow: hidden; box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);">
+            <div class="modal-header border-0" style="background: rgba(220, 53, 69, 0.85); color: white; padding: 1rem 1.5rem;">
+                <h5 class="modal-title" id="hapusPakanModalLabel"><i class="bi bi-question-circle me-2"></i>Hapus?</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <p>Apakah Anda yakin ingin menghapus data pemberian pakan ini?</p>
+            <div class="modal-body text-center py-4" style="background: rgba(255, 255, 255, 0.95);">
+                <p class="mb-0">Yakin ingin menghapus jadwal ini?</p>
+                <p class="mt-2 text-danger" id="deletingPakanInfo"><!-- Data will be inserted here --></p>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">TIDAK</button>
-                <form id="hapusPakanForm" method="post" action="">
+            <div class="modal-footer border-0 justify-content-center" style="background: rgba(255, 255, 255, 0.95); padding: 1rem 1.5rem;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x"></i> Tidak
+                </button>
+                <form id="hapusPakanForm" method="post">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">YA</button>
+                    <!-- Hidden field to store the jadwal value -->
+                    <input type="hidden" id="hapusJadwalField" name="jadwal" value="">
+                    <button type="submit" class="btn btn-danger" id="deleteConfirmBtn">
+                        <i class="bi bi-trash"></i> Ya
+                    </button>
                 </form>
             </div>
         </div>
@@ -146,16 +530,81 @@
 </div>
 
 {% block extra_js %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Set URL untuk hapus jadwal pakan
+        // Set current date and time as default for the jadwal field in add modal
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        
+        const defaultDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+        const jadwalInput = document.getElementById('jadwal');
+        if (jadwalInput) {
+            jadwalInput.value = defaultDateTime;
+        }
+        
+        // Get modal elements
+        const tambahPakanModal = document.getElementById('tambahPakanModal');
         const hapusPakanModal = document.getElementById('hapusPakanModal');
-        hapusPakanModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            const jadwal = button.getAttribute('data-jadwal');
-            const form = document.getElementById('hapusPakanForm');
-            form.action = "{% url 'green:pemberian_pakan_delete' hewan.id '0000-00-00 00:00:00' %}".replace('0000-00-00 00:00:00', jadwal);
-        });
+        
+        // Handle deletion modal
+        if (hapusPakanModal) {
+            // Set up modal event handler for deletion
+            hapusPakanModal.addEventListener('show.bs.modal', function(event) {
+                // Get button that triggered the modal
+                const button = event.relatedTarget;
+                
+                // Extract info from data attributes
+                const jadwal = button.getAttribute('data-jadwal');
+                const jenisPakan = button.getAttribute('data-jenis') || 
+                                  button.closest('tr').querySelector('[data-label="Jenis Pakan"]')?.textContent.trim() || 
+                                  'Jadwal Pakan';
+                
+                // Set the form's action URL with the correct path
+                const form = document.getElementById('hapusPakanForm');
+                const hewanId = '{{ hewan.id }}';
+                form.action = "{% url 'green:pemberian_pakan_delete' hewan.id '0' %}".replace('/0/', `/${jadwal}/`);
+                
+                // Set the hidden field value
+                const hiddenField = document.getElementById('hapusJadwalField');
+                if (hiddenField) {
+                    hiddenField.value = jadwal;
+                }
+                
+                // Update confirmation text
+                const deleteInfoElement = document.getElementById('deletingPakanInfo');
+                if (deleteInfoElement) {
+                    deleteInfoElement.textContent = `${jenisPakan} (${jadwal.replace('T', ' ')})`;
+                }
+                
+                // Debug info
+                console.log('Delete form action:', form.action);
+                console.log('Jadwal hidden value:', jadwal);
+            });
+            
+            // Form submission handler
+            const hapusPakanForm = document.getElementById('hapusPakanForm');
+            if (hapusPakanForm) {
+                hapusPakanForm.addEventListener('submit', function(event) {
+                    // Show loading state on the button
+                    const submitBtn = document.getElementById('deleteConfirmBtn');
+                    if (submitBtn) {
+                        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Menghapus...';
+                        submitBtn.disabled = true;
+                    }
+                    
+                    // Log form submission for debugging
+                    console.log('Form action on submit:', this.action);
+                    console.log('Jadwal value on submit:', document.getElementById('hapusJadwalField').value);
+                });
+            }
+        }
     });
 </script>
 {% endblock %}

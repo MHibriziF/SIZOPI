@@ -1,4 +1,3 @@
-# views.py
 import uuid
 import psycopg2
 from datetime import datetime
@@ -9,9 +8,7 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 
-# Helper functions untuk cek role pengguna
 def is_dokter_hewan(request):
-    """Cek apakah pengguna adalah dokter hewan"""
     if not request.session.get('username'):
         return False
     
@@ -21,7 +18,6 @@ def is_dokter_hewan(request):
     return 'dokter' in roles
 
 def is_penjaga_hewan(request):
-    """Cek apakah pengguna adalah penjaga hewan"""
     if not request.session.get('username'):
         return False
     
@@ -30,7 +26,6 @@ def is_penjaga_hewan(request):
     
     return 'penjaga' in roles
 
-# Decorator untuk memeriksa apakah user adalah dokter hewan
 def dokter_hewan_required(view_func):
     def wrapper(request, *args, **kwargs):
         if not is_dokter_hewan(request):
@@ -39,7 +34,6 @@ def dokter_hewan_required(view_func):
         return view_func(request, *args, **kwargs)
     return wrapper
 
-# Decorator untuk memeriksa apakah user adalah penjaga hewan
 def penjaga_hewan_required(view_func):
     def wrapper(request, *args, **kwargs):
         if not is_penjaga_hewan(request):
@@ -48,7 +42,7 @@ def penjaga_hewan_required(view_func):
         return view_func(request, *args, **kwargs)
     return wrapper
 
-# Mendapatkan data hewan berdasarkan ID
+
 def get_hewan_by_id(id_hewan):
     with connection.cursor() as cursor:
         cursor.execute("""
@@ -92,28 +86,20 @@ def get_all_hewan():
             })
         return hewan_list
 
-"""
--------------------------
-A. CRUD Rekam Medis Hewan
--------------------------
-"""
 
 @dokter_hewan_required
 def rekam_medis_list(request):
     id_hewan = request.GET.get('id_hewan')
     
     if not id_hewan:
-        # Jika id_hewan tidak ada, tampilkan daftar hewan
         hewan_list = get_all_hewan()
         return render(request, 'rekam_medis/hewan_list.html', {'hewan_list': hewan_list})
     
-    # Ambil data hewan
     hewan = get_hewan_by_id(id_hewan)
     if not hewan:
         messages.error(request, "Hewan tidak ditemukan")
         return redirect('green:rekam_medis_list')
     
-    # Ambil rekam medis hewan
     with connection.cursor() as cursor:
         cursor.execute("""
             SELECT cm.tanggal_pemeriksaan, p.nama_depan || ' ' || p.nama_belakang as nama_dokter, 
@@ -144,7 +130,6 @@ def rekam_medis_list(request):
 
 @dokter_hewan_required
 def rekam_medis_create(request, id_hewan):
-    # Ambil data hewan
     hewan = get_hewan_by_id(id_hewan)
     if not hewan:
         messages.error(request, "Hewan tidak ditemukan")
@@ -156,7 +141,6 @@ def rekam_medis_create(request, id_hewan):
         diagnosis = request.POST.get('diagnosis')
         pengobatan = request.POST.get('pengobatan')
         
-        # Validasi
         if not tanggal_pemeriksaan:
             messages.error(request, "Tanggal pemeriksaan harus diisi")
             return render(request, 'rekam_medis/rekam_medis_form.html', {'hewan': hewan})
@@ -167,7 +151,6 @@ def rekam_medis_create(request, id_hewan):
         
         try:
             with connection.cursor() as cursor:
-                # Cek apakah tanggal sudah ada untuk hewan ini
                 cursor.execute("""
                     SELECT COUNT(*) FROM SIZOPI.CATATAN_MEDIS 
                     WHERE id_hewan = %s AND tanggal_pemeriksaan = %s
@@ -177,13 +160,11 @@ def rekam_medis_create(request, id_hewan):
                     messages.error(request, "Rekam medis untuk tanggal ini sudah ada")
                     return render(request, 'rekam_medis/rekam_medis_form.html', {'hewan': hewan})
                 
-                # Simpan rekam medis baru
                 cursor.execute("""
                     INSERT INTO SIZOPI.CATATAN_MEDIS (id_hewan, username_dh, tanggal_pemeriksaan, diagnosis, pengobatan, status_kesehatan, catatan_tindak_lanjut)
                     VALUES (%s, %s, %s, %s, %s, %s, NULL)
                 """, [id_hewan, request.session.get('username'), tanggal_pemeriksaan, diagnosis, pengobatan, status_kesehatan])
                 
-                # Update status kesehatan di tabel HEWAN
                 cursor.execute("""
                     UPDATE SIZOPI.HEWAN
                     SET status_kesehatan = %s
@@ -199,13 +180,11 @@ def rekam_medis_create(request, id_hewan):
 
 @dokter_hewan_required
 def rekam_medis_update(request, id_hewan, tanggal):
-    # Ambil data hewan
     hewan = get_hewan_by_id(id_hewan)
     if not hewan:
         messages.error(request, "Hewan tidak ditemukan")
         return redirect('green:rekam_medis_list')
     
-    # Ambil data rekam medis
     with connection.cursor() as cursor:
         cursor.execute("""
             SELECT id_hewan, username_dh, tanggal_pemeriksaan, diagnosis, pengobatan, status_kesehatan, catatan_tindak_lanjut
@@ -228,7 +207,6 @@ def rekam_medis_update(request, id_hewan, tanggal):
             'catatan_tindak_lanjut': row[6]
         }
     
-    # Hanya rekam medis dengan status 'Sakit' yang bisa diedit
     if rekam_medis['status_kesehatan'] != 'Sakit':
         messages.error(request, "Hanya rekam medis dengan status Sakit yang dapat diedit")
         return redirect('green:rekam_medis_list')
@@ -240,7 +218,6 @@ def rekam_medis_update(request, id_hewan, tanggal):
         
         try:
             with connection.cursor() as cursor:
-                # Update rekam medis
                 cursor.execute("""
                     UPDATE SIZOPI.CATATAN_MEDIS
                     SET diagnosis = %s, pengobatan = %s, catatan_tindak_lanjut = %s
@@ -276,28 +253,20 @@ def rekam_medis_delete(request, id_hewan, tanggal):
     
     return redirect('green:rekam_medis_list')
 
-"""
----------------------------------------
-B. CR Penjadwalan Pemeriksaan Kesehatan
----------------------------------------
-"""
 
 @dokter_hewan_required
 def jadwal_pemeriksaan_list(request):
     id_hewan = request.GET.get('id_hewan')
     
     if not id_hewan:
-        # Jika id_hewan tidak ada, tampilkan daftar hewan
         hewan_list = get_all_hewan()
         return render(request, 'jadwal_pemeriksaan/hewan_list.html', {'hewan_list': hewan_list})
     
-    # Ambil data hewan
     hewan = get_hewan_by_id(id_hewan)
     if not hewan:
         messages.error(request, "Hewan tidak ditemukan")
         return redirect('green:jadwal_pemeriksaan_list')
-    
-    # Ambil frekuensi pemeriksaan
+
     frekuensi = None
     with connection.cursor() as cursor:
         cursor.execute("""
@@ -364,7 +333,6 @@ def jadwal_pemeriksaan_create(request, id_hewan):
         
         try:
             with connection.cursor() as cursor:
-                # Cek apakah tanggal sudah ada untuk hewan ini
                 cursor.execute("""
                     SELECT COUNT(*) FROM SIZOPI.JADWAL_PEMERIKSAAN_KESEHATAN 
                     WHERE id_hewan = %s AND tgl_pemeriksaan_selanjutnya = %s
@@ -374,7 +342,6 @@ def jadwal_pemeriksaan_create(request, id_hewan):
                     messages.error(request, "Jadwal pemeriksaan untuk tanggal ini sudah ada")
                     return render(request, 'jadwal_pemeriksaan/jadwal_form.html', {'hewan': hewan})
                 
-                # Simpan jadwal pemeriksaan baru
                 cursor.execute("""
                     INSERT INTO SIZOPI.JADWAL_PEMERIKSAAN_KESEHATAN (id_hewan, tgl_pemeriksaan_selanjutnya, freq_pemeriksaan_rutin)
                     VALUES (%s, %s, %s)
@@ -387,28 +354,20 @@ def jadwal_pemeriksaan_create(request, id_hewan):
     
     return render(request, 'jadwal_pemeriksaan/jadwal_form.html', {'hewan': hewan})
 
-"""
-----------------------
-C. CRUD Pemberian Pakan
-----------------------
-"""
 
 @penjaga_hewan_required
 def pemberian_pakan_list(request):
     id_hewan = request.GET.get('id_hewan')
     
     if not id_hewan:
-        # Jika id_hewan tidak ada, tampilkan daftar hewan
         hewan_list = get_all_hewan()
         return render(request, 'pemberian_pakan/hewan_list.html', {'hewan_list': hewan_list})
     
-    # Ambil data hewan
     hewan = get_hewan_by_id(id_hewan)
     if not hewan:
         messages.error(request, "Hewan tidak ditemukan")
         return redirect('green:pemberian_pakan_list')
     
-    # Ambil jadwal pemberian pakan
     with connection.cursor() as cursor:
         cursor.execute("""
             SELECT jenis, jumlah, jadwal, status
@@ -435,7 +394,6 @@ def pemberian_pakan_list(request):
 
 @penjaga_hewan_required
 def riwayat_pemberian_pakan(request):
-    # Ambil riwayat pemberian pakan oleh penjaga hewan yang sedang login
     username = request.session.get('username')
     
     with connection.cursor() as cursor:
@@ -467,7 +425,6 @@ def riwayat_pemberian_pakan(request):
 
 @penjaga_hewan_required
 def pemberian_pakan_create(request, id_hewan):
-    # Ambil data hewan
     hewan = get_hewan_by_id(id_hewan)
     if not hewan:
         messages.error(request, "Hewan tidak ditemukan")
@@ -478,14 +435,12 @@ def pemberian_pakan_create(request, id_hewan):
         jumlah_pakan = request.POST.get('jumlah_pakan')
         jadwal = request.POST.get('jadwal')
         
-        # Validasi
         if not jenis_pakan or not jumlah_pakan or not jadwal:
             messages.error(request, "Semua field harus diisi")
             return render(request, 'pemberian_pakan/pakan_form.html', {'hewan': hewan})
         
         try:
             with connection.cursor() as cursor:
-                # Cek apakah jadwal sudah ada untuk hewan ini
                 cursor.execute("""
                     SELECT COUNT(*) FROM SIZOPI.PAKAN 
                     WHERE id_hewan = %s AND jadwal = %s
@@ -495,7 +450,6 @@ def pemberian_pakan_create(request, id_hewan):
                     messages.error(request, "Jadwal pemberian pakan untuk waktu ini sudah ada")
                     return render(request, 'pemberian_pakan/pakan_form.html', {'hewan': hewan})
                 
-                # Simpan jadwal pemberian pakan baru
                 cursor.execute("""
                     INSERT INTO SIZOPI.PAKAN (id_hewan, jadwal, jenis, jumlah, status)
                     VALUES (%s, %s, %s, %s, 'Menunggu Pemberian')
@@ -510,13 +464,11 @@ def pemberian_pakan_create(request, id_hewan):
 
 @penjaga_hewan_required
 def pemberian_pakan_update(request, id_hewan, jadwal):
-    # Ambil data hewan
     hewan = get_hewan_by_id(id_hewan)
     if not hewan:
         messages.error(request, "Hewan tidak ditemukan")
         return redirect('green:pemberian_pakan_list')
     
-    # Ambil data pemberian pakan
     with connection.cursor() as cursor:
         cursor.execute("""
             SELECT jenis, jumlah, jadwal, status
@@ -541,14 +493,12 @@ def pemberian_pakan_update(request, id_hewan, jadwal):
         jumlah_pakan_baru = request.POST.get('jumlah_pakan_baru')
         jadwal_baru = request.POST.get('jadwal_baru')
         
-        # Validasi
         if not jenis_pakan_baru or not jumlah_pakan_baru or not jadwal_baru:
             messages.error(request, "Semua field harus diisi")
             return render(request, 'pemberian_pakan/pakan_edit_form.html', {'hewan': hewan, 'pakan': pakan})
         
         try:
             with connection.cursor() as cursor:
-                # Cek apakah jadwal baru sudah ada (jika berbeda dengan jadwal saat ini)
                 if jadwal != jadwal_baru:
                     cursor.execute("""
                         SELECT COUNT(*) FROM SIZOPI.PAKAN 
@@ -559,7 +509,6 @@ def pemberian_pakan_update(request, id_hewan, jadwal):
                         messages.error(request, "Jadwal pemberian pakan untuk waktu ini sudah ada")
                         return render(request, 'pemberian_pakan/pakan_edit_form.html', {'hewan': hewan, 'pakan': pakan})
                 
-                # Update pemberian pakan
                 cursor.execute("""
                     UPDATE SIZOPI.PAKAN
                     SET jenis = %s, jumlah = %s, jadwal = %s
@@ -583,7 +532,6 @@ def pemberian_pakan_delete(request, id_hewan, jadwal):
     if request.method == 'POST':
         try:
             with connection.cursor() as cursor:
-                # Hapus pemberian pakan
                 cursor.execute("""
                     DELETE FROM SIZOPI.PAKAN
                     WHERE id_hewan = %s AND jadwal = %s
@@ -600,14 +548,12 @@ def pemberian_pakan_beri(request, id_hewan, jadwal):
     if request.method == 'POST':
         try:
             with connection.cursor() as cursor:
-                # Update status pakan
                 cursor.execute("""
                     UPDATE SIZOPI.PAKAN
                     SET status = 'Selesai Diberikan'
                     WHERE id_hewan = %s AND jadwal = %s AND status = 'Menunggu Pemberian'
                 """, [id_hewan, jadwal])
                 
-                # Tambahkan ke tabel MEMBERI
                 cursor.execute("""
                     INSERT INTO SIZOPI.MEMBERI (id_hewan, jadwal, username_jh)
                     VALUES (%s, %s, %s)

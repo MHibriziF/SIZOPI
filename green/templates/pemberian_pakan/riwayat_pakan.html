@@ -1,73 +1,495 @@
 {% extends 'base.html' %}
 {% block meta %}
     <title>Riwayat Pemberian Pakan</title>
+    <style>
+        :root {
+            --primary-color: #4A5A43;
+            --primary-light: #8EAF7B;
+            --primary-dark: #3a4a33;
+            --accent-color: #A7C796;
+            --success-color: #28a745;
+            --success-dark: #218838;
+            --text-color: #333333;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+        
+        body {
+            background-color: var(--light-bg);
+            color: var(--text-color);
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .content-wrapper {
+            background-color: #fff;
+            color: var(--text-color);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: var(--card-shadow);
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .page-header {
+            background-color: #fff;
+            border-radius: 1rem;
+            box-shadow: var(--card-shadow);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .page-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 8px;
+            height: 100%;
+            background-color: var(--success-color);
+        }
+        
+        .page-header h2 {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1.75rem;
+        }
+        
+        .page-header p {
+            margin-bottom: 0;
+            color: #6c757d;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: none;
+        }
+        
+        .card-header.bg-success {
+            background: linear-gradient(135deg, var(--success-color), var(--success-dark)) !important;
+        }
+        
+        .card-header h5 {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            margin-bottom: 0;
+        }
+        
+        .card-header h5 i {
+            margin-right: 0.75rem;
+            font-size: 1.2rem;
+        }
+        
+        .card-body {
+            padding: 0;
+        }
+        
+        .table-scroll-container {
+            position: relative;
+            overflow-x: auto;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .table {
+            margin-bottom: 0;
+            min-width: 1200px;
+        }
+        
+        .table thead {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        
+        .table thead th {
+            background-color: var(--primary-dark);
+            color: #fff;
+            font-weight: 500;
+            padding: 1rem;
+            border: none;
+            white-space: nowrap;
+        }
+        
+        .table thead.table-dark th {
+            background-color: var(--primary-dark) !important;
+            border-color: var(--primary-dark);
+        }
+        
+        .table tbody td {
+            padding: 0.75rem 1rem;
+            vertical-align: middle;
+            border-color: #f0f0f0;
+        }
+        
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(248, 249, 250, 0.5);
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: rgba(167, 199, 150, 0.1);
+        }
+        
+        .badge {
+            padding: 0.5em 0.75em;
+            font-weight: 500;
+            border-radius: 0.5rem;
+        }
+        
+        .badge.bg-success {
+            background-color: #28a745 !important;
+        }
+        
+        .badge.bg-warning {
+            background-color: #ffc107 !important;
+            color: #212529 !important;
+        }
+        
+        .badge.bg-danger {
+            background-color: #dc3545 !important;
+        }
+        
+        .empty-row {
+            height: 150px;
+            background-color: #f8f9fa;
+        }
+        
+        .empty-row td {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        /* Improved pagination */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+        
+        .pagination {
+            display: inline-flex;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .pagination .page-item:first-child .page-link {
+            border-top-left-radius: 0.5rem;
+            border-bottom-left-radius: 0.5rem;
+        }
+        
+        .pagination .page-item:last-child .page-link {
+            border-top-right-radius: 0.5rem;
+            border-bottom-right-radius: 0.5rem;
+        }
+        
+        .pagination .page-item .page-link {
+            color: var(--success-color);
+            border: 1px solid #dee2e6;
+            padding: 0.5rem 0.75rem;
+            margin: 0;
+            border-radius: 0;
+        }
+        
+        .pagination .page-item.active .page-link {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+            color: white;
+            z-index: 1;
+        }
+        
+        .pagination .page-item .page-link:hover {
+            background-color: #f8f9fa;
+            color: var(--success-dark);
+            border-color: #dee2e6;
+        }
+        
+        .pagination .page-item.active .page-link:hover {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 1rem;
+        }
+        
+        .action-buttons .btn {
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .action-buttons .btn-success {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+        }
+        
+        .action-buttons .btn-success:hover {
+            background-color: var(--success-dark);
+            border-color: var(--success-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .search-form {
+            margin-bottom: 1.5rem;
+        }
+        
+        .search-form .form-control {
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            border: 1px solid #dee2e6;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+        }
+        
+        .search-form .form-control:focus {
+            border-color: var(--success-light);
+            box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25);
+        }
+        
+        .search-form .btn {
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 767.98px) {
+            .content-wrapper {
+                padding: 1.5rem;
+            }
+            
+            .page-header {
+                padding: 1.25rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .action-buttons .btn {
+                width: 100%;
+            }
+            
+            .pagination .page-item .page-link {
+                padding: 0.4rem 0.6rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
 {% endblock meta %}
 
 {% block content %}
 {% load static %}
 {% include 'components/navbar.html' %}
 
-
-<div class="row mb-4">
-    <div class="col">
-        <h2>Riwayat Pemberian Pakan</h2>
-        <p class="text-muted">Daftar riwayat pemberian pakan yang telah Anda lakukan</p>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col">
-        <div class="card">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0">Riwayat Pemberian Pakan</h5>
+<div class="container content-wrapper mt-4">
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2><i class="bi bi-clock-history me-2"></i>Riwayat Pemberian Pakan</h2>
+                <p class="text-muted">Daftar riwayat pemberian pakan yang telah dilakukan kepada hewan</p>
             </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Nama Individu</th>
-                                <th>Spesies</th>
-                                <th>Asal Hewan</th>
-                                <th>Tanggal Lahir</th>
-                                <th>Habitat</th>
-                                <th>Status Kesehatan</th>
-                                <th>Jenis Pakan</th>
-                                <th>Jumlah Pakan (gram)</th>
-                                <th>Jadwal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for riwayat in riwayat_list %}
-                            <tr>
-                                <td>{{ riwayat.nama|default:"Tidak ada nama" }}</td>
-                                <td>{{ riwayat.spesies }}</td>
-                                <td>{{ riwayat.asal_hewan }}</td>
-                                <td>{{ riwayat.tanggal_lahir|date:"d/m/Y"|default:"-" }}</td>
-                                <td>{{ riwayat.habitat }}</td>
-                                <td>
-                                    {% if riwayat.status_kesehatan == 'Sehat' %}
-                                        <span class="badge bg-success">{{ riwayat.status_kesehatan }}</span>
-                                    {% elif riwayat.status_kesehatan == 'Sakit' %}
-                                        <span class="badge bg-danger">{{ riwayat.status_kesehatan }}</span>
-                                    {% else %}
-                                        <span class="badge bg-warning text-dark">{{ riwayat.status_kesehatan }}</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ riwayat.jenis_pakan }}</td>
-                                <td>{{ riwayat.jumlah_pakan }}</td>
-                                <td>{{ riwayat.jadwal|date:"d/m/Y H:i" }}</td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="9" class="text-center">Belum ada riwayat pemberian pakan</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+            <div class="col-md-4">
+                <div class="action-buttons">
+                    <a href="{% url 'green:pemberian_pakan_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i> Kembali ke Jadwal
+                    </a>
+                    <button type="button" class="btn btn-success ms-2">
+                        <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+    
+    <!-- Optional: Search & Filter Form -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <form class="search-form">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Cari berdasarkan nama hewan, spesies, atau jenis pakan...">
+                    <button class="btn btn-success" type="button">
+                        <i class="bi bi-search"></i> Cari
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Riwayat Pemberian Pakan</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-scroll-container">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Nama Individu</th>
+                            <th>Spesies</th>
+                            <th>Asal Hewan</th>
+                            <th>Tanggal Lahir</th>
+                            <th>Habitat</th>
+                            <th>Status Kesehatan</th>
+                            <th>Jenis Pakan</th>
+                            <th>Jumlah (gram)</th>
+                            <th>Tanggal & Waktu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for riwayat in riwayat_list %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="animal-icon bg-light rounded-circle p-2 me-2">
+                                        <i class="bi bi-emoji-smile text-success"></i>
+                                    </div>
+                                    {{ riwayat.nama|default:"Tidak ada nama" }}
+                                </div>
+                            </td>
+                            <td>{{ riwayat.spesies }}</td>
+                            <td>{{ riwayat.asal_hewan }}</td>
+                            <td>{{ riwayat.tanggal_lahir|date:"d/m/Y"|default:"-" }}</td>
+                            <td>{{ riwayat.habitat }}</td>
+                            <td>
+                                {% if riwayat.status_kesehatan == 'Sehat' %}
+                                    <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>{{ riwayat.status_kesehatan }}</span>
+                                {% elif riwayat.status_kesehatan == 'Sakit' %}
+                                    <span class="badge bg-danger"><i class="bi bi-exclamation-circle me-1"></i>{{ riwayat.status_kesehatan }}</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-eye me-1"></i>{{ riwayat.status_kesehatan }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">{{ riwayat.jenis_pakan }}</span>
+                            </td>
+                            <td>
+                                <strong>{{ riwayat.jumlah_pakan }}</strong> <small>gram</small>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-calendar-check me-2 text-success"></i>
+                                    <span>{{ riwayat.jadwal|date:"d/m/Y H:i" }}</span>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr class="empty-row">
+                            <td colspan="9" class="text-center py-5">
+                                <i class="bi bi-clipboard-x fs-1 d-block mb-3 text-muted"></i>
+                                <p class="mb-0">Belum ada riwayat pemberian pakan</p>
+                                <small class="text-muted">Riwayat akan muncul setelah Anda memberikan pakan</small>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    {% if riwayat_list.has_other_pages %}
+    <div class="pagination-container">
+        <nav aria-label="Navigasi halaman">
+            <ul class="pagination">
+                {% if riwayat_list.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ riwayat_list.previous_page_number }}" aria-label="Sebelumnya">
+                        <span aria-hidden="true"><i class="bi bi-chevron-left"></i></span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                </li>
+                {% endif %}
+                
+                {% for i in riwayat_list.paginator.page_range %}
+                    {% if riwayat_list.number == i %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ i }}</span>
+                    </li>
+                    {% elif i > riwayat_list.number|add:'-3' and i < riwayat_list.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if riwayat_list.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ riwayat_list.next_page_number }}" aria-label="Berikutnya">
+                        <span aria-hidden="true"><i class="bi bi-chevron-right"></i></span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
 </div>
+
+{% block extra_js %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const emptyRow = document.querySelector('.empty-row');
+        const exportBtn = document.querySelector('.btn-success');
+        
+        if (emptyRow && exportBtn) {
+            exportBtn.style.display = 'none';
+        }
+        
+        const tableContainer = document.querySelector('.table-scroll-container');
+        
+        if (tableContainer) {
+            const checkScroll = function() {
+                const isScrollableX = tableContainer.scrollWidth > tableContainer.clientWidth;
+                const isScrollableY = tableContainer.scrollHeight > tableContainer.clientHeight;
+                
+                if (isScrollableX) {
+                    tableContainer.classList.add('is-scrollable-x');
+                } else {
+                    tableContainer.classList.remove('is-scrollable-x');
+                }
+                
+                if (isScrollableY) {
+                    tableContainer.classList.add('is-scrollable-y');
+                } else {
+                    tableContainer.classList.remove('is-scrollable-y');
+                }
+            };
+            
+            checkScroll();
+            
+            window.addEventListener('resize', checkScroll);
+        }
+    });
+</script>
+{% endblock %}
+
 {% endblock content %}
