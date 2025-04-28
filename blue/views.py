@@ -2,11 +2,23 @@ from django.shortcuts import render, redirect
 
 # Create your views here.
 def reservasi(request):
+
+    # data_reservasi = execute_query(
+    #     """
+    #     """,
+    # )
+
     return render(request, 'reservasi.html')
 
 def kelola_wahana(request):
     if 'admin' not in request.session["roles"] :
         return redirect('main:dashboard')
+    
+    # data_wahana = execute_query(
+    #     """
+    #     """,
+    # )
+
     return render(request, 'wahana.html')
 
 def kelola_atraksi(request):
@@ -15,9 +27,7 @@ def kelola_atraksi(request):
     
     # data_atraksi = execute_query(
     #     """
-        
     #     """,
-        
     # )
     
     

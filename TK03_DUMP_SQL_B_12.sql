@@ -203,14 +203,14 @@ CREATE TABLE ADOPSI (
 
 CREATE TABLE RESERVASI (
 	username_p  VARCHAR(50),
-	nama_fasilitas VARCHAR(50),
+	nama_atraksi VARCHAR(50),
 	tanggal_kunjungan DATE NOT NULL,
 	jumlah_tiket INT NOT NULL,
 	status VARCHAR(50) NOT NULL,
-	PRIMARY KEY (username_p, nama_fasilitas, tanggal_kunjungan),
+	PRIMARY KEY (username_p, nama_atraksi, tanggal_kunjungan),
 	FOREIGN KEY (username_p) REFERENCES PENGUNJUNG(username_p)
 		ON DELETE CASCADE ON UPDATE CASCADE,
-	FOREIGN KEY (nama_fasilitas) REFERENCES FASILITAS(nama_fasilitas)
+	FOREIGN KEY (nama_atraksi) REFERENCES ATRAKSI(nama_atraksi)
 		ON DELETE CASCADE ON UPDATE CASCADE		
 );
 
