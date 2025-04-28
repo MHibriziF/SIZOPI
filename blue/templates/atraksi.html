@@ -1,23 +1,133 @@
 {% extends 'base.html' %}
 {% block meta %}
-    <title>Manajemen Atraksi</title>
+    <title>Manajemen Atraksi</title> 
 {% endblock meta %}
 
 {% block content %}
 {% load static %}
 {% include 'components/navbar.html' %}
 
-<div class="container mx-auto px-4 py-8">
-    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
-        <div class="md:flex">
-            <div class="md:flex-shrink-0 bg-[#6F826A] text-white p-8 md:w-64">
-                <div class="text-center">
-                    <h2 class="mt-4 text-xl font-semibold">Manajemen Atraksi</h2>
-                </div>
-            </div>
+<div class="bg-[#F0F1C5] p-8 m-8 rounded-2xl shadow-md">
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-8 bg-[#6F826A] py-8 px-6 rounded-2xl">
+        <h1 class="text-3xl font-bold mb-4 md:mb-0 text-white">Atraksi</h1>
+        <div class="flex space-x-4">
+            <input type="text" placeholder="Search..." class="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-300">
+            <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold" onclick=bukaModalAtraksi()>
+                Add Atraksi
+            </button>
         </div>
     </div>
 
+    <div class="flex justify-end mb-4">
+        <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold">
+            Filter
+        </button>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-yellow-50 rounded-xl overflow-hidden">
+            <thead class="bg-[#6F826A] text-white">
+                <tr>
+                    <th class="px-6 py-3 text-left text-sm font-semibold">Nama</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold">Lokasi</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold">Kapasitas</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold">Jadwal</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold">Hewan Terlibat</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold">Pelatih</th>
+                    <th class="px-6 py-3 text-center text-sm font-semibold">Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-700">
+                {% for atraksi in data_atraksi %}
+                <tr class="border-t">
+                    <td class="px-6 py-4">{{ atraksi.nama_atraksi }}</td>
+                    <td class="px-6 py-4">{{ atraksi.lokasi }}</td>
+                    <td class="px-6 py-4">{{ atraksi.kapasitas }}</td>
+                    <td class="px-6 py-4">{{ atraksi.jadwal }}</td>
+                    <td class="px-6 py-4">
+                        <ul class="list-disc list-inside">
+                            {% for hewan in atraksi.hewan_terlibat %}
+                                <li>{{ hewan }}</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td class="px-6 py-4">{{ atraksi.pelatih }}</td>
+                    <td class="px-6 py-4 text-center">
+                        <div class="flex justify-center space-x-2">
+                            <a href="#" class="text-green-600 hover:text-green-800 text-xl">✏️</a>
+                            <a href="#" class="text-red-600 hover:text-red-800 text-xl">🗑️</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
+
+<!-- Modal -->
+<div id="modalAddAtraksi" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+    <div class="bg-white rounded-2xl p-8 w-full max-w-lg relative max-h-[90vh] overflow-y-auto">
+        <h2 class="text-2xl font-bold mb-6 text-center">Tambah Atraksi</h2>
+        <form method="POST" action="#">
+            {% csrf_token %}
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Nama Atraksi</label>
+                <input type="text" name="nama_atraksi" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" required>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Lokasi</label>
+                <input type="text" name="lokasi" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" required>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Kapasitas Maksimum</label>
+                <input type="number" name="kapasitas" min="1" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" required>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Pelatih Pertunjukan</label>
+                <input type="text" name="pelatih" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" required>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Jadwal</label>
+                <input type="time" name="jadwal" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" required>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-gray-700 mb-2">Hewan yang Terlibat</label>
+                <select name="hewan_terlibat" multiple class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300">
+                    <option value="Buaya">Buaya</option>
+                    <option value="Iguana">Iguana</option>
+                    <option value="Ular">Ular</option>
+                    <option value="Komodo">Komodo</option>
+                    <!-- Add more options if needed -->
+                </select>
+                <p class="text-sm text-gray-500 mt-1">Hold Ctrl (Cmd di Mac) untuk memilih lebih dari satu hewan.</p>
+            </div>
+
+            <div class="flex justify-end space-x-4">
+                <button type="button" onclick="tutupModalAtraksi()" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script>
+    function bukaModalAtraksi() {
+        document.getElementById('modalAddAtraksi').classList.remove('hidden');
+        document.getElementById('modalAddAtraksi').classList.add('flex');
+    }
+
+    function tutupModalAtraksi() {
+        document.getElementById('modalAddAtraksi').classList.remove('flex');
+        document.getElementById('modalAddAtraksi').classList.add('hidden');
+    }
+</script>
 
 {% endblock content %}
