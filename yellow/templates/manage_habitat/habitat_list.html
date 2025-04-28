@@ -446,6 +446,132 @@
             alert('Habitat berhasil diupdate!');
             close(editModal); 
         });
+
+        // Add inside the existing DOMContentLoaded event handler
+        const detailModal = document.getElementById('habitatDetailModal');
+        const detailLinks = document.querySelectorAll('.habitat-detail-link');
+        const closeDetailBtns = document.querySelectorAll('.close-detail-habitat');
+
+        // Mock animal data for demo
+        const animalData = [
+            { id: 1, habitatId: 1, nama: "Orangutan Sumba", spesies: "Pongo abelii", asal: "Sumatra, Indonesia", tanggalLahir: "2018-05-12", status: "Sehat" },
+            { id: 2, habitatId: 1, nama: "Harimau Siberia", spesies: "Panthera tigris altaica", asal: "Siberia, Rusia", tanggalLahir: "2017-03-24", status: "Rehabilitasi" },
+            { id: 3, habitatId: 1, nama: "Siamang", spesies: "Symphalangus syndactylus", asal: "Sumatra, Indonesia", tanggalLahir: "2019-11-05", status: "Sehat" },
+            { id: 4, habitatId: 1, nama: "Kasuari", spesies: "Casuarius casuarius", asal: "Papua, Indonesia", tanggalLahir: "2020-01-18", status: "Tidak Sehat" },
+            { id: 5, habitatId: 1, nama: "Trenggiling", spesies: "Manis javanica", asal: "Jawa, Indonesia", tanggalLahir: "2021-02-04", status: "Sehat" },
+            { id: 6, habitatId: 2, nama: "Singa Afrika", spesies: "Panthera leo", asal: "Kenya, Afrika", tanggalLahir: "2016-07-15", status: "Sehat" },
+            { id: 7, habitatId: 2, nama: "Jerapah", spesies: "Giraffa camelopardalis", asal: "Tanzania, Afrika", tanggalLahir: "2015-09-30", status: "Sehat" },
+            { id: 8, habitatId: 3, nama: "Beruang Kutub", spesies: "Ursus maritimus", asal: "Arktik", tanggalLahir: "2014-12-10", status: "Rehabilitasi" },
+            { id: 9, habitatId: 4, nama: "Hiu Karang", spesies: "Carcharhinus melanopterus", asal: "Samudra Pasifik", tanggalLahir: "2019-08-22", status: "Sehat" },
+            { id: 10, habitatId: 5, nama: "Panda Raksasa", spesies: "Ailuropoda melanoleuca", asal: "Sichuan, China", tanggalLahir: "2017-04-01", status: "Rehabilitasi" }
+        ];
+
+        // Update the detail link class for all buttons
+        document.querySelectorAll('a.ml-3.bg-blue-500').forEach(link => {
+            link.classList.add('habitat-detail-link');
+            // Extract habitat ID from parent row
+            const habitatId = link.closest('tr').querySelector('.edit-habitat-trigger').getAttribute('data-id');
+            link.setAttribute('data-id', habitatId);
+        });
+
+        // Function to populate animal table
+        function populateAnimalTable(habitatId) {
+            const animalTableBody = document.getElementById('habitat-animal-list');
+            animalTableBody.innerHTML = '';
+            
+            // Filter animals by habitat
+            const habitatAnimals = animalData.filter(animal => animal.habitatId == habitatId);
+            
+            // Update occupancy info
+            const habitat = habitatData.find(h => h.id == habitatId);
+            document.getElementById('detail-habitat-occupancy').textContent = `${habitatAnimals.length}/${habitat.kapasitas}`;
+            const occupancyPercentage = (habitatAnimals.length / habitat.kapasitas) * 100;
+            document.getElementById('detail-habitat-occupancy-bar').style.width = `${occupancyPercentage}%`;
+            
+            // Change color based on occupancy level
+            const occupancyBar = document.getElementById('detail-habitat-occupancy-bar');
+            if (occupancyPercentage < 50) {
+                occupancyBar.classList.remove('bg-yellow-500', 'bg-red-500');
+                occupancyBar.classList.add('bg-green-500');
+            } else if (occupancyPercentage < 80) {
+                occupancyBar.classList.remove('bg-green-500', 'bg-red-500');
+                occupancyBar.classList.add('bg-yellow-500');
+            } else {
+                occupancyBar.classList.remove('bg-green-500', 'bg-yellow-500');
+                occupancyBar.classList.add('bg-red-500');
+            }
+            
+            if (habitatAnimals.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = `<td colspan="5" class="py-4 px-4 text-center text-gray-500">Tidak ada hewan yang menempati habitat ini</td>`;
+                animalTableBody.appendChild(emptyRow);
+                return;
+            }
+            
+            // Add rows for each animal
+            habitatAnimals.forEach(animal => {
+                const row = document.createElement('tr');
+                row.classList.add('border-b', 'border-[#e1e8c3]');
+                
+                // Format date
+                const birthDate = new Date(animal.tanggalLahir);
+                const formattedDate = birthDate.toLocaleDateString('id-ID', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+                
+                // Status color
+                let statusClass = '';
+                if (animal.status === 'Sehat') {
+                    statusClass = 'bg-green-100 text-green-800';
+                } else if (animal.status === 'Rehabilitasi') {
+                    statusClass = 'bg-yellow-100 text-yellow-800';
+                } else {
+                    statusClass = 'bg-red-100 text-red-800';
+                }
+                
+                row.innerHTML = `
+                    <td class="py-2 px-4">${animal.nama}</td>
+                    <td class="py-2 px-4">${animal.spesies}</td>
+                    <td class="py-2 px-4">${animal.asal}</td>
+                    <td class="py-2 px-4">${formattedDate}</td>
+                    <td class="py-2 px-4">
+                        <span class="px-2 py-1 rounded-full text-xs ${statusClass}">
+                            ${animal.status}
+                        </span>
+                    </td>
+                `;
+                
+                animalTableBody.appendChild(row);
+            });
+        }
+
+        document.querySelectorAll('.habitat-detail-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const habitatId = link.getAttribute('data-id');
+                const habitat = habitatData.find(h => h.id == habitatId);
+                
+                if (habitat) {
+                    // Populate habitat details
+                    document.getElementById('detail-habitat-title').textContent = `Detail Habitat: ${habitat.nama}`;
+                    document.getElementById('detail-habitat-luas').textContent = `${habitat.luas_area} m²`;
+                    document.getElementById('detail-habitat-kapasitas').textContent = `${habitat.kapasitas} hewan`;
+                    document.getElementById('detail-habitat-suhu').textContent = `${habitat.suhu}°C`;
+                    document.getElementById('detail-habitat-kelembapan').textContent = `${habitat.kelembapan}%`;
+                    document.getElementById('detail-habitat-faktor').textContent = habitat.faktor_lain;
+                    
+                    // Populate animal table
+                    populateAnimalTable(habitatId);
+                }
+                
+                open(detailModal);
+            });
+        });
+
+        closeDetailBtns.forEach(btn => btn.addEventListener('click', () => close(detailModal)));
+        detailModal.addEventListener('click', e => { if(e.target === detailModal) close(detailModal); });
     });
 </script>
 {% endblock content %}
