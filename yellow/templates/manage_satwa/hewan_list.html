@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Animal Management System
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="animal-list-header">
+        <h2 class="title">Animal List</h2>
+        <div class="search-bar">
+            <input type="text" class="search-input" placeholder="Search...">
+            <button class="search-button">🔍</button>
+        </div>
+    </div>
+    
+    <div class="actions">
+        <button class="add-btn">
+            <span>+</span> Add Animal
+        </button>
+        <div class="filter-options">
+            <span class="sort-label">sort by</span>
+            <select class="filter-dropdown">
+                <option>habitat</option>
+                <option>species</option>
+                <option>status</option>
+                <option>name</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nama</th>
+                    <th>Species</th>
+                    <th>Status</th>
+                    <th>Habitat</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>12345677</td>
+                    <td>Antoni E.</td>
+                    <td>Primata</td>
+                    <td>Masuk angin</td>
+                    <td>Lab komputer</td>
+                    <td class="action-buttons">
+                        <button class="edit-btn">✏️</button>
+                        <button class="delete-btn">🗑️</button>
+                    </td>
+                </tr>
+                <!-- Additional rows here -->
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
