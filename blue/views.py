@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from utils.db_connection import execute_query
+from datetime import date
 
 # Create your views here.
 def reservasi(request):
@@ -15,7 +16,7 @@ def reservasi(request):
             'nama_atraksi' : 'Ekshibisi Ular',
             'lokasi' : 'Galeri Reptil Utara',
             'jam' : '09:00',
-            'tanggal': '2025-05-03',
+            'tanggal': date(2025, 5, 3),
             'tiket' : 5,
             'status' : 'Terjadwal',
         },
@@ -23,7 +24,7 @@ def reservasi(request):
             'nama_atraksi' : 'Pertunjukan Koala Cina',
             'lokasi' : 'Area Interaktif Barat',
             'jam' : '14:00',
-            'tanggal': '2025-05-03',
+            'tanggal': date(2025, 5, 3),
             'tiket' : 5,
             'status' : 'Terjadwal',
         },
@@ -31,7 +32,7 @@ def reservasi(request):
             'nama_atraksi' : 'Pertunjukan Koala Cina',
             'lokasi' : 'Area Interaktif Barat',
             'jam' : '14:00',
-            'tanggal': '2025-05-03',
+            'tanggal': date(2025, 5, 3),
             'tiket' : 3,
             'status' : 'Dibatalkan',
         }
@@ -48,7 +49,7 @@ def reservasi(request):
             'nama_atraksi' : 'Ekshibisi Ular',
             'lokasi' : 'Galeri Reptil Utara',
             'jam' : '09:00',
-            'tanggal': '2025-05-03',
+            'tanggal': date(2025, 5, 3),
             'tiket' : 5,
             'status' : 'Terjadwal',
         },
@@ -56,7 +57,7 @@ def reservasi(request):
             'nama_atraksi' : 'Pertunjukan Koala Cina',
             'lokasi' : 'Area Interaktif Barat',
             'jam' : '14:00',
-            'tanggal': '2025-05-03',
+            'tanggal': date(2025, 5, 3),
             'tiket' : 5,
             'status' : 'Terjadwal',
         },
@@ -64,7 +65,7 @@ def reservasi(request):
             'nama_atraksi' : 'Pertunjukan Koala Cina',
             'lokasi' : 'Area Interaktif Barat',
             'jam' : '14:00',
-            'tanggal': '2025-05-03',
+            'tanggal': date(2025, 5, 3),
             'tiket' : 3,
             'status' : 'Dibatalkan',
         }
@@ -101,7 +102,7 @@ def kelola_wahana(request):
     }] 
 
     context = {
-        'data_wahana' : data_wahana
+        'data_wahana' : data_wahana,
     }
     
     return render(request, 'wahana.html', context)
@@ -144,9 +145,21 @@ def kelola_atraksi(request):
         ORDER BY 
             a.nama_atraksi;
         """)
-    print(data_atraksi)
+    # print(data_atraksi)
+    data_pelatih = [
+        {'nama_depan': 'Danang', 'nama_tengah': None, 'nama_belakang': 'Rajasa'},
+        {'nama_depan': 'Faizah', 'nama_tengah': None, 'nama_belakang': 'Saputra'},
+        {'nama_depan': 'Enteng', 'nama_tengah': None, 'nama_belakang': 'Sihotang'},
+        {'nama_depan': 'Cici', 'nama_tengah': None, 'nama_belakang': 'Nasyiah'},
+        {'nama_depan': 'Rahmat', 'nama_tengah': None, 'nama_belakang': 'Waskita'},
+        {'nama_depan': 'Mulya', 'nama_tengah': None, 'nama_belakang': 'Ardianto'},
+        {'nama_depan': 'Sadina', 'nama_tengah': None, 'nama_belakang': 'Pratiwi'},
+        {'nama_depan': 'Oman', 'nama_tengah': 'Tedi', 'nama_belakang': 'Safitri'},
+        {'nama_depan': 'Asmadi', 'nama_tengah': None, 'nama_belakang': 'Hasanah'},
+    ]
     context = {
         'data_atraksi' : data_atraksi,
+        'data_pelatih' : data_pelatih,
     }
     
     return render(request, 'atraksi.html', context)

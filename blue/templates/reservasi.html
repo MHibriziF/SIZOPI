@@ -42,7 +42,7 @@
                     <td class="px-6 py-4">{{ reservasi.nama_atraksi }}</td>
                     <td class="px-6 py-4">{{ reservasi.lokasi }}</td>
                     <td class="px-6 py-4">{{ reservasi.jam }}</td>
-                    <td class="px-6 py-4">{{ reservasi.tanggal }}</td>
+                    <td class="px-6 py-4">{{ reservasi.tanggal | date:"j F Y" }}</td>
                     <td class="px-6 py-4">{{ reservasi.tiket }}</td>
                     <td class="px-6 py-4">{{ reservasi.status }}</td>
                     <td class="px-6 py-4 text-center">
