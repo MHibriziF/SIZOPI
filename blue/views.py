@@ -8,7 +8,10 @@ def reservasi(request):
     #     """
     #     """,
     # )
-
+    data_reservasi = []
+    context = {
+        'data_reservasi' : data_reservasi,
+    }
     return render(request, 'reservasi.html')
 
 def kelola_wahana(request):
@@ -44,28 +47,41 @@ def kelola_atraksi(request):
     if 'admin' not in request.session["roles"] :
         return redirect('main:dashboard')
     
-    # data_atraksi = execute_query(
-    #     """
-    #     """,
-    # )
-    # Hardcode dulu
-    data_atraksi = [{
-        'nama_atraksi': 'Safari Edukasi Reptil',
-        'lokasi' : 'Zona Rawa',
-        'kapasitas' : 30,
-        'jadwal' : '10:00:00',
-        'hewan_terlibat' : ['Buaya', 'Iguana'],
-        'pelatih' : 'Danang Rajasa',
-    },
-    {
-        'nama_atraksi': 'Ekshibisi Ular',
-        'kapasitas' : 35,
-        'lokasi' : 'Galeri Reptil Utara',
-        'jadwal' : '09:00:00',
-        'hewan_terlibat' : ['Ular'],
-        'pelatih' : 'Cici Nasyiah',
-    }] 
-
+    data_atraksi = execute_query("""
+        SELECT 
+            a.nama_atraksi,
+            a.lokasi,
+            f.kapasitas_max AS kapasitas,
+            TO_CHAR(f.jadwal, 'HH24:MI:SS') AS jadwal,
+            CONCAT(
+                pg.nama_depan, 
+                COALESCE(' ' || NULLIF(pg.nama_tengah, ''), ''), 
+                ' ', 
+                pg.nama_belakang
+            ) AS pelatih,
+            array_agg(DISTINCT h.spesies) AS hewan_terlibat
+        FROM 
+            ATRAKSI a
+        JOIN 
+            FASILITAS f ON a.nama_atraksi = f.nama_atraksi
+        LEFT JOIN 
+            JADWAL_PENUGASAN p ON p.nama_atraksi = a.nama_atraksi
+        LEFT JOIN 
+            PELATIH_HEWAN ph ON p.username_lh = ph.username_lh
+        LEFT JOIN 
+            PENGGUNA pg ON ph.username_lh = pg.username
+        LEFT JOIN 
+            BERPARTISIPASI b ON b.nama_fasilitas = f.nama_atraksi
+        LEFT JOIN 
+            HEWAN h ON b.id_hewan = h.id
+        GROUP BY 
+            a.nama_atraksi, a.lokasi, f.kapasitas_max, f.jadwal, pg.username
+        HAVING 
+            COUNT(h.nama) > 0 AND pg.username IS NOT NULL
+        ORDER BY 
+            a.nama_atraksi;
+        """)
+    print(data_atraksi)
     context = {
         'data_atraksi' : data_atraksi,
     }
