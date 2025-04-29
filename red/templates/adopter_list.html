@@ -1,63 +1,140 @@
 {% extends 'base.html' %}
 {% block meta %}
-    <title>Daftar Adopter</title>
-    <style>
-        :root { --primary-color:#4A5A43; --primary-light:#8EAF7B; --accent-color:#A7C796; --text-color:#333; --light-bg:#f8f9fa; --card-shadow:0 8px 20px rgba(0,0,0,0.12); }
-        body{background:#f8f9fa;color:#333;font-family:'Poppins',sans-serif;}
-        .content-wrapper{background:#fff;color:#333;padding:2rem;border-radius:1rem;box-shadow:var(--card-shadow);margin:2rem 0;}
-        .page-header h2{color:var(--primary-color);font-size:2rem;font-weight:600;margin-bottom:.5rem;}
-        .table-container{background:#fff;border-radius:.75rem;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.08);}
-        .table thead{background:var(--primary-color)!important;}
-        .table thead th{color:#fff!important;font-weight:500;padding:1rem;border:none;}
-        .table tbody td{padding:.75rem 1rem;border-color:#f0f0f0;color:var(--text-color)!important;}
-        .table-hover tbody tr:hover{background:rgba(167,199,150,0.1);}
-        .table-striped tbody tr:nth-of-type(odd){background:rgba(248,249,250,0.5);}
-        .btn-primary{background:var(--primary-color);border:var(--primary-color);border-radius:.5rem;padding:.5rem 1rem;font-weight:500;transition:.3s;}
-        .btn-primary:hover{background:var(--primary-dark);transform:translateY(-2px);box-shadow:0 4px 8px rgba(0,0,0,0.1);}
-    </style>
-{% endblock meta %}
-
+  <title>Daftar Adopter</title>
+  <style>
+    :root {
+      --primary-header: #6F826A;
+      --primary-button: #A7C796;
+      --light-bg: #f0f1c5;
+      --text-dark: #333;
+    }
+    body {
+      background: var(--light-bg);
+      color: var(--text-dark);
+      font-family: 'Poppins', sans-serif;
+    }
+  </style>
+{% endblock %}
 {% block content %}
 {% load static %}
 {% include 'components/navbar.html' %}
-<div class="container content-wrapper">
-  <div class="page-header">
-    <h2>Daftar Adopter</h2>
-    <p>Kelola data adopter individu & organisasi</p>
+
+<div class="mx-16 my-8 rounded-2xl shadow-[4px_7px_33px_rgba(0,0,0,0.25)] overflow-hidden bg-white">
+  <!-- header bar -->
+  <div class="flex flex-col md:flex-row items-center md:justify-between bg-[var(--primary-header)] px-6 py-3">
+    <h2 class="text-white text-xl font-bold">Daftar Adopter</h2>
+    <div class="flex items-center mt-3 md:mt-0 space-x-4 w-full md:w-auto">
+      
+        <!-- sort by -->
+      <div class="flex items-center space-x-2">
+        <span class="text-white whitespace-nowrap text-sm">sort by</span>
+        <select id="sortSelect"
+                class="px-2 py-1 rounded-lg bg-[var(--primary-button)] text-white text-xs focus:outline-none">
+          <option value="username">Username</option>
+          <option value="kontribusi">Total Kontribusi</option>
+        </select>
+      </div>
+    </div>
   </div>
 
-  <div class="table-container">
-    <div class="table-responsive">
-      <table class="table table-striped table-hover">
+  <!-- search bar -->
+  <div class="px-6 py-3 bg-[var(--light-bg)] flex justify-end">
+    <input id="searchInput"
+           type="text"
+           placeholder="search..."
+           class="w-full md:w-64 pl-3 pr-3 py-1 rounded-lg bg-white placeholder-[var(--primary-header)] text-[var(--primary-header)] text-sm focus:outline-none border border-gray-300"/>
+  </div>
+
+  <div class="px-6 pb-4">
+    <h3 class="text-[var(--text-dark)] text-sm font-semibold">
+      Adopter dengan Total Kontribusi Tertinggi dalam Setahun Terakhir
+    </h3>
+    <ol class="list-decimal list-inside text-sm mt-2 space-y-1">
+      {% for t in top_adopters %}
+        <li>
+          {{ t.username_adopter }} — Rp {{ t.total }}
+        </li>
+      {% endfor %}
+    </ol>
+    {% if not top_adopters %}
+        <p class="text-gray-500">Belum ada kontribusi tahun ini.</p>
+      {% endif %}
+  </div>
+
+  <!-- scrollable table region, fixed height -->
+  <div class="bg-[var(--light-bg)] p-4" style="height: 400px;">
+    <div class="h-full overflow-y-auto pr-2">
+      <table id="adopterTable" class="min-w-full text-sm">
         <thead>
-          <tr>
-            <th>Username</th>
-            <th>Total Kontribusi</th>
-            <th>Riwayat Adopsi</th>
-            <th>Aksi</th>
+          <tr class="text-left text-[var(--primary-header)] uppercase text-xs">
+            <th class="px-3 py-2">Username</th>
+            <th class="px-3 py-2">Total Kontribusi</th>
+            <th class="px-3 py-2">Riwayat Adopsi</th>
+            <th class="px-3 py-2">Aksi</th>
           </tr>
         </thead>
         <tbody>
           {% for a in adopters %}
-          <tr>
-            <td>{{ a.username_adopter }}</td>
-            <td>Rp{{ a.total_kontribusi }}</td>
-            <td>
-                <a href="{% url 'adopsi:admin_adopter_history' a.id_adopter %}" class="btn btn-sm btn-primary">Lihat Riwayat</a>
+          <tr class="odd:bg-white even:bg-[var(--light-bg)]">
+            <td class="px-3 py-2 text-[var(--primary-header)]">{{ a.username_adopter }}</td>
+            <td class="px-3 py-2">Rp {{ a.total_kontribusi }}</td>
+            <td class="px-3 py-2">
+              <a href="{% url 'adopsi:admin_adopter_history' a.id_adopter %}"
+                 class="inline-block px-2 py-1 rounded-lg bg-[var(--primary-button)] text-white text-xs">
+                Riwayat
+              </a>
             </td>
-            <td>
-              <form action="{% url 'adopsi:admin_delete_adopter' a.id_adopter %}" method="post" style="display:inline;">
+            <td class="px-3 py-2">
+              <form action="{% url 'adopsi:admin_delete_adopter' a.id_adopter %}"
+                    method="post" class="inline">
                 {% csrf_token %}
-                <button class="btn btn-sm btn-danger">Hapus</button>
+                <button type="submit"
+                        class="px-2 py-1 rounded-lg bg-red-600 text-white text-xs hover:bg-red-700">
+                  Hapus
+                </button>
               </form>
             </td>
           </tr>
           {% empty %}
-          <tr><td colspan="5" class="text-center py-4">Belum ada adopter</td></tr>
+          <tr>
+            <td colspan="4" class="py-6 text-center text-gray-500 text-sm">
+              Belum ada adopter
+            </td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
   </div>
 </div>
-{% endblock content %}
+
+<script>
+// -- filtering: search by username --
+document.getElementById('searchInput').addEventListener('input', function(){
+  const filter = this.value.toLowerCase()
+  document.querySelectorAll('#adopterTable tbody tr').forEach(row => {
+    const username = row.cells[0].innerText.toLowerCase()
+    row.style.display = username.includes(filter) ? '' : 'none'
+  })
+})
+
+// -- sorting --
+document.getElementById('sortSelect').addEventListener('change', function(){
+  const tbody = document.querySelector('#adopterTable tbody')
+  const rows  = Array.from(tbody.querySelectorAll('tr'))
+  const key   = this.value
+
+  rows.sort((a, b) => {
+    const va = key === 'kontribusi'
+      ? parseInt(a.cells[1].innerText.replace(/\D/g,''),10)
+      : a.cells[0].innerText.toLowerCase()
+    const vb = key === 'kontribusi'
+      ? parseInt(b.cells[1].innerText.replace(/\D/g,''),10)
+      : b.cells[0].innerText.toLowerCase()
+    return va < vb ? -1 : va > vb ? 1 : 0
+  })
+
+  rows.forEach(r => tbody.appendChild(r))
+})
+</script>
+{% endblock %}

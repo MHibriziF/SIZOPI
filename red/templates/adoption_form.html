@@ -75,7 +75,7 @@
           <input
               type="text"
               name="nama_depan"
-              placeholder="Type here..."
+              placeholder="Nama Individu"
               class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2"
           />
           </div>
@@ -84,7 +84,7 @@
           <input
               type="text"
               name="nik"
-              placeholder="Type here..."
+              placeholder="16 Digit NIK"
               class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2"
           />
           </div>
@@ -126,7 +126,7 @@
           </div>
       </div>
         
-      <p class="mt-4 text-[#bf9264]">Adopter juga bersedia memberikan kontribusi finansial kepada pihak taman safari sebagai dukungan untuk pemeliharaan satwa dengan nominal </p>
+      <p class="mt-4 text-[#bf9264]">Adopter juga bersedia memberikan kontribusi finansial kepada pihak taman safari sebagai dukungan untuk pemeliharaan satwa dengan: </p>
       <div class="grid grid-cols-2 gap-4">
           <div>
           <label class="block text-[#bf9264] font-medium">Nominal (Rp)</label>
@@ -138,14 +138,14 @@
           />
           </div>
           <div>
-          <label class="block text-[#bf9264] font-medium">Periode (bulan)</label>
+          <label class="block text-[#bf9264] font-medium">Selama</label>
           <select
               name="periode"
               class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2"
           >
-              <option value="3">3</option>
-              <option value="6">6</option>
-              <option value="12">12</option>
+              <option value="3">3 bulan</option>
+              <option value="6">6 bulan</option>
+              <option value="12">12 bulan</option>
           </select>
           </div>
       </div>
@@ -207,7 +207,7 @@
         </div>
 
         <p class="mt-4 text-[#bf9264]">
-        … menyatakan kepedulian dan minat untuk mengadopsi secara simbolis satwa:
+            Selanjutnya sebagai Adopter, dengan ini menyatakan kepedulian dan minat untuk mengadopsi secara simbolis satwa:
         </p>
         <div class="grid grid-cols-2 gap-4">
         <div>
@@ -227,7 +227,7 @@
         </div>
 
         <p class="mt-4 text-[#bf9264]">
-            Adopter juga bersedia memberikan kontribusi finansial kepada pihak taman safari sebagai dukungan untuk pemeliharaan satwa dengan nominal
+            Adopter juga bersedia memberikan kontribusi finansial kepada pihak taman safari sebagai dukungan untuk pemeliharaan satwa dengan:
         </p>
         <div class="grid grid-cols-2 gap-4">
         <div>
@@ -236,12 +236,12 @@
                 class="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2" />
         </div>
         <div>
-            <label class="block text-[#bf9264] font-medium">Periode (bulan)</label>
+            <label class="block text-[#bf9264] font-medium">Selama</label>
             <select name="periode"
                     class="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2">
-            <option value="3">3</option>
-            <option value="6">6</option>
-            <option value="12">12</option>
+            <option value="3">3 bulan</option>
+            <option value="6">6 bulan</option>
+            <option value="12">12 bulan</option>
             </select>
         </div>
         </div>
@@ -270,7 +270,7 @@
   const formOrganisasi = document.getElementById('form-organisasi');
 
   cancelVerify.addEventListener('click', () => {
-    document.getElementById('modal-register').remove();
+    window.location.href = "{% url 'adopsi:list_adoptions' %}";
   });
 
   verifyBtn.addEventListener('click', () => {
@@ -308,8 +308,8 @@
         }
         document.getElementById('step-verify').classList.add('hidden');
         document.getElementById('field-id_adopter').value = json.id_adopter;
-        document.getElementById('field-alamat').value    = json.alamat;
-        document.getElementById('field-alamat_organisasi').value    = json.alamat;
+        document.getElementById('field-alamat').value = json.alamat;
+        document.getElementById('field-alamat_organisasi').value = json.alamat;
         document.getElementById('field-no_telepon').value= Number(json.no_telepon);
         document.getElementById('field-kontak').value= Number(json.no_telepon);
         document.getElementById('form-adopt').classList.remove('hidden');
@@ -319,6 +319,22 @@
           .addEventListener('click', () => location.reload());
   document.getElementById('btn-cancel-organisasi')
           .addEventListener('click', () => location.reload());
+
+  formIndividu.addEventListener('submit', function(e) {
+    const val = Number(this.querySelector('input[name="kontribusi_finansial"]').value);
+    if (isNaN(val) || val < 0) {
+      e.preventDefault();
+      alert('Nominal kontribusi tidak boleh kurang dari 0');
+    }
+  });
+
+  formOrganisasi.addEventListener('submit', function(e) {
+    const val = Number(this.querySelector('input[name="kontribusi_finansial"]').value);
+    if (isNaN(val) || val < 0) {
+      e.preventDefault();
+      alert('Nominal kontribusi tidak boleh kurang dari 0');
+    }
+  });
 </script>
 
 {% endblock content %}

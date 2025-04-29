@@ -66,6 +66,22 @@ def api_get_adopter(request):
       "no_telepon": data["no_telepon"],
     })
 
+def ensure_adopter(request):
+    username = request.session['username']
+    row = execute_query(
+        "SELECT id_adopter FROM ADOPTER WHERE username_adopter = %s",
+        (username,)
+    )
+    if row:
+        return row[0]['id_adopter']
+    new_id = str(uuid.uuid4())
+    execute_query(
+        "INSERT INTO ADOPTER(username_adopter, id_adopter, total_kontribusi) "
+        "VALUES (%s, %s, 0)",
+        (username, new_id)
+    )
+    return new_id
+
 # List Adopter (READ)
 @require_http_methods(["GET"])
 def list_adopters(request):
@@ -291,27 +307,22 @@ def adoption_detail(request, id_adopter, hewan_id, tgl_mulai):
     detail = execute_query(
         """
         SELECT
-          h.url_foto,
-          h.id              AS id_hewan,
-          h.nama            AS nama_hewan,
-          h.spesies         AS jenis_hewan,
-          h.nama_habitat    AS habitat,
+          o.id_adopter,
+          o.id_hewan,
           o.tgl_mulai_adopsi,
           o.tgl_berhenti_adopsi,
-          o.kontribusi_finansial AS nominal,
           o.status_pembayaran,
-          CASE
-            WHEN i.id_adopter IS NOT NULL THEN i.nama
-            ELSE org.nama_organisasi
-          END AS nama_adopter
+          o.kontribusi_finansial AS nominal,
+          p.nama_depan||' '||p.nama_belakang AS nama_adopter,
+          h.nama     AS nama_hewan,
+          h.spesies  AS jenis_hewan,
+          h.nama_habitat AS habitat,
+          h.url_foto
         FROM ADOPSI o
-        JOIN HEWAN h   ON o.id_hewan = h.id
-        LEFT JOIN ADOPTER a  ON o.id_adopter = a.id_adopter
-        LEFT JOIN INDIVIDU i ON a.id_adopter = i.id_adopter
-        LEFT JOIN ORGANISASI org ON a.id_adopter = org.id_adopter
-        WHERE o.id_adopter=%s
-          AND o.id_hewan=%s
-          AND o.tgl_mulai_adopsi=%s
+        JOIN ADOPTER a  ON o.id_adopter = a.id_adopter
+        JOIN PENGGUNA p  ON a.username_adopter = p.username
+        JOIN HEWAN    h  ON o.id_hewan = h.id
+        WHERE o.id_adopter=%s AND o.id_hewan=%s AND o.tgl_mulai_adopsi=%s
         """,
         (id_adopter, hewan_id, tgl_mulai)
     )
@@ -373,6 +384,18 @@ def adoption_report(request, hewan_id, tgl_mulai):
     )
     tgl_mulai_adopsi = row[0]['tgl_mulai_adopsi']
 
+    hewan = execute_query(
+        """
+        SELECT
+          nama        AS nama_hewan,
+          spesies     AS jenis_hewan,
+          nama_habitat AS habitat
+        FROM HEWAN
+        WHERE id = %s
+        """,
+        (hewan_id,)
+    )[0]
+
     medis = execute_query(
         """
         SELECT
@@ -392,7 +415,7 @@ def adoption_report(request, hewan_id, tgl_mulai):
         (hewan_id, tgl_mulai_adopsi)
     )
     return render(request, 'user_adoption_report.html', {
-        'hewan_id': hewan_id,
+        'hewan': hewan,
         'medis': medis
     })
 
@@ -402,24 +425,52 @@ def extend_adoption(request, hewan_id, tgl_mulai):
     if 'pengunjung' not in request.session.get('roles', []):
         return redirect('main:login')
 
+    username = request.session['username']
     id_adopter = ensure_adopter(request)
-    # Ambil data adoption & adopter tipe
+
     adp = execute_query(
         """
-        SELECT o.tgl_berhenti_adopsi,
-               i.nik, i.nama      AS individu_nama,
-               org.npp, org.nama_organisasi
+        SELECT
+          o.tgl_berhenti_adopsi,
+          i.nik,
+          i.nama    AS individu_nama,
+          org.npp,
+          org.nama_organisasi
         FROM ADOPSI o
         LEFT JOIN INDIVIDU i    ON o.id_adopter = i.id_adopter
         LEFT JOIN ORGANISASI org ON o.id_adopter = org.id_adopter
-        WHERE o.id_adopter=%s AND o.id_hewan=%s AND o.tgl_mulai_adopsi=%s
+        WHERE
+          o.id_adopter     = %s
+          AND o.id_hewan   = %s
+          AND o.tgl_mulai_adopsi = %s
         """,
         (id_adopter, hewan_id, tgl_mulai)
+    )
+    if not adp:
+        messages.error(request, "Data adopsi tidak ditemukan.")
+        return redirect('adopsi:list_adoptions')
+    adp = adp[0]
+
+    peng = execute_query(
+        "SELECT alamat FROM PENGUNJUNG WHERE username_p = %s",
+        (username,)
     )[0]
 
+    usr = execute_query(
+        "SELECT nama_depan, nama_belakang, no_telepon FROM PENGGUNA WHERE username = %s",
+        (username,)
+    )[0]
+
+    hw = execute_query(
+        "SELECT nama AS nama_hewan, spesies FROM HEWAN WHERE id = %s",
+        (hewan_id,)
+    )[0]
+
+    is_individual = bool(adp.get('nik'))
+
     if request.method == "POST":
-        tambahan = int(request.POST.get("kontribusi_finansial"))
-        bulan     = int(request.POST.get("periode"))
+        tambahan = int(request.POST['kontribusi_finansial'])
+        bulan     = int(request.POST['periode'])
         old_end   = adp['tgl_berhenti_adopsi']
         new_end   = old_end + relativedelta(months=bulan)
 
@@ -430,7 +481,7 @@ def extend_adoption(request, hewan_id, tgl_mulai):
                 kontribusi_finansial = kontribusi_finansial + %s
             WHERE id_adopter=%s AND id_hewan=%s AND tgl_mulai_adopsi=%s
             """,
-            "UPDATE ADOPTER SET total_kontribusi = total_kontribusi + %s WHERE id_adopter=%s"
+            "UPDATE ADOPTER SET total_kontribusi = total_kontribusi + %s WHERE id_adopter = %s"
         ]
         params = [
             (new_end, tambahan, id_adopter, hewan_id, tgl_mulai),
@@ -440,13 +491,17 @@ def extend_adoption(request, hewan_id, tgl_mulai):
             messages.success(request, "Periode adopsi berhasil diperpanjang.")
         else:
             messages.error(request, "Gagal memperpanjang adopsi.")
-        return redirect('adopsi:my_adoptions')
+        return redirect('adopsi:list_adoptions')
 
-    # GET: tampilkan form sesuai tipe
     return render(request, 'user_extend_form.html', {
-        'hewan_id': hewan_id,
-        'tgl_mulai': tgl_mulai,
-        'adp': adp
+        'hewan_id':       hewan_id,
+        'tgl_mulai':      tgl_mulai,
+        'adp':            adp,
+        'pengunjung':     peng,
+        'pengguna':       usr,
+        'hewan':          hw,
+        'is_individual':  is_individual,
+        'id_adopter':     id_adopter,
     })
 
 # Modal Konfirmasi Hentikan Adopsi
@@ -466,7 +521,7 @@ def stop_adoption_user(request, hewan_id, tgl_mulai):
         (today, id_adopter, hewan_id, tgl_mulai)
     )
     messages.success(request, "Adopsi telah dihentikan.")
-    return redirect('adopsi:my_adoptions')
+    return redirect('adopsi:list_adoptions')
 
 # Daftar Adopter + Top-5 Kontribusi Setahun
 @require_http_methods(["GET"])
@@ -474,49 +529,33 @@ def admin_list_adopters(request):
     if not is_admin(request):
         return redirect('main:login')
 
-    # Top-5 dalam 1 tahun terakhir
+    adopters = execute_query("SELECT username_adopter, total_kontribusi FROM ADOPTER", ())
+
+    today = datetime.date.today()
+    one_year_ago = today - relativedelta(years=1)
+
+    # top 5 adopters by contributions in the last year
     top5 = execute_query(
         """
         SELECT
-          CASE
-            WHEN i.id_adopter IS NOT NULL THEN i.nama
-            ELSE org.nama_organisasi
-          END AS nama_adopter,
-          SUM(o.kontribusi_finansial) AS total_kontribusi
+        a.username_adopter,
+        SUM(o.kontribusi_finansial) AS total_contrib
         FROM ADOPSI o
         JOIN ADOPTER a ON o.id_adopter = a.id_adopter
-        LEFT JOIN INDIVIDU i    ON a.id_adopter = i.id_adopter
-        LEFT JOIN ORGANISASI org ON a.id_adopter = org.id_adopter
-        WHERE o.status_pembayaran = 'lunas'
-          AND o.tgl_mulai_adopsi >= CURRENT_DATE - INTERVAL '1 year'
-        GROUP BY nama_adopter
-        ORDER BY total_kontribusi DESC
+        WHERE 
+        (o.tgl_mulai_adopsi   BETWEEN %s AND %s)
+        OR
+        (o.tgl_berhenti_adopsi BETWEEN %s AND %s)
+        GROUP BY a.username_adopter
+        ORDER BY total_contrib DESC
         LIMIT 5
         """,
-        ()
+        (one_year_ago, today, one_year_ago, today)
     )
 
-    # Semua adopter
-    adopters = execute_query(
-        """
-        SELECT
-          a.id_adopter,
-          CASE
-            WHEN i.id_adopter IS NOT NULL THEN i.nama
-            ELSE org.nama_organisasi
-          END AS nama_adopter,
-          a.total_kontribusi
-        FROM ADOPTER a
-        LEFT JOIN INDIVIDU i    ON a.id_adopter = i.id_adopter
-        LEFT JOIN ORGANISASI org ON a.id_adopter = org.id_adopter
-        ORDER BY a.total_kontribusi DESC
-        """,
-        ()
-    )
-
-    return render(request, 'admin_adopter_list.html', {
-        'top5': top5,
-        'adopters': adopters
+    return render(request, "adopter_list.html", {
+        "adopters": adopters,
+        "top_adopters": top5,
     })
 
 # Modal Riwayat Adopsi Adopter
@@ -568,7 +607,8 @@ def admin_adopter_history(request, id_adopter):
     return render(request, 'admin_adopter_history.html', {
         'adopter': adopter,
         'history': history,
-        'today': today
+        'today': today,
+        'id_adopter': id_adopter,
     })
 
 # Admin Hapus Adopter (POST)
