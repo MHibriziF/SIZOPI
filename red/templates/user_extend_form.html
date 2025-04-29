@@ -20,7 +20,7 @@
 
 <div class="flex justify-center py-12 px-4">
   <div class="bg-white rounded-xl shadow-lg w-full max-w-xl">
-    <input type="" name="id_adopter" value="{{id_adopter}}" readonly/>
+    <input type="hidden" name="id_adopter" value="{{id_adopter}}" readonly/>
     {% if is_individual %}
     <form id="form-individu"
           method="post"
@@ -28,7 +28,7 @@
           class="{% if not is_individual %}hidden{% endif %}">
       {% csrf_token %}
       <div class="bg-[#A7C796] pt-6 rounded-t-xl text-white text-center">
-        <h2 class="text-xl text-center font-semibold mb-2 text-var(--primary-color)">Form Adopsi Satwa</h2>
+        <h2 class="text-xl text-center font-semibold mb-2 text-var(--primary-color)">Form Perpanjangan Periode Adopsi</h2>
       </div>
     <div class="px-4">
       <p>Pihak di bawah ini,</p>
@@ -139,7 +139,7 @@
         class="{% if is_individual %}hidden{% endif %}">
     {% csrf_token %}
     <div class="bg-[#A7C796] pt-6 rounded-t-xl text-white text-center">
-        <h2 class="text-xl font-semibold mb-2">Form Adopsi Satwa</h2>
+        <h2 class="text-xl font-semibold mb-2">Form Perpanjangan Periode Adopsi</h2>
     </div>
 
     <div class="px-4 space-y-4">

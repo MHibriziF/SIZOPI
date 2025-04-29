@@ -57,7 +57,6 @@
     </div>
 
     {% if is_admin %}
-      <!-- ADMIN: Status & Hentikan (tetap modal konfirmasi) -->
       <form method="post" id="admin-update-form" class="px-4 pb-6 flex flex-col h-full">
         {% csrf_token %}
         <div class="flex items-center space-x-4">
@@ -79,7 +78,6 @@
         </div>
       </form>
     {% else %}
-      <!-- PENGUNJUNG: 2x2 grid aksi -->
       <div class="pt-4 border-t px-4 pb-6">
         <div class="grid grid-cols-2 gap-4 text-center">
           <a href="{% url 'adopsi:adoption_report' detail.id_hewan detail.tgl_mulai_adopsi %}"
