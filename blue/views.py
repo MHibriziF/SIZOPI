@@ -4,7 +4,8 @@ from datetime import date
 
 # Create your views here.
 def reservasi(request):
-
+    if not request.session.get('username'):
+        return redirect('main:login')
     # data_reservasi = execute_query(
     #     """
     #     """,
@@ -79,6 +80,9 @@ def reservasi(request):
 
 
 def kelola_wahana(request):
+    if not request.session.get('username'):
+        return redirect('main:login')
+    
     if 'admin' not in request.session["roles"] :
         return redirect('main:dashboard')
     
@@ -108,6 +112,9 @@ def kelola_wahana(request):
     return render(request, 'wahana.html', context)
 
 def kelola_atraksi(request):
+    if not request.session.get('username'):
+        return redirect('main:login')
+    
     if 'admin' not in request.session["roles"] :
         return redirect('main:dashboard')
     
@@ -165,5 +172,11 @@ def kelola_atraksi(request):
     return render(request, 'atraksi.html', context)
 
 def kelola_pengunjung(request):
+    if not request.session.get('username'):
+        return redirect('main:login')
+    
+    if 'admin' not in request.session["roles"] :
+        return redirect('main:dashboard')
+    
     return render(request, 'kelola_pengunjung.html')
 

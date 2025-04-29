@@ -23,7 +23,7 @@
         {% endif %}
         
         {% if 'admin' in request.session.roles %}
-          <a href="#" class="hover:text-green-200 transition">Kelola Pengunjung</a>
+          <a href="{% url 'blue:kelola_pengunjung' %}" class="hover:text-green-200 transition">Kelola Pengunjung</a>
           <a href="#" class="hover:text-green-200 transition">Kelola Adopsi</a>
           <a href="#" class="hover:text-green-200 transition">Kelola Adopter</a>
         {% endif %}
