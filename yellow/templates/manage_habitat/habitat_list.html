@@ -1,0 +1,580 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<title>Habitat List - SIZOPI</title>
+{% endblock meta %}
+
+{% block content %}
+{% include 'components/navbar.html' %}
+<div class="min-h-screen flex flex-col">
+    <!-- MAIN -->
+    <div class="flex-grow bg-[rgba(236,240,202,0.5)] p-4 md:p-6 lg:p-8">
+        <div class="w-full max-w-full mx-auto bg-[#61785f] rounded-xl p-3 md:p-4 shadow-md text-white">
+            <!-- HEADER -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                <h1 class="text-xl sm:text-2xl font-bold">Habitat List</h1>
+                <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <div class="relative flex-grow sm:flex-grow-0">
+                        <input type="text" placeholder="Search habitat..." class="w-full sm:w-64 rounded-lg py-2 px-4 pr-8 text-gray-700 focus:outline-none">
+                        <button class="absolute right-3 top-2.5 text-gray-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                    <!-- <button class="bg-[#546d52] hover:bg-[#3e513c] text-white rounded-lg px-4 py-2 flex items-center gap-2 add-habitat-trigger">
+                        <span class="font-bold">+</span> Add Habitat
+                    </button> -->
+                </div>
+            </div>
+
+             <!-- Action Buttons and Sort -->
+             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                <button class="bg-[#546d52] hover:bg-[#3e513c] text-white rounded-lg px-4 py-2 flex items-center gap-2 add-habitat-trigger">
+                    <span class="font-bold">+</span> Add Habitat
+                </button>
+                <div class="flex items-center gap-2">
+                    <span class="text-sm">sort by</span>
+                    <div class="relative">
+                        <select class="bg-[#667f64] text-white rounded px-4 py-2 pr-8 appearance-none">
+                            <option>nama</option>
+                            <option>luas</option>
+                            <option>kapasitas</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2">
+                            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLE -->
+            <div class="bg-[#f5f7e1] rounded-lg overflow-hidden">
+                <div class="max-h-[50vh] overflow-y-auto overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-[#e8edce] text-[#61785f] border-b border-[#ccd4a7] sticky top-0">
+                            <tr>
+                                <th class="py-3 px-2 sm:px-4">Nama Habitat</th>
+                                <th class="py-3 px-2 sm:px-4">Luas Area</th>
+                                <th class="py-3 px-2 sm:px-4">Kapasitas Maks</th>
+                                <th class="py-3 px-2 sm:px-4">Status Lingkungan</th>
+                                <th class="py-3 px-2 sm:px-4 text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-700">
+                            <!-- Dummy Data - Row 1 -->
+                            <tr class="border-b border-[#e1e8c3]">
+                                <td class="py-2 px-2 sm:px-4">Hutan Hujan Tropis</td>
+                                <td class="py-2 px-2 sm:px-4">5000 m²</td>
+                                <td class="py-2 px-2 sm:px-4">30 hewan</td>
+                                <td class="py-2 px-2 sm:px-4">Suhu: 28.5°C, Kelembapan: 85%, Curah hujan tinggi, Kanopi rapat</td>
+                                <td class="py-2 px-2 sm:px-4 text-right">
+                                    <button class="text-blue-600 hover:text-blue-800 edit-habitat-trigger" data-id="1">
+                                        <span class="fa fa-pencil"></span>
+                                    </button>
+                                    <button class="text-red-600 hover:text-red-800 ml-3" onclick="return confirmDelete()">
+                                        <span class="fa fa-trash"></span>
+                                    </button>
+                                    <a href="#" class="ml-3 bg-blue-500 hover:bg-blue-700 text-white py-1 px-3 rounded text-sm">Detail</a>
+                                </td>
+                            </tr>
+                            
+                            <!-- Dummy Data - Row 2 -->
+                            <tr class="border-b border-[#e1e8c3]">
+                                <td class="py-2 px-2 sm:px-4">Savana</td>
+                                <td class="py-2 px-2 sm:px-4">8500 m²</td>
+                                <td class="py-2 px-2 sm:px-4">45 hewan</td>
+                                <td class="py-2 px-2 sm:px-4">Suhu: 32.0°C, Kelembapan: 40%, Padang rumput luas, Pohon tersebar</td>
+                                <td class="py-2 px-2 sm:px-4 text-right">
+                                    <button class="text-blue-600 hover:text-blue-800 edit-habitat-trigger" data-id="2">
+                                        <span class="fa fa-pencil"></span>
+                                    </button>
+                                    <button class="text-red-600 hover:text-red-800 ml-3">
+                                        <span class="fa fa-trash"></span>
+                                    </button>
+                                    <a href="#" class="ml-3 bg-blue-500 hover:bg-blue-700 text-white py-1 px-3 rounded text-sm">Detail</a>
+                                </td>
+                            </tr>
+                            
+                            <!-- Dummy Data - Row 3 -->
+                            <tr class="border-b border-[#e1e8c3]">
+                                <td class="py-2 px-2 sm:px-4">Tundra Buatan</td>
+                                <td class="py-2 px-2 sm:px-4">3200 m²</td>
+                                <td class="py-2 px-2 sm:px-4">15 hewan</td>
+                                <td class="py-2 px-2 sm:px-4">Suhu: 5.0°C, Kelembapan: 30%, Sistem pendingin khusus, Bebatuan dan lumut</td>
+                                <td class="py-2 px-2 sm:px-4 text-right">
+                                    <button class="text-blue-600 hover:text-blue-800 edit-habitat-trigger" data-id="3">
+                                        <span class="fa fa-pencil"></span>
+                                    </button>
+                                    <button class="text-red-600 hover:text-red-800 ml-3">
+                                        <span class="fa fa-trash"></span>
+                                    </button>
+                                    <a href="#" class="ml-3 bg-blue-500 hover:bg-blue-700 text-white py-1 px-3 rounded text-sm">Detail</a>
+                                </td>
+                            </tr>
+                            
+                            <!-- Dummy Data - Row 4 -->
+                            <tr class="border-b border-[#e1e8c3]">
+                                <td class="py-2 px-2 sm:px-4">Akuarium Air Asin</td>
+                                <td class="py-2 px-2 sm:px-4">1500 m²</td>
+                                <td class="py-2 px-2 sm:px-4">120 hewan</td>
+                                <td class="py-2 px-2 sm:px-4">Suhu: 24.5°C, Kelembapan: 100%, Salinitas tinggi, Terumbu karang buatan</td>
+                                <td class="py-2 px-2 sm:px-4 text-right">
+                                    <button class="text-blue-600 hover:text-blue-800 edit-habitat-trigger" data-id="4">
+                                        <span class="fa fa-pencil"></span>
+                                    </button>
+                                    <button class="text-red-600 hover:text-red-800 ml-3">
+                                        <span class="fa fa-trash"></span>
+                                    </button>
+                                    <a href="#" class="ml-3 bg-blue-500 hover:bg-blue-700 text-white py-1 px-3 rounded text-sm">Detail</a>
+                                </td>
+                            </tr>
+                            
+                            <!-- Dummy Data - Row 5 -->
+                            <tr class="border-b border-[#e1e8c3]">
+                                <td class="py-2 px-2 sm:px-4">Hutan Bambu</td>
+                                <td class="py-2 px-2 sm:px-4">2800 m²</td>
+                                <td class="py-2 px-2 sm:px-4">25 hewan</td>
+                                <td class="py-2 px-2 sm:px-4">Suhu: 26.0°C, Kelembapan: 75%, Tanaman bambu tinggi, Area teduh</td>
+                                <td class="py-2 px-2 sm:px-4 text-right">
+                                    <button class="text-blue-600 hover:text-blue-800 edit-habitat-trigger" data-id="5">
+                                        <span class="fa fa-pencil"></span>
+                                    </button>
+                                    <button class="text-red-600 hover:text-red-800 ml-3">
+                                        <span class="fa fa-trash"></span>
+                                    </button>
+                                    <a href="#" class="ml-3 bg-blue-500 hover:bg-blue-700 text-white py-1 px-3 rounded text-sm">Detail</a>
+                                </td>
+                            </tr>
+                            
+                            <!-- Dummy Data - Row 6 -->
+                            <tr class="border-b border-[#e1e8c3]">
+                                <td class="py-2 px-2 sm:px-4">Padang Pasir</td>
+                                <td class="py-2 px-2 sm:px-4">6000 m²</td>
+                                <td class="py-2 px-2 sm:px-4">18 hewan</td>
+                                <td class="py-2 px-2 sm:px-4">Suhu: 38.0°C, Kelembapan: 10%, Pasir kering, Bebatuan dan kaktus</td>
+                                <td class="py-2 px-2 sm:px-4 text-right">
+                                    <button class="text-blue-600 hover:text-blue-800 edit-habitat-trigger" data-id="6">
+                                        <span class="fa fa-pencil"></span>
+                                    </button>
+                                    <button class="text-red-600 hover:text-red-800 ml-3">
+                                        <span class="fa fa-trash"></span>
+                                    </button>
+                                    <a href="#" class="ml-3 bg-blue-500 hover:bg-blue-700 text-white py-1 px-3 rounded text-sm">Detail</a>
+                                </td>
+                            </tr>
+                            
+                            <!-- Dummy Data - Row 7 -->
+                            <tr class="border-b border-[#e1e8c3]">
+                                <td class="py-2 px-2 sm:px-4">Rawa-rawa</td>
+                                <td class="py-2 px-2 sm:px-4">4200 m²</td>
+                                <td class="py-2 px-2 sm:px-4">35 hewan</td>
+                                <td class="py-2 px-2 sm:px-4">Suhu: 29.5°C, Kelembapan: 90%, Air dangkal, Vegetasi rawa</td>
+                                <td class="py-2 px-2 sm:px-4 text-right">
+                                    <button class="text-blue-600 hover:text-blue-800 edit-habitat-trigger" data-id="7">
+                                        <span class="fa fa-pencil"></span>
+                                    </button>
+                                    <button class="text-red-600 hover:text-red-800 ml-3">
+                                        <span class="fa fa-trash"></span>
+                                    </button>
+                                    <a href="#" class="ml-3 bg-blue-500 hover:bg-blue-700 text-white py-1 px-3 rounded text-sm">Detail</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="bg-[#61785f] text-white p-2 text-right text-xs">
+        <div class="max-w-7xl mx-auto">Image by: Freepik</div>
+    </div>
+</div>
+
+<!-- HABITAT DETAIL MODAL -->
+<div id="habitatDetailModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg max-w-4xl w-full mx-4 overflow-y-auto" style="max-height:90vh;">
+        <div class="bg-[#61785f] text-white px-4 py-3 flex items-center justify-between rounded-t-lg sticky top-0 z-10">
+            <h3 class="font-bold text-xl" id="detail-habitat-title">Detail Habitat</h3>
+            <button class="close-detail-habitat text-white hover:text-gray-200">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="p-6">
+            <!-- Habitat Information -->
+            <div class="bg-[#f5f7e1] rounded-lg p-4 mb-6">
+                <h4 class="text-[#61785f] font-bold text-lg mb-4">Informasi Habitat</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <p class="text-gray-600 text-sm">Luas Area</p>
+                        <p class="text-gray-800 font-medium" id="detail-habitat-luas">5000 m²</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600 text-sm">Kapasitas Maksimum</p>
+                        <p class="text-gray-800 font-medium" id="detail-habitat-kapasitas">30 hewan</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600 text-sm">Status Hunian</p>
+                        <div class="flex items-center mt-1">
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div class="bg-green-500 h-2.5 rounded-full" style="width: 45%" id="detail-habitat-occupancy-bar"></div>
+                            </div>
+                            <span class="ml-2 text-sm font-medium" id="detail-habitat-occupancy">12/30</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <h5 class="text-[#61785f] font-medium mt-4 mb-2">Status Lingkungan</h5>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-gray-600 text-sm">Suhu</p>
+                        <p class="text-gray-800" id="detail-habitat-suhu">28.5°C</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600 text-sm">Kelembapan</p>
+                        <p class="text-gray-800" id="detail-habitat-kelembapan">85%</p>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <p class="text-gray-600 text-sm">Faktor Lingkungan Lainnya</p>
+                    <p class="text-gray-800" id="detail-habitat-faktor">Curah hujan tinggi, Kanopi rapat</p>
+                </div>
+            </div>
+            
+            <!-- Animals in Habitat -->
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-[#61785f] font-bold text-lg">Daftar Hewan Penghuni</h4>
+                    <div class="relative">
+                        <input type="text" placeholder="Cari hewan..." class="border border-gray-300 rounded-lg py-1 px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#61785f] pr-8">
+                        <button class="absolute right-2 top-1.5 text-gray-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-white border border-[#e1e8c3] rounded-lg overflow-hidden">
+                    <div class="max-h-[40vh] overflow-y-auto overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-[#e8edce] text-[#61785f] border-b border-[#ccd4a7] sticky top-0">
+                                <tr>
+                                    <th class="py-2 px-4 text-sm">Nama</th>
+                                    <th class="py-2 px-4 text-sm">Spesies</th>
+                                    <th class="py-2 px-4 text-sm">Asal Hewan</th>
+                                    <th class="py-2 px-4 text-sm">Tanggal Lahir</th>
+                                    <th class="py-2 px-4 text-sm">Status Kesehatan</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-700" id="habitat-animal-list">
+                                <!-- Will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ADD HABITAT MODAL -->
+<div id="addHabitatModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg max-w-md w-full mx-4 overflow-y-auto" style="max-height:90vh;">
+        <div class="bg-[#61785f] text-white px-4 py-3 flex items-center justify-between rounded-t-lg sticky top-0 z-10">
+            <h3 class="font-bold">Tambah Habitat Baru</h3>
+            <button class="close-add-habitat text-white hover:text-gray-200">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="p-6">
+            <form id="addHabitatForm">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Habitat</label>
+                    <input type="text" name="nama" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Luas Area (m²)</label>
+                    <input type="number" name="luas_area" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Kapasitas Maks (hewan)</label>
+                    <input type="number" name="kapasitas" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" required>
+                </div>
+                <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Suhu (°C)</label>
+                        <input type="number" step="0.1" name="suhu" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kelembapan (%)</label>
+                        <input type="number" step="0.1" name="kelembapan" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" required>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Faktor Lingkungan Lain</label>
+                    <textarea name="faktor_lain" rows="3" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]"></textarea>
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" class="close-add-habitat bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded">Batal</button>
+                    <button type="submit" class="bg-[#546d52] hover:bg-[#3e513c] text-white py-2 px-4 rounded">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT HABITAT MODAL -->
+<div id="editHabitatModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg max-w-md w-full mx-4 overflow-y-auto" style="max-height:90vh;">
+        <div class="bg-[#61785f] text-white px-4 py-3 flex items-center justify-between rounded-t-lg sticky top-0 z-10">
+            <h3 class="font-bold">Edit Habitat</h3>
+            <button class="close-edit-habitat text-white hover:text-gray-200">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="p-6">
+            <form id="editHabitatForm">
+                <input type="hidden" name="id" id="edit-habitat-id">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Habitat</label>
+                    <input type="text" name="nama" id="edit-habitat-nama" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Luas Area (m²)</label>
+                    <input type="number" name="luas_area" id="edit-habitat-luas" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Kapasitas Maks (hewan)</label>
+                    <input type="number" name="kapasitas" id="edit-habitat-kapasitas" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" required>
+                </div>
+                <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Suhu (°C)</label>
+                        <input type="number" step="0.1" name="suhu" id="edit-habitat-suhu" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kelembapan (%)</label>
+                        <input type="number" step="0.1" name="kelembapan" id="edit-habitat-kelembapan" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" required>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Faktor Lingkungan Lain</label>
+                    <textarea name="faktor_lain" id="edit-habitat-faktor" rows="3" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]"></textarea>
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" class="close-edit-habitat bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded">Batal</button>
+                    <button type="submit" class="bg-[#546d52] hover:bg-[#3e513c] text-white py-2 px-4 rounded">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JS MODAL HANDLING -->
+<script>
+        function confirmDelete() {
+        return confirm("Apakah Anda yakin ingin menghapus habitat ini?");
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        // Habitat dummy data for demo purposes
+        const habitatData = [
+            { id: 1, nama: "Hutan Hujan Tropis", luas_area: 5000, kapasitas: 30, suhu: 28.5, kelembapan: 85, faktor_lain: "Curah hujan tinggi, Kanopi rapat" },
+            { id: 2, nama: "Savana", luas_area: 8500, kapasitas: 45, suhu: 32.0, kelembapan: 40, faktor_lain: "Padang rumput luas, Pohon tersebar" },
+            { id: 3, nama: "Tundra Buatan", luas_area: 3200, kapasitas: 15, suhu: 5.0, kelembapan: 30, faktor_lain: "Sistem pendingin khusus, Bebatuan dan lumut" },
+            { id: 4, nama: "Akuarium Air Asin", luas_area: 1500, kapasitas: 120, suhu: 24.5, kelembapan: 100, faktor_lain: "Salinitas tinggi, Terumbu karang buatan" },
+            { id: 5, nama: "Hutan Bambu", luas_area: 2800, kapasitas: 25, suhu: 26.0, kelembapan: 75, faktor_lain: "Tanaman bambu tinggi, Area teduh" },
+            { id: 6, nama: "Padang Pasir", luas_area: 6000, kapasitas: 18, suhu: 38.0, kelembapan: 10, faktor_lain: "Pasir kering, Bebatuan dan kaktus" },
+            { id: 7, nama: "Rawa-rawa", luas_area: 4200, kapasitas: 35, suhu: 29.5, kelembapan: 90, faktor_lain: "Air dangkal, Vegetasi rawa" }
+        ];
+
+        const addModal = document.getElementById('addHabitatModal');
+        const editModal = document.getElementById('editHabitatModal');
+        const addTriggers = document.querySelectorAll('.add-habitat-trigger');
+        const editTriggers = document.querySelectorAll('.edit-habitat-trigger');
+        const closeAddBtns = document.querySelectorAll('.close-add-habitat');
+        const closeEditBtns = document.querySelectorAll('.close-edit-habitat');
+
+        const open = (modal) => { modal.classList.remove('hidden'); document.body.style.overflow='hidden'; };
+        const close = (modal) => { modal.classList.add('hidden'); document.body.style.overflow=''; };
+
+        addTriggers.forEach(btn => btn.addEventListener('click', () => open(addModal)));
+        closeAddBtns.forEach(btn => btn.addEventListener('click', () => close(addModal)));
+        addModal.addEventListener('click', e => { if(e.target === addModal) close(addModal); });
+
+        editTriggers.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const habitatId = btn.getAttribute('data-id');
+                const habitat = habitatData.find(h => h.id == habitatId);
+                
+                if (habitat) {
+                    // Fill the edit form with the habitat data
+                    document.getElementById('edit-habitat-id').value = habitat.id;
+                    document.getElementById('edit-habitat-nama').value = habitat.nama;
+                    document.getElementById('edit-habitat-luas').value = habitat.luas_area;
+                    document.getElementById('edit-habitat-kapasitas').value = habitat.kapasitas;
+                    document.getElementById('edit-habitat-suhu').value = habitat.suhu;
+                    document.getElementById('edit-habitat-kelembapan').value = habitat.kelembapan;
+                    document.getElementById('edit-habitat-faktor').value = habitat.faktor_lain;
+                }
+                
+                open(editModal);
+            });
+        });
+        
+        closeEditBtns.forEach(btn => btn.addEventListener('click', () => close(editModal)));
+        editModal.addEventListener('click', e => { if(e.target === editModal) close(editModal); });
+
+        document.addEventListener('keydown', e => {
+            if(e.key==='Escape') { 
+                if(!addModal.classList.contains('hidden')) close(addModal); 
+                if(!editModal.classList.contains('hidden')) close(editModal);
+            } 
+        });
+
+        // Simple submit handlers (replace with real AJAX or form post)
+        document.getElementById('addHabitatForm').addEventListener('submit', e => { 
+            e.preventDefault(); 
+            alert('Habitat baru berhasil ditambahkan!');
+            close(addModal); 
+        });
+        
+        document.getElementById('editHabitatForm').addEventListener('submit', e => { 
+            e.preventDefault(); 
+            alert('Habitat berhasil diupdate!');
+            close(editModal); 
+        });
+
+        // Add inside the existing DOMContentLoaded event handler
+        const detailModal = document.getElementById('habitatDetailModal');
+        const detailLinks = document.querySelectorAll('.habitat-detail-link');
+        const closeDetailBtns = document.querySelectorAll('.close-detail-habitat');
+
+        // Mock animal data for demo
+        const animalData = [
+            { id: 1, habitatId: 1, nama: "Orangutan Sumba", spesies: "Pongo abelii", asal: "Sumatra, Indonesia", tanggalLahir: "2018-05-12", status: "Sehat" },
+            { id: 2, habitatId: 1, nama: "Harimau Siberia", spesies: "Panthera tigris altaica", asal: "Siberia, Rusia", tanggalLahir: "2017-03-24", status: "Rehabilitasi" },
+            { id: 3, habitatId: 1, nama: "Siamang", spesies: "Symphalangus syndactylus", asal: "Sumatra, Indonesia", tanggalLahir: "2019-11-05", status: "Sehat" },
+            { id: 4, habitatId: 1, nama: "Kasuari", spesies: "Casuarius casuarius", asal: "Papua, Indonesia", tanggalLahir: "2020-01-18", status: "Tidak Sehat" },
+            { id: 5, habitatId: 1, nama: "Trenggiling", spesies: "Manis javanica", asal: "Jawa, Indonesia", tanggalLahir: "2021-02-04", status: "Sehat" },
+            { id: 6, habitatId: 2, nama: "Singa Afrika", spesies: "Panthera leo", asal: "Kenya, Afrika", tanggalLahir: "2016-07-15", status: "Sehat" },
+            { id: 7, habitatId: 2, nama: "Jerapah", spesies: "Giraffa camelopardalis", asal: "Tanzania, Afrika", tanggalLahir: "2015-09-30", status: "Sehat" },
+            { id: 8, habitatId: 3, nama: "Beruang Kutub", spesies: "Ursus maritimus", asal: "Arktik", tanggalLahir: "2014-12-10", status: "Rehabilitasi" },
+            { id: 9, habitatId: 4, nama: "Hiu Karang", spesies: "Carcharhinus melanopterus", asal: "Samudra Pasifik", tanggalLahir: "2019-08-22", status: "Sehat" },
+            { id: 10, habitatId: 5, nama: "Panda Raksasa", spesies: "Ailuropoda melanoleuca", asal: "Sichuan, China", tanggalLahir: "2017-04-01", status: "Rehabilitasi" }
+        ];
+
+        // Update the detail link class for all buttons
+        document.querySelectorAll('a.ml-3.bg-blue-500').forEach(link => {
+            link.classList.add('habitat-detail-link');
+            // Extract habitat ID from parent row
+            const habitatId = link.closest('tr').querySelector('.edit-habitat-trigger').getAttribute('data-id');
+            link.setAttribute('data-id', habitatId);
+        });
+
+        // Function to populate animal table
+        function populateAnimalTable(habitatId) {
+            const animalTableBody = document.getElementById('habitat-animal-list');
+            animalTableBody.innerHTML = '';
+            
+            // Filter animals by habitat
+            const habitatAnimals = animalData.filter(animal => animal.habitatId == habitatId);
+            
+            // Update occupancy info
+            const habitat = habitatData.find(h => h.id == habitatId);
+            document.getElementById('detail-habitat-occupancy').textContent = `${habitatAnimals.length}/${habitat.kapasitas}`;
+            const occupancyPercentage = (habitatAnimals.length / habitat.kapasitas) * 100;
+            document.getElementById('detail-habitat-occupancy-bar').style.width = `${occupancyPercentage}%`;
+            
+            // Change color based on occupancy level
+            const occupancyBar = document.getElementById('detail-habitat-occupancy-bar');
+            if (occupancyPercentage < 50) {
+                occupancyBar.classList.remove('bg-yellow-500', 'bg-red-500');
+                occupancyBar.classList.add('bg-green-500');
+            } else if (occupancyPercentage < 80) {
+                occupancyBar.classList.remove('bg-green-500', 'bg-red-500');
+                occupancyBar.classList.add('bg-yellow-500');
+            } else {
+                occupancyBar.classList.remove('bg-green-500', 'bg-yellow-500');
+                occupancyBar.classList.add('bg-red-500');
+            }
+            
+            if (habitatAnimals.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = `<td colspan="5" class="py-4 px-4 text-center text-gray-500">Tidak ada hewan yang menempati habitat ini</td>`;
+                animalTableBody.appendChild(emptyRow);
+                return;
+            }
+            
+            // Add rows for each animal
+            habitatAnimals.forEach(animal => {
+                const row = document.createElement('tr');
+                row.classList.add('border-b', 'border-[#e1e8c3]');
+                
+                // Format date
+                const birthDate = new Date(animal.tanggalLahir);
+                const formattedDate = birthDate.toLocaleDateString('id-ID', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+                
+                // Status color
+                let statusClass = '';
+                if (animal.status === 'Sehat') {
+                    statusClass = 'bg-green-100 text-green-800';
+                } else if (animal.status === 'Rehabilitasi') {
+                    statusClass = 'bg-yellow-100 text-yellow-800';
+                } else {
+                    statusClass = 'bg-red-100 text-red-800';
+                }
+                
+                row.innerHTML = `
+                    <td class="py-2 px-4">${animal.nama}</td>
+                    <td class="py-2 px-4">${animal.spesies}</td>
+                    <td class="py-2 px-4">${animal.asal}</td>
+                    <td class="py-2 px-4">${formattedDate}</td>
+                    <td class="py-2 px-4">
+                        <span class="px-2 py-1 rounded-full text-xs ${statusClass}">
+                            ${animal.status}
+                        </span>
+                    </td>
+                `;
+                
+                animalTableBody.appendChild(row);
+            });
+        }
+
+        document.querySelectorAll('.habitat-detail-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const habitatId = link.getAttribute('data-id');
+                const habitat = habitatData.find(h => h.id == habitatId);
+                
+                if (habitat) {
+                    // Populate habitat details
+                    document.getElementById('detail-habitat-title').textContent = `Detail Habitat: ${habitat.nama}`;
+                    document.getElementById('detail-habitat-luas').textContent = `${habitat.luas_area} m²`;
+                    document.getElementById('detail-habitat-kapasitas').textContent = `${habitat.kapasitas} hewan`;
+                    document.getElementById('detail-habitat-suhu').textContent = `${habitat.suhu}°C`;
+                    document.getElementById('detail-habitat-kelembapan').textContent = `${habitat.kelembapan}%`;
+                    document.getElementById('detail-habitat-faktor').textContent = habitat.faktor_lain;
+                    
+                    // Populate animal table
+                    populateAnimalTable(habitatId);
+                }
+                
+                open(detailModal);
+            });
+        });
+
+        closeDetailBtns.forEach(btn => btn.addEventListener('click', () => close(detailModal)));
+        detailModal.addEventListener('click', e => { if(e.target === detailModal) close(detailModal); });
+    });
+</script>
+{% endblock content %}
