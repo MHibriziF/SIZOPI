@@ -1,0 +1,39 @@
+<!-- components/confirm_delete.html -->
+<div id="modalDeleteConfirm" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+    <div class="bg-white rounded-2xl p-8 w-full max-w-md relative">
+        <h2 class="text-2xl font-bold mb-4 text-center text-red-600">Konfirmasi Pembatalan</h2>
+        <p class="text-center mb-6 text-gray-700">Apakah Anda yakin ingin membatalkan reservasi ini?</p>
+        <div class="flex justify-center space-x-4">
+            <button type="button" onclick="closeCancelModal()" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100">Tidak</button>
+            <a id="deleteConfirmButton" href="#" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg">Ya, batalkan reservasi</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    let deleteTarget = null;
+    let deleteType = null;
+
+    function confirmCancelModal(name, type) {
+        deleteTarget = name;
+        deleteType = type;
+
+        // Update form action
+        // let actionUrl = "";
+        // if (type === 'wahana') {
+        //     actionUrl = `/delete-wahana/${encodeURIComponent(name)}/`;
+        // } else if (type === 'atraksi') {
+        //     actionUrl = `/delete-atraksi/${encodeURIComponent(name)}/`;
+        // }
+        // document.getElementById('deleteForm').action = actionUrl;
+
+        // Tampilkan modal
+        document.getElementById('modalDeleteConfirm').classList.remove('hidden');
+        document.getElementById('modalDeleteConfirm').classList.add('flex');
+    }
+
+    function closeCancelModal() {
+        document.getElementById('modalDeleteConfirm').classList.remove('flex');
+        document.getElementById('modalDeleteConfirm').classList.add('hidden');
+    }
+</script>

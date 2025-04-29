@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% block meta %}
+    <title>Manajemen Wahana</title> 
+{% endblock meta %}
+
+{% block content %}
+{% load static %}
+{% include 'components/navbar.html' %}
+
+<div class="bg-[#F0F1C5] p-8 m-8 rounded-2xl shadow-md">
+    <div>
+
+    </div>
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-8 bg-[#6F826A] py-8 px-6 rounded-2xl">
+        <h1 class="text-3xl font-bold mb-4 md:mb-0 text-white">Wahana</h1>
+        <div class="flex space-x-4">
+            <input type="text" placeholder="Search..." class="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-300">
+            <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold" onclick=bukaModal()>Add Wahana</button>
+        </div>
+    </div>
+    
+
+    <!-- <div class="flex justify-end mb-4">
+        <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold">
+            Sort by Habitat
+        </button>
+    </div> -->
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-yellow-50 rounded-xl overflow-hidden">
+            <thead class="bg-[#6F826A] text-white">
+                <tr>
+                    <th class="px-6 py-3 text-left text-sm font-semibold">Nama</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold">Kapasitas</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold">Jadwal</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold">Peraturan</th>
+                    <th class="px-6 py-3 text-center text-sm font-semibold">Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-700">
+                {% for wahana in data_wahana %}
+                <tr class="border-t">
+                    <td class="px-6 py-4">{{ wahana.nama_wahana }}</td>
+                    <td class="px-6 py-4">{{ wahana.kapasitas }}</td>
+                    <td class="px-6 py-4">{{ wahana.jadwal }}</td>
+                    <td class="px-6 py-4">
+                        <ul class="list-disc list-inside">
+                            {% for peraturan in wahana.peraturan %}
+                                <li>{{ peraturan }}</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <div class="flex justify-center space-x-2">
+                            <button 
+                                data-nama="{{ wahana.nama_wahana }}" 
+                                data-kapasitas="{{ wahana.kapasitas }}" 
+                                data-jadwal="{{ wahana.jadwal }}" 
+                                data-peraturan="{{ wahana.peraturan|join:',' }}" 
+                                onclick="openEditModal(this)"
+                                >✏️</button>
+                            <button onclick="confirmDelete('{{ wahana.nama_wahana }}', 'wahana')" >🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modalAddWahana" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+    <div class="bg-white rounded-2xl p-8 w-full max-w-lg relative">
+        <h2 class="text-2xl font-bold mb-6 text-center">Tambah Wahana</h2>
+        <form method="POST" action="#">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Nama Wahana</label>
+                <input type="text" name="nama_wahana" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Kapasitas Maksimum</label>
+                <input type="number" name="kapasitas" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Jadwal</label>
+                <input type="time" name="jadwal" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" required>
+            </div>
+
+            <!-- Dynamic Peraturan -->
+            <div class="mb-6">
+                <label class="block text-gray-700 mb-2">Peraturan</label>
+                <div id="peraturan-container">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <input type="text" name="peraturan[]" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" placeholder="Peraturan..." required>
+                    </div>
+                </div>
+                <button type="button" onclick="tambahPeraturan()" class="mt-2 text-green-600 hover:text-green-800 font-semibold">+ Tambah Peraturan</button>
+            </div>
+
+            <div class="flex justify-end space-x-4">
+                <button type="button" onclick="tutupModal()" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Edit -->
+<div id="modalEditWahana" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+    <div class="bg-white rounded-2xl p-8 w-full max-w-lg relative max-h-[90vh] overflow-y-auto">
+        <h2 class="text-2xl font-bold mb-6 text-center">Edit Wahana</h2>
+        <form method="POST" action="#">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Nama Wahana</label>
+                <input type="text" id="edit_nama_wahana" name="nama_wahana" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Kapasitas Maksimum</label>
+                <input type="number" id="edit_kapasitas" name="kapasitas" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Jadwal</label>
+                <input type="time" id="edit_jadwal" name="jadwal" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" required>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-gray-700 mb-2">Peraturan</label>
+                <div id="edit_peraturan_container">
+                    <!-- peraturan list akan masuk lewat javascript -->
+                </div>
+                <button type="button" onclick="tambahPeraturanEdit()" class="mt-2 text-green-600 hover:text-green-800 font-semibold">+ Tambah Peraturan</button>
+            </div>
+
+            <div class="flex justify-end space-x-4">
+                <button type="button" onclick="tutupModalEdit()" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg">Update</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% include 'components/confirm_delete.html' %}
+
+<!-- Scripts -->
+<script>
+    function bukaModal() {
+        document.getElementById('modalAddWahana').classList.remove('hidden');
+        document.getElementById('modalAddWahana').classList.add('flex');
+    }
+
+    function tutupModal() {
+        document.getElementById('modalAddWahana').classList.remove('flex');
+        document.getElementById('modalAddWahana').classList.add('hidden');
+    }
+
+    function tambahPeraturan() {
+        const container = document.getElementById('peraturan-container');
+        const peraturanDiv = document.createElement('div');
+        peraturanDiv.className = "flex items-center space-x-2 mb-2";
+        peraturanDiv.innerHTML = `
+            <input type="text" name="peraturan[]" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" placeholder="Peraturan..." required>
+            <button type="button" onclick="hapusPeraturan(this)" class="text-red-500 hover:text-red-700 text-xl">✖️</button>
+        `;
+        container.appendChild(peraturanDiv);
+    }
+
+    function hapusPeraturan(button) {
+        button.parentElement.remove();
+    }
+    function openEditModal(element) {
+    const nama = element.getAttribute('data-nama');
+    const kapasitas = element.getAttribute('data-kapasitas');
+    const jadwal = element.getAttribute('data-jadwal');
+    const peraturanList = element.getAttribute('data-peraturan').split(',');
+
+    document.getElementById('edit_nama_wahana').value = nama;
+    document.getElementById('edit_kapasitas').value = kapasitas;
+    document.getElementById('edit_jadwal').value = jadwal;
+
+    const container = document.getElementById('edit_peraturan_container');
+    container.innerHTML = ''; // bersihkan dulu
+
+    peraturanList.forEach(peraturan => {
+            const peraturanDiv = document.createElement('div');
+            peraturanDiv.className = "flex items-center space-x-2 mb-2";
+            peraturanDiv.innerHTML = `
+                <input type="text" name="peraturan[]" value="${peraturan.trim()}" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" required>
+                <button type="button" onclick="hapusPeraturan(this)" class="text-red-500 hover:text-red-700 text-xl">✖️</button>
+            `;
+            container.appendChild(peraturanDiv);
+        });
+
+        document.getElementById('modalEditWahana').classList.remove('hidden');
+        document.getElementById('modalEditWahana').classList.add('flex');
+    }
+
+    function tutupModalEdit() {
+        document.getElementById('modalEditWahana').classList.remove('flex');
+        document.getElementById('modalEditWahana').classList.add('hidden');
+    }
+
+    function tambahPeraturanEdit() {
+        const container = document.getElementById('edit_peraturan_container');
+        const peraturanDiv = document.createElement('div');
+        peraturanDiv.className = "flex items-center space-x-2 mb-2";
+        peraturanDiv.innerHTML = `
+            <input type="text" name="peraturan[]" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" placeholder="Peraturan..." required>
+            <button type="button" onclick="hapusPeraturan(this)" class="text-red-500 hover:text-red-700 text-xl">✖️</button>
+        `;
+        container.appendChild(peraturanDiv);
+    }
+</script>
+
+{% endblock content %}
