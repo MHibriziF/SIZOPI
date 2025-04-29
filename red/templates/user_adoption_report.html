@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+{% include 'components/navbar.html' %}
+
+<div class="flex justify-center mt-8 px-4">
+  <!-- Card wrapper, relative so we can absolutely position the “×” -->
+  <div class="relative bg-white rounded-lg overflow-hidden w-full max-w-4xl max-h-[80vh] flex flex-col shadow-lg">
+    
+    <!-- Header with close button -->
+    <div class="bg-[#4A5A43] px-6 py-4 flex items-center justify-between">
+      <h2 class="text-white text-xl font-semibold">Laporan Kondisi Satwa</h2>
+      <button
+        type="button"
+        onclick="history.back()"
+        class="text-white text-2xl leading-none hover:text-gray-300"
+        aria-label="Tutup laporan"
+      >&times;</button>
+    </div>
+
+    <!-- Body (scrolls if too tall) -->
+    <div class="p-6 overflow-y-auto flex-1">
+      <!-- Animal info -->
+      <div class="mb-4">
+        {% if hewan.url_foto %}
+          <img src="{{ hewan.url_foto }}"
+               alt="Foto {{ hewan.nama_hewan }}"
+               class="mx-auto mb-4 max-h-40 rounded"
+               onerror="this.onerror=null;this.src='{% static 'images/animal_image_placeholder.jpeg' %}';">
+        {% endif %}
+        <p><strong>Nama Hewan:</strong> {{ hewan.nama_hewan }}</p>
+        <p><strong>Jenis:</strong> {{ hewan.jenis_hewan }}</p>
+        <p><strong>Habitat:</strong> {{ hewan.habitat }}</p>
+      </div>
+
+      <h3 class="text-lg font-semibold mb-2">Rekam Medis Satwa</h3>
+
+      <!-- Table wrapper (horizontal scroll if needed) -->
+      <div class="overflow-x-auto">
+        <table class="min-w-full border-collapse">
+          <thead>
+            <tr class="bg-[#4A5A43]">
+              <th class="text-left text-white p-2">Tanggal</th>
+              <th class="text-left text-white p-2">Dokter</th>
+              <th class="text-left text-white p-2">Status</th>
+              <th class="text-left text-white p-2">Diagnosa</th>
+              <th class="text-left text-white p-2">Pengobatan</th>
+              <th class="text-left text-white p-2">Catatan</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            {% for m in medis %}
+            <tr class="{% cycle 'bg-white' 'bg-gray-50' %}">
+              <td class="p-2 text-sm">{{ m.tanggal_pemeriksaan }}</td>
+              <td class="p-2 text-sm">{{ m.nama_dokter }}</td>
+              <td class="p-2 text-sm">{{ m.status_kesehatan }}</td>
+              <td class="p-2 text-sm">{{ m.diagnosis }}</td>
+              <td class="p-2 text-sm">{{ m.pengobatan }}</td>
+              <td class="p-2 text-sm">{{ m.catatan_tindak_lanjut }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="p-4 text-center text-gray-500">
+                Belum ada rekam medis
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+{% include 'components/navbar.html' %}
+
+<!-- Modal Sertifikat -->
+<div id="cert-modal"
+     class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+  <div class="bg-white rounded-2xl overflow-hidden shadow-lg w-full max-w-md">
+    <!-- Header -->
+    <div class="bg-[#4A5A43] px-6 py-4 flex flex-row">
+      <h2 class="text-white text-2xl font-bold">
+        Sertifikat Adopsi Satwa
+      </h2>
+      <img src="{% static 'images/logo.png' %}" alt="Logo" class="pl-4 h-8" onerror="this.src='https://via.placeholder.com/32';this.onerror='';">
+    </div>
+    <!-- Body -->
+    <div class="p-6 text-center space-y-4">
+      <p>Sertifikat ini diberikan kepada</p>
+      <h3 class="text-xl font-semibold">{{ cert.adopter_nama }}</h3>
+      <p>yang telah mengadopsi secara simbolis satwa</p>
+      <p>
+        <strong>{{ cert.jenis_hewan }}</strong> bernama
+        <strong>{{ cert.nama_hewan }}</strong>
+      </p>
+      <p>
+        dari <strong>{{ cert.tgl_mulai_adopsi }}</strong> hingga
+        <strong>{{ cert.tgl_berhenti_adopsi }}</strong>.
+      </p>
+      <p class="mt-4 text-base">
+        Kami sangat berterima kasih atas kepedulian dan kontribusi Anda terhadap
+        kelestarian satwa di taman safari.
+      </p>
+      <!-- Kembali Button -->
+      <button
+        onclick="window.history.back()"
+        class="mt-6 px-4 py-2 bg-[#8EAF7B] text-white rounded-lg hover:bg-[#A7C796] transition">
+        Kembali
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %}

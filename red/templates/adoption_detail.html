@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+{% include 'components/navbar.html' %}
+
+<div class="container mx-auto p-6">
+  <div class="bg-white rounded-lg space-y-6">
+
+    <!-- Header + Close -->
+    <div class="flex justify-between items-center bg-[#8EAF7B] rounded-t-lg px-4 py-4">
+      <h2 class="text-2xl font-bold text-white">
+        {% if is_admin %}
+          Detail Adopsi Hewan
+        {% else %}
+          Informasi Hewan Adopsi
+        {% endif %}
+      </h2>
+      <a href="{% url 'adopsi:list_adoptions' %}" class="text-red-600 hover:text-red-800">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+             stroke-width="2" stroke="currentColor" class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </a>
+    </div>
+
+    <!-- Foto (pengunjung saja) -->
+    {% if is_pengunjung %}
+      <div class="text-center">
+        {% if detail.url_foto %}
+          <img src="{{ detail.url_foto }}"
+               alt="Foto {{ detail.nama_hewan }}"
+               class="inline-block max-h-48 rounded"
+               onerror="this.src='{% static 'images/animal_image_placeholder.jpeg' %}';">
+        {% else %}
+          <img src="{% static 'images/animal_image_placeholder.jpeg' %}"
+               alt="placeholder"
+               class="inline-block max-h-48 rounded">
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <!-- Informasi Umum -->
+    <div class="px-4 space-y-2">
+      <p><strong>Nama Hewan:</strong> {{ detail.nama_hewan }}</p>
+      <p><strong>Jenis Hewan:</strong> {{ detail.jenis_hewan }}</p>
+      {% if is_admin %}
+        <p><strong>Adopter Saat Ini:</strong> {{ detail.nama_adopter }}</p>
+      {% else %}
+        <p><strong>Habitat:</strong> {{ detail.habitat }}</p>
+      {% endif %}
+      <p><strong>Tanggal Mulai Adopsi:</strong> {{ detail.tgl_mulai_adopsi }}</p>
+      <p><strong>Tanggal Akhir Adopsi:</strong> {{ detail.tgl_berhenti_adopsi }}</p>
+      {% if is_admin %}
+        <p><strong>Nominal Kontribusi:</strong> Rp {{ detail.nominal }}</p>
+      {% endif %}
+    </div>
+
+    {% if is_admin %}
+      <form method="post" id="admin-update-form" class="px-4 pb-6 flex flex-col h-full">
+        {% csrf_token %}
+        <div class="flex items-center space-x-4">
+          <label class="font-medium">Status Pembayaran:</label>
+          <select name="status_pembayaran" class="px-2 py-1 border rounded">
+            <option value="tertunda" {% if detail.status_pembayaran == 'tertunda' %}selected{% endif %}>tertunda</option>
+            <option value="lunas"    {% if detail.status_pembayaran == 'lunas'    %}selected{% endif %}>lunas</option>
+          </select>
+          <button type="submit" name="save_status" class="text-blue-600 hover:underline">
+            Simpan Status
+          </button>
+        </div>
+        <div class="flex-1"></div>
+        <div class="flex justify-center">
+          <button type="button" id="btn-open-confirm"
+                  class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+            Hentikan Adopsi
+          </button>
+        </div>
+      </form>
+    {% else %}
+      <div class="pt-4 border-t px-4 pb-6">
+        <div class="grid grid-cols-2 gap-4 text-center">
+          <a href="{% url 'adopsi:adoption_report' detail.id_hewan detail.tgl_mulai_adopsi %}"
+             class="text-blue-600 hover:underline">
+            Pantau Kondisi Hewan
+          </a>
+          <a href="{% url 'adopsi:adoption_certificate' detail.id_hewan detail.tgl_mulai_adopsi %}"
+             class="text-green-600 hover:underline">
+            Lihat Sertifikat Adopsi
+          </a>
+          <button id="btn-open-confirm-user" type="button"
+                  class="text-red-600 hover:underline">
+            Berhenti Adopsi
+          </button>
+          <a href="{% url 'adopsi:extend_adoption' detail.id_hewan detail.tgl_mulai_adopsi %}"
+             class="text-yellow-600 hover:underline">
+            Perpanjang Periode Adopsi
+          </a>
+        </div>
+      </div>
+      <form id="stop-user-form"
+            method="post"
+            action="{% url 'adopsi:stop_adoption_user' detail.id_hewan detail.tgl_mulai_adopsi %}"
+            class="hidden">
+        {% csrf_token %}
+      </form>
+    {% endif %}
+
+  </div>
+</div>
+
+<!-- Modal Konfirmasi -->
+<div id="confirm-modal"
+     class="fixed inset-0 flex bg-black bg-opacity-50 hidden items-center justify-center z-50">
+  <div class="bg-[#f0f1c5] rounded-2xl shadow-lg p-6 max-w-sm w-full">
+    <p id="confirm-message" class="text-center text-[#bf9264] text-lg">
+      {% if is_admin %}
+        Apakah Anda yakin ingin menghentikan adopsi ini?
+      {% else %}
+        Apakah Anda yakin ingin berhenti mengadopsi satwa ini?
+      {% endif %}
+    </p>
+    <div class="mt-6 flex justify-center space-x-6">
+      <button id="confirm-no"
+              class="px-6 py-2 bg-[#bbd8a3] rounded-2xl text-white font-bold">
+        No
+      </button>
+      <button id="confirm-yes"
+              class="px-6 py-2 bg-[#bbd8a3] rounded-2xl text-white font-bold">
+        Yes
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const modal  = document.getElementById('confirm-modal');
+  const btnNo  = document.getElementById('confirm-no');
+  const btnYes = document.getElementById('confirm-yes');
+
+  const openAdmin = document.getElementById('btn-open-confirm');
+  if (openAdmin) {
+    openAdmin.addEventListener('click', () => {
+      modal.classList.remove('hidden');
+    });
+  }
+
+  const openUser = document.getElementById('btn-open-confirm-user');
+  if (openUser) {
+    openUser.addEventListener('click', () => {
+      modal.classList.remove('hidden');
+    });
+  }
+
+  btnNo.addEventListener('click', () => {
+    modal.classList.add('hidden');
+  });
+
+  btnYes.addEventListener('click', () => {
+    modal.classList.add('hidden');
+    {% if is_admin %}
+      // for admin, append hidden field and submit existing form
+      const form = document.getElementById('admin-update-form');
+      const inp  = document.createElement('input');
+      inp.type   = 'hidden';
+      inp.name   = 'stop_adoption';
+      inp.value  = '1';
+      form.appendChild(inp);
+      form.submit();
+    {% else %}
+      // for pengunjung, submit the dedicated stop-user-form
+      document.getElementById('stop-user-form').submit();
+    {% endif %}
+  });
+</script>
+{% endblock content%}

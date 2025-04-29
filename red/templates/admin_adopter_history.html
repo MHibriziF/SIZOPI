@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block meta %}
+  <title>Riwayat Adopsi {{ adopter.nama_adopter }}</title>
+  <style>
+    :root {
+      --primary-header: #6F826A;
+      --primary-button: #A7C796;
+      --light-bg: #f0f1c5;
+      --text-dark: #333;
+    }
+    body {
+      background: var(--light-bg);
+      color: var(--text-dark);
+      font-family: 'Poppins', sans-serif;
+    }
+  </style>
+{% endblock meta %}
+{% block content %}
+{% include 'components/navbar.html' %}
+
+<div class="mx-16 my-8 rounded-2xl shadow-[4px_7px_33px_rgba(0,0,0,0.25)] overflow-hidden bg-white">
+  <!-- header bar -->
+  <div class="flex flex-col md:flex-row items-center md:justify-between bg-[var(--primary-header)] px-6 py-3">
+    <h2 class="text-white text-xl font-bold">Riwayat Adopsi – {{ adopter.nama_adopter }}</h2>
+    <a href="{% url 'adopsi:admin_list_adopters' %}"
+       class="text-white text-sm underline hover:text-gray-200">Kembali</a>
+  </div>
+
+  <!-- search & sort -->
+  <div class="px-6 py-3 bg-[var(--light-bg)] flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
+    <div class="flex-1">
+      <input id="historySearch"
+             type="text"
+             placeholder="Cari nama hewan..."
+             class="w-full md:w-64 pl-3 pr-3 py-1 rounded-lg bg-white border border-gray-300 focus:outline-none text-sm"/>
+    </div>
+    <div class="flex items-center space-x-2">
+      <span class="text-[var(--primary-header)] text-sm">Sort by:</span>
+      <select id="historySort"
+              class="px-2 py-1 rounded-lg bg-[var(--primary-button)] text-white text-xs focus:outline-none">
+        <option value="nama">Nama Hewan</option>
+        <option value="mulai">Tanggal Mulai</option>
+        <option value="akhir">Tanggal Akhir</option>
+        <option value="kontribusi">Kontribusi</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- scrollable table -->
+  <div class="bg-[var(--light-bg)] p-4" style="height: 350px;">
+    <div class="h-full overflow-y-auto pr-2">
+      <table id="historyTable" class="min-w-full text-sm">
+        <thead>
+          <tr class="text-left text-[var(--primary-header)] uppercase text-xs">
+            <th class="px-3 py-2">Nama Hewan</th>
+            <th class="px-3 py-2">Jenis Hewan</th>
+            <th class="px-3 py-2">Tanggal Mulai Adopsi</th>
+            <th class="px-3 py-2">Tanggal Akhir Adopsi</th>
+            <th class="px-3 py-2">Nominal Kontribusi</th>
+            <th class="px-3 py-2">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for h in history %}
+          <tr class="odd:bg-white even:bg-[var(--light-bg)]">
+            <td class="px-3 py-2">{{ h.nama_hewan }}</td>
+            <td class="px-3 py-2">{{ h.jenis_hewan }}</td>
+            <td class="px-3 py-2">{{ h.tgl_mulai_adopsi }}</td>
+            <td class="px-3 py-2">{{ h.tgl_berhenti_adopsi }}</td>
+            <td class="px-3 py-2">Rp{{ h.kontribusi_finansial }}</td>
+            <td class="px-3 py-2">
+              {% if h.tgl_berhenti_adopsi >= today %}
+                <span class="inline-block px-2 py-1 bg-yellow-300 rounded text-xs">Sedang</span>
+              {% else %}
+                <form action="{% url 'adopsi:admin_delete_adoption' id_adopter h.id_hewan h.tgl_mulai_adopsi %}"
+                      method="post" class="inline">
+                  {% csrf_token %}
+                  <button class="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700">
+                    Hapus
+                  </button>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="py-6 text-center text-gray-500 text-sm">
+              Belum ada riwayat
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+// search/filter by animal name
+document.getElementById('historySearch').addEventListener('input', function(){
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('#historyTable tbody tr').forEach(row => {
+    const name = row.cells[0].innerText.toLowerCase();
+    row.style.display = name.includes(q) ? '' : 'none';
+  });
+});
+
+// sort functionality
+document.getElementById('historySort').addEventListener('change', function(){
+  const tbody = document.querySelector('#historyTable tbody');
+  const rows  = Array.from(tbody.querySelectorAll('tr'));
+  const key   = this.value;
+  rows.sort((a,b) => {
+    let va, vb;
+    switch(key){
+      case 'mulai':
+        va = new Date(a.cells[2].innerText), vb = new Date(b.cells[2].innerText);
+        break;
+      case 'akhir':
+        va = new Date(a.cells[3].innerText), vb = new Date(b.cells[3].innerText);
+        break;
+      case 'kontribusi':
+        va = parseInt(a.cells[4].innerText.replace(/\D/g,''),10);
+        vb = parseInt(b.cells[4].innerText.replace(/\D/g,''),10);
+        break;
+      default: // nama
+        va = a.cells[0].innerText.toLowerCase();
+        vb = b.cells[0].innerText.toLowerCase();
+    }
+    if(va < vb) return -1;
+    if(va > vb) return 1;
+    return 0;
+  });
+  rows.forEach(r => tbody.appendChild(r));
+});
+</script>
+{% endblock %}

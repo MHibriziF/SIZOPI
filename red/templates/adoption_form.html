@@ -1,0 +1,340 @@
+{% extends 'base.html' %}
+{% block meta %}
+  <title>Form Adopsi Hewan</title>
+  <style>
+    :root {
+      --primary-color: #4A5A43;
+      --primary-light: #8EAF7B;
+      --accent-color: #A7C796;
+      --text-color: #333;
+      --light-bg: #f8f9fa;
+      --card-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    }
+    body { background: var(--light-bg); color: var(--text-color); font-family: 'Poppins', sans-serif; }
+  </style>
+{% endblock meta%}
+
+{% block content %}
+{% include 'components/navbar.html' %}
+{% load static %}
+
+<div class="flex justify-center py-12 px-4">
+  <div id="modal-register" class="bg-white rounded-xl shadow-lg w-full max-w-xl">
+    
+    <!-- STEP 1: Verifikasi Akun -->
+    <div id="step-verify">
+      <div class="bg-[#A7C796] px-8 pt-4 rounded-t-xl text-white text-center">
+        <h2 class="text-2xl font-semibold mb-4 text-center text-var(--primary-color)">Pendataan Adopter</h2>    
+      </div>
+      <div class="px-8 py-4">
+        <div>
+          <label class="block font-medium">Username calon adopter</label>
+          <input id="input-username" type="text" placeholder="Masukkan username"
+                 class="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2" />
+        </div>
+        <div class="mt-4">
+          <p class="font-medium">Sebagai:</p>
+          <div class="mt-2 flex items-center space-x-6">
+            <label class="inline-flex items-center">
+              <input type="radio" name="tipe" value="individu"
+                     class="form-radio text-var(--primary-color)" />
+              <span class="ml-2">Individu</span>
+            </label>
+            <label class="inline-flex items-center">
+              <input type="radio" name="tipe" value="organisasi"
+                     class="form-radio text-var(--primary-color)" />
+              <span class="ml-2">Organisasi</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="mt-6 flex justify-end space-x-4 p-3">
+        <button id="btn-cancel-verify" type="button"
+                class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Batal</button>
+        <button id="btn-verify" type="button"
+                class="px-4 py-2 bg-[#A7C796] text-white rounded hover:bg-var(--primary-light)">
+          Verifikasi Akun
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 2a: Form Individu -->
+    <form id="form-individu"
+          method="post"
+          action="{% url 'adopsi:create_adoption' hewan_id %}"
+          class="hidden">
+      {% csrf_token %}
+      <div class="bg-[#A7C796] pt-6 rounded-t-xl text-white text-center">
+        <h2 class="text-xl text-center font-semibold mb-2 text-var(--primary-color)">Form Adopsi Satwa</h2>
+      </div>
+    <div class="px-4">
+      <p>Pihak di bawah ini,</p>
+      <div class="space-y-2">
+          <div>
+          <label class="block text-[#bf9264] font-medium">Nama</label>
+          <input
+              type="text"
+              name="nama_depan"
+              placeholder="Nama Individu"
+              class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2"
+          />
+          </div>
+          <div>
+          <label class="block text-[#bf9264] font-medium">NIK</label>
+          <input
+              type="text"
+              name="nik"
+              placeholder="16 Digit NIK"
+              class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2"
+          />
+          </div>
+          <input type="hidden" name="id_adopter" id="field-id_adopter"/>
+
+          <div>
+          <label class="block text-[#bf9264] font-medium">Alamat</label>
+          <input type="text" name="alamat" id="field-alamat" readonly
+                  class="w-full bg-gray-100 border rounded px-3 py-2" />
+          </div>
+          <div>
+          <label class="block text-[#bf9264] font-medium">No. Telepon</label>
+          <input type="text" name="no_telepon" id="field-no_telepon" readonly
+                  class="w-full bg-gray-100 border rounded px-3 py-2" />
+          </div>
+      </div>
+        
+      <p class="mt-4 text-[#bf9264] ">Selanjutnya sebagai Adopter, dengan ini menyatakan kepedulian dan minat untuk mengadopsi secara simbolis satwa:</p>
+      <div class="grid grid-cols-2 gap-4">
+          <div>
+          <label class="block text-[#bf9264] font-medium">Nama Hewan</label>
+          <input
+              type="text"
+              name="nama_hewan"
+              value="{{ hewan.nama_hewan }}"
+              readonly
+              class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-100"
+          />
+          </div>
+          <div>
+          <label class="block text-[#bf9264] font-medium">Jenis Hewan</label>
+          <input
+              type="text"
+              name="jenis_hewan"
+              value="{{ hewan.jenis_hewan }}"
+              readonly
+              class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-100"
+          />
+          </div>
+      </div>
+        
+      <p class="mt-4 text-[#bf9264]">Adopter juga bersedia memberikan kontribusi finansial kepada pihak taman safari sebagai dukungan untuk pemeliharaan satwa dengan: </p>
+      <div class="grid grid-cols-2 gap-4">
+          <div>
+          <label class="block text-[#bf9264] font-medium">Nominal (Rp)</label>
+          <input
+              type="number"
+              name="kontribusi_finansial"
+              placeholder="Nominal"
+              class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2"
+          />
+          </div>
+          <div>
+          <label class="block text-[#bf9264] font-medium">Selama</label>
+          <select
+              name="periode"
+              class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2"
+          >
+              <option value="3">3 bulan</option>
+              <option value="6">6 bulan</option>
+              <option value="12">12 bulan</option>
+          </select>
+          </div>
+      </div>
+      
+      <div class="mt-6 flex justify-end space-x-4 pb-6">
+          <button
+          type="button"
+          id="btn-cancel-individu"
+          class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+          >
+          Batal
+          </button>
+          <button
+          type="submit"
+          class="px-4 py-2 bg-[#4A5A43] text-white rounded hover:bg-[#8EAF7B]"
+          >
+          Submit Form
+          </button>
+      </div>
+    </div>
+    </form>
+
+    <!-- STEP 2b: Form Organisasi -->
+    <form id="form-organisasi"
+        method="post"
+        action="{% url 'adopsi:create_adoption' hewan_id %}"
+        class="hidden">
+    {% csrf_token %}
+    <div class="bg-[#A7C796] pt-6 rounded-t-xl text-white text-center">
+        <h2 class="text-xl font-semibold mb-2">Form Adopsi Satwa</h2>
+    </div>
+
+    <div class="px-4 space-y-4">
+        <p class="text-[#bf9264]">Pihak di bawah ini, selaku organisasi/perusahaan</p>
+        <div class="space-y-2">
+        <div>
+            <label class="block text-[#bf9264] font-medium">Nama Organisasi</label>
+            <input name="nama_organisasi" placeholder="Nama organisasi"
+                class="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2" />
+        </div>
+        <div>
+            <label class="block text-[#bf9264] font-medium">NPP</label>
+            <input name="npp" placeholder="8 digit NPP"
+                class="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2" />
+        </div>
+
+        <input type="hidden" name="id_adopter" id="field-id_adopter"/>
+
+        <div>
+          <label class="block text-[#bf9264] font-medium">Alamat</label>
+          <input type="text" name="alamat_organisasi" id="field-alamat_organisasi" readonly
+                  class="w-full bg-gray-100 border rounded px-3 py-2" />
+        </div>
+        <div>
+            <label class="block text-[#bf9264] font-medium">Kontak</label>
+            <input type="text" name="kontak" id="field-kontak" readonly
+            class="w-full bg-gray-100 border rounded px-3 py-2" />
+        </div>
+        </div>
+
+        <p class="mt-4 text-[#bf9264]">
+            Selanjutnya sebagai Adopter, dengan ini menyatakan kepedulian dan minat untuk mengadopsi secara simbolis satwa:
+        </p>
+        <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label class="block text-[#bf9264] font-medium">Nama Hewan</label>
+            <input name="nama_hewan"
+                value="{{ hewan.nama_hewan }}"
+                readonly
+                class="mt-1 block w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" />
+        </div>
+        <div>
+            <label class="block text-[#bf9264] font-medium">Jenis Hewan</label>
+            <input name="jenis_hewan"
+                value="{{ hewan.jenis_hewan }}"
+                readonly
+                class="mt-1 block w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" />
+        </div>
+        </div>
+
+        <p class="mt-4 text-[#bf9264]">
+            Adopter juga bersedia memberikan kontribusi finansial kepada pihak taman safari sebagai dukungan untuk pemeliharaan satwa dengan:
+        </p>
+        <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label class="block text-[#bf9264] font-medium">Nominal (Rp)</label>
+            <input name="kontribusi_finansial" type="number" placeholder="Nominal"
+                class="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2" />
+        </div>
+        <div>
+            <label class="block text-[#bf9264] font-medium">Selama</label>
+            <select name="periode"
+                    class="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2">
+            <option value="3">3 bulan</option>
+            <option value="6">6 bulan</option>
+            <option value="12">12 bulan</option>
+            </select>
+        </div>
+        </div>
+
+        <div class="mt-6 flex justify-end space-x-4 pb-6">
+        <button type="button"
+                id="btn-cancel-organisasi"
+                class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
+            Batal
+        </button>
+        <button type="submit"
+                class="px-4 py-2 bg-[#4A5A43] text-white rounded hover:bg-[#8EAF7B]">
+            Submit Form
+        </button>
+        </div>
+    </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const verifyBtn      = document.getElementById('btn-verify');
+  const cancelVerify   = document.getElementById('btn-cancel-verify');
+  const stepVerify     = document.getElementById('step-verify');
+  const formIndividu   = document.getElementById('form-individu');
+  const formOrganisasi = document.getElementById('form-organisasi');
+
+  cancelVerify.addEventListener('click', () => {
+    window.location.href = "{% url 'adopsi:list_adoptions' %}";
+  });
+
+  verifyBtn.addEventListener('click', () => {
+    const username = document.getElementById('input-username').value.trim();
+    const tipe     = document.querySelector('input[name="tipe"]:checked');
+    if (!username || !tipe) {
+      return alert('Isi username dan pilih tipe adopter.');
+    }
+
+    fetch(`/api/check-user/?username=${encodeURIComponent(username)}`)
+      .then(r => r.json())
+      .then(data => {
+        if (!data.exists) {
+          return alert('Akun pengunjung tidak ditemukan.');
+        }
+        stepVerify.classList.add('hidden');
+        if (tipe.value === 'individu') {
+          formIndividu.classList.remove('hidden');
+        } else {
+          formOrganisasi.classList.remove('hidden');
+        }
+      })
+      .catch(() => alert('Gagal menghubungi server.'));
+  });
+  
+  document.getElementById('btn-verify').onclick = () => {
+    let u = document.getElementById('input-username').value.trim();
+    if (!u) return alert('Masukkan username.');
+
+    fetch(`{% url 'adopsi:api_get_adopter' %}?username=${u}`)
+      .then(r => r.json())
+      .then(json => {
+        if (!json.exists) {
+          return alert('Adopter tidak ditemukan atau belum terdaftar.');
+        }
+        document.getElementById('step-verify').classList.add('hidden');
+        document.getElementById('field-id_adopter').value = json.id_adopter;
+        document.getElementById('field-alamat').value = json.alamat;
+        document.getElementById('field-alamat_organisasi').value = json.alamat;
+        document.getElementById('field-no_telepon').value= Number(json.no_telepon);
+        document.getElementById('field-kontak').value= Number(json.no_telepon);
+        document.getElementById('form-adopt').classList.remove('hidden');
+      })
+  }
+  document.getElementById('btn-cancel-individu')
+          .addEventListener('click', () => location.reload());
+  document.getElementById('btn-cancel-organisasi')
+          .addEventListener('click', () => location.reload());
+
+  formIndividu.addEventListener('submit', function(e) {
+    const val = Number(this.querySelector('input[name="kontribusi_finansial"]').value);
+    if (isNaN(val) || val < 0) {
+      e.preventDefault();
+      alert('Nominal kontribusi tidak boleh kurang dari 0');
+    }
+  });
+
+  formOrganisasi.addEventListener('submit', function(e) {
+    const val = Number(this.querySelector('input[name="kontribusi_finansial"]').value);
+    if (isNaN(val) || val < 0) {
+      e.preventDefault();
+      alert('Nominal kontribusi tidak boleh kurang dari 0');
+    }
+  });
+</script>
+
+{% endblock content %}
