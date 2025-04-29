@@ -8,11 +8,74 @@ def reservasi(request):
     #     """
     #     """,
     # )
-    data_reservasi = []
-    context = {
-        'data_reservasi' : data_reservasi,
-    }
-    return render(request, 'reservasi.html')
+
+    if 'admin' not in request.session["roles"]:
+        # Hardcode dulu
+        data_reservasi = [{
+            'nama_atraksi' : 'Ekshibisi Ular',
+            'lokasi' : 'Galeri Reptil Utara',
+            'jam' : '09:00',
+            'tanggal': '2025-05-03',
+            'tiket' : 5,
+            'status' : 'Terjadwal',
+        },
+        {
+            'nama_atraksi' : 'Pertunjukan Koala Cina',
+            'lokasi' : 'Area Interaktif Barat',
+            'jam' : '14:00',
+            'tanggal': '2025-05-03',
+            'tiket' : 5,
+            'status' : 'Terjadwal',
+        },
+        {
+            'nama_atraksi' : 'Pertunjukan Koala Cina',
+            'lokasi' : 'Area Interaktif Barat',
+            'jam' : '14:00',
+            'tanggal': '2025-05-03',
+            'tiket' : 3,
+            'status' : 'Dibatalkan',
+        }
+        ]
+
+        context = {
+            'data_reservasi' : data_reservasi,
+            'roles' : 'pengunjung'
+        }
+        return render(request, 'reservasi.html', context)
+    else:
+        # Hardcode dulu
+        data_reservasi = [{
+            'nama_atraksi' : 'Ekshibisi Ular',
+            'lokasi' : 'Galeri Reptil Utara',
+            'jam' : '09:00',
+            'tanggal': '2025-05-03',
+            'tiket' : 5,
+            'status' : 'Terjadwal',
+        },
+        {
+            'nama_atraksi' : 'Pertunjukan Koala Cina',
+            'lokasi' : 'Area Interaktif Barat',
+            'jam' : '14:00',
+            'tanggal': '2025-05-03',
+            'tiket' : 5,
+            'status' : 'Terjadwal',
+        },
+        {
+            'nama_atraksi' : 'Pertunjukan Koala Cina',
+            'lokasi' : 'Area Interaktif Barat',
+            'jam' : '14:00',
+            'tanggal': '2025-05-03',
+            'tiket' : 3,
+            'status' : 'Dibatalkan',
+        }
+        ]
+
+        context = {
+            'data_reservasi' : data_reservasi,
+            'roles' : 'admin',
+        }
+        return render(request, 'reservasi.html', context)
+
 
 def kelola_wahana(request):
     if 'admin' not in request.session["roles"] :
