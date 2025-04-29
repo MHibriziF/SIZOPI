@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+{% include 'components/navbar.html' %}
+
+<div class="container mx-auto p-6">
+  <div class="bg-white rounded-xl shadow-md overflow-hidden p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-semibold">
+        {% if is_admin %}Detail Adopsi Hewan{% else %}Informasi Hewan Adopsi{% endif %}
+      </h2>
+      <a href="#" onclick="history.back()" class="text-blue-600 hover:underline">Tutup</a>
+    </div>
+
+    {% if is_pengunjung %}
+      <div class="text-center mb-4">
+        {% if detail.url_foto %}
+          <img src="{{ detail.url_foto }}"
+               alt="Foto {{ detail.nama_hewan }}"
+               class="inline-block max-h-48"
+               onerror="this.onerror=null;this.src='{% static 'images/animal_image_placeholder.jpeg' %}';">
+        {% else %}
+          <img src="{% static 'images/animal_image_placeholder.jpeg' %}"
+               alt="placeholder"
+               class="inline-block max-h-48">
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <!-- Common Info -->
+    <ul class="space-y-2">
+      <li><strong>Nama hewan:</strong> {{ detail.nama_hewan }}</li>
+      <li><strong>Jenis hewan:</strong> {{ detail.jenis_hewan }}</li>
+      {% if is_admin %}
+        <li><strong>Adopter saat ini:</strong> {{ detail.nama_adopter }}</li>
+      {% else %}
+        <li><strong>Habitat:</strong> {{ detail.habitat }}</li>
+      {% endif %}
+      <li><strong>Tanggal mulai adopsi:</strong> {{ detail.tgl_mulai_adopsi }}</li>
+      <li><strong>Tanggal akhir adopsi:</strong> {{ detail.tgl_berhenti_adopsi }}</li>
+      {% if is_admin %}
+        <li><strong>Nominal kontribusi:</strong> Rp{{ detail.nominal }}</li>
+      {% endif %}
+    </ul>
+
+    <!-- ADMIN: form update status -->
+    {% if is_admin %}
+      <form method="post" class="mt-6 space-y-4">
+        {% csrf_token %}
+        <div>
+          <label class="block font-medium">Status Pembayaran</label>
+          <select name="status_pembayaran" class="mt-1 p-2 border rounded w-full">
+            <option value="tertunda" {% if detail.status_pembayaran == 'tertunda' %}selected{% endif %}>Tertunda</option>
+            <option value="lunas"    {% if detail.status_pembayaran == 'lunas'    %}selected{% endif %}>Lunas</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-medium">Tanggal Berhenti Adopsi</label>
+          <input type="date"
+                 name="tgl_berhenti_adopsi"
+                 value="{{ detail.tgl_berhenti_adopsi }}"
+                 class="mt-1 p-2 border rounded w-full">
+        </div>
+        <div>
+          <label class="block font-medium">Kontribusi Finansial</label>
+          <input type="number"
+                 name="kontribusi_finansial"
+                 value="{{ detail.nominal }}"
+                 class="mt-1 p-2 border rounded w-full">
+        </div>
+        <div class="flex space-x-4">
+          <button type="submit" name="save_status"
+                  class="px-4 py-2 bg-green-600 text-white rounded">Simpan Status</button>
+          <button type="submit" name="stop_adoption"
+                  class="px-4 py-2 bg-red-600 text-white rounded">Hentikan Adopsi</button>
+        </div>
+      </form>
+
+    {% else %}
+      <!-- PENGUNJUNG: tombol aksi -->
+      <div class="mt-6 flex flex-wrap gap-4 justify-center">
+        <a href="{% url 'adopsi:adoption_report' detail.id_hewan detail.tgl_mulai_adopsi %}"
+           class="px-4 py-2 border border-blue-600 text-blue-600 rounded">Pantau Kondisi Hewan</a>
+        <a href="{% url 'adopsi:adoption_certificate' detail.id_hewan detail.tgl_mulai_adopsi %}"
+           class="px-4 py-2 border border-green-600 text-green-600 rounded">Lihat Sertifikat Adopsi</a>
+        <a href="{% url 'adopsi:stop_adoption_user' detail.id_hewan detail.tgl_mulai_adopsi %}"
+           class="px-4 py-2 border border-red-600 text-red-600 rounded"
+           onclick="return confirm('Yakin hentikan adopsi?');">Berhenti Adopsi</a>
+        <a href="{% url 'adopsi:extend_adoption' detail.id_hewan detail.tgl_mulai_adopsi %}"
+           class="px-4 py-2 border border-yellow-600 text-yellow-600 rounded">Perpanjang Periode Adopsi</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block meta %}
+    <title>Riwayat Adopsi {{ adopter.nama_adopter }}</title>
+    <style>
+        :root { --primary-color:#4A5A43; --primary-light:#8EAF7B; --accent-color:#A7C796; --text-color:#333; --light-bg:#f8f9fa; --card-shadow:0 8px 20px rgba(0,0,0,0.12); }
+        body{background:#f8f9fa;color:#333;font-family:'Poppins',sans-serif;}
+        .content-wrapper{background:#fff;color:#333;padding:2rem;border-radius:1rem;box-shadow:var(--card-shadow);margin:2rem 0;}
+        .page-header h2{color:var(--primary-color);font-size:2rem;font-weight:600;margin-bottom:.5rem;}
+        .table-container{background:#fff;border-radius:.75rem;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.08);}
+        .table thead{background:var(--primary-color)!important;}
+        .table thead th{color:#fff!important;font-weight:500;padding:1rem;border:none;}
+        .table tbody td{padding:.75rem 1rem;border-color:#f0f0f0;color:var(--text-color)!important;}
+        .table-hover tbody tr:hover{background:rgba(167,199,150,0.1);}
+        .table-striped tbody tr:nth-of-type(odd){background:rgba(248,249,250,0.5);}
+        .btn-primary{background:var(--primary-color);border:var(--primary-color);border-radius:.5rem;padding:.5rem 1rem;font-weight:500;transition:.3s;}
+        .btn-primary:hover{background:var(--primary-dark);transform:translateY(-2px);box-shadow:0 4px 8px rgba(0,0,0,0.1);}
+    </style>
+{% endblock meta %}
+
+{% block content %}
+{% load static %}
+{% include 'components/navbar.html' %}
+<div class="container content-wrapper">
+  <a href="{% url 'adopsi:admin_list_adopters' %}">[Kembali]</a>
+  <h2>Riwayat Adopsi – {{ adopter.nama_adopter }}</h2>
+  <p><strong>Alamat:</strong> {{ adopter.alamat }} | <strong>Kontak:</strong> {{ adopter.no_telepon }}</p>
+
+  <div class="table-container">
+    <table class="table table-striped table-hover">
+      <thead>
+        <tr>
+          <th>Nama Hewan</th><th>Jenis</th><th>Mulai</th><th>Akhir</th><th>Kontribusi</th><th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for h in history %}
+        <tr>
+          <td>{{ h.nama_hewan }}</td>
+          <td>{{ h.jenis_hewan }}</td>
+          <td>{{ h.tgl_mulai_adopsi }}</td>
+          <td>{{ h.tgl_berhenti_adopsi }}</td>
+          <td>Rp{{ h.kontribusi_finansial }}</td>
+          <td>
+            {% if h.tgl_berhenti_adopsi >= today %}
+              <span class="badge bg-warning">Sedang Berlangsung</span>
+            {% else %}
+              <form action="{% url 'adopsi:admin_delete_adoption' id_adopter=adopter.id_adopter hewan_id=h.id_hewan tgl_mulai=h.tgl_mulai_adopsi %}" method="post">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-danger">Hapus</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center py-4">Belum ada riwayat</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock content %}

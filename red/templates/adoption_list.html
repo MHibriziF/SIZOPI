@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+{% include 'components/navbar.html' %}
+<h1 class="text-3xl font-semibold text-gray-800 mb-6">Program Adopsi Satwa</h1>
+
+<div class="flex flex-wrap justify-center gap-6">
+  {% for r in page_obj.object_list %}
+    <div class="flex bg-[#6F826A] shadow-md rounded-2xl overflow-hidden w-full md:w-1/3">
+      {% if r.url_foto %}
+        <img src="{{ r.url_foto }}"
+             alt="Foto {{ r.nama_hewan }}"
+             onerror="this.onerror=null; this.src='{% static 'images/animal_image_placeholder.jpeg' %}';"
+             width="200">
+      {% else %}
+        <img src="{% static 'images/animal_image_placeholder.jpeg' %}"
+             alt="Placeholder"
+             width="200">
+      {% endif %}
+      <div class="p-4 flex flex-col justify-between flex-1">
+        <div>
+          <small class="text-green-200 uppercase text-xs">{{ r.status }}</small>
+          <h3 class="mt-1 text-white font-bold text-lg">{{ r.nama_hewan }}</h3>
+          <p class="mt-1 text-green-100 text-sm">
+            <span class="font-medium">Jenis:</span> {{ r.spesies }}
+          </p>
+          <p class="mt-1 text-green-100 text-sm">
+            <span class="font-medium">Kondisi:</span> {{ r.kondisi }}
+          </p>
+        </div>
+        <div class="text-right mt-4">
+          {% if r.status == "Diadopsi" %}
+            <a href="{% url 'adopsi:update_adoption' r.id_adopter r.id_hewan r.tgl_mulai_adopsi %}"
+               class="text-green-100 hover:underline text-sm">Detail</a>
+          {% else %}
+            <a href="{% url 'adopsi:create_adoption' r.id_hewan %}"
+               class="text-green-100 hover:underline text-sm">Daftarkan Adopter</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <p class="text-gray-500">Belum ada data hewan.</p>
+  {% endfor %}
+</div>
+
+{# Pagination controls #}
+<div class="mt-8 flex justify-center items-center space-x-2 pb-6">
+  {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}"
+       class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Prev</a>
+  {% else %}
+    <span class="px-3 py-1 bg-gray-100 text-gray-400 rounded">Prev</span>
+  {% endif %}
+
+  {% for num in page_obj.paginator.page_range %}
+    {% if num == page_obj.number %}
+      <span class="px-2 py-1 bg-blue-500 text-white rounded">{{ num }}</span>
+    {% else %}
+      <a href="?page={{ num }}"
+         class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">{{ num }}</a>
+    {% endif %}
+  {% endfor %}
+
+  {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}"
+       class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next</a>
+  {% else %}
+    <span class="px-3 py-1 bg-gray-100 text-gray-400 rounded">Next</span>
+  {% endif %}
+</div>
+
+{% endblock %}

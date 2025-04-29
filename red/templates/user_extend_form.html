@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block meta %}
+    <title>Perpanjang Adopsi</title>
+    <style>
+        :root { --primary-color:#4A5A43; --primary-light:#8EAF7B; --accent-color:#A7C796; --text-color:#333; --light-bg:#f8f9fa; --card-shadow:0 8px 20px rgba(0,0,0,0.12); }
+        body{background:#f8f9fa;color:#333;font-family:'Poppins',sans-serif;}
+        .content-wrapper{background:#fff;color:#333;padding:2rem;border-radius:1rem;box-shadow:var(--card-shadow);margin:2rem 0;}
+        .page-header h2{color:var(--primary-color);font-size:2rem;font-weight:600;margin-bottom:.5rem;}
+        .table-container{background:#fff;border-radius:.75rem;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.08);}
+        .table thead{background:var(--primary-color)!important;}
+        .table thead th{color:#fff!important;font-weight:500;padding:1rem;border:none;}
+        .table tbody td{padding:.75rem 1rem;border-color:#f0f0f0;color:var(--text-color)!important;}
+        .table-hover tbody tr:hover{background:rgba(167,199,150,0.1);}
+        .table-striped tbody tr:nth-of-type(odd){background:rgba(248,249,250,0.5);}
+        .btn-primary{background:var(--primary-color);border:var(--primary-color);border-radius:.5rem;padding:.5rem 1rem;font-weight:500;transition:.3s;}
+        .btn-primary:hover{background:var(--primary-dark);transform:translateY(-2px);box-shadow:0 4px 8px rgba(0,0,0,0.1);}
+    </style>
+{% endblock meta %}
+
+{% block content %}
+{% load static %}
+{% include 'components/navbar.html' %}
+<div class="container content-wrapper">
+  <h2>Form Perpanjang Periode Adopsi</h2>
+  <form method="post">
+    {% csrf_token %}
+    <p><strong>Nama:</strong>
+      {% if adp.nik %}{{ adp.individu_nama }} ({{ adp.nik }})
+      {% else %}{{ adp.nama_organisasi }} ({{ adp.npp }}){% endif %}
+    </p>
+    <div class="mb-3">
+      <label class="form-label">Tambah Kontribusi (Rp)</label>
+      <input type="number" name="kontribusi_finansial" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Periode Tambahan (bulan)</label>
+      <select name="periode" class="form-select">
+        <option value="3">3</option>
+        <option value="6">6</option>
+        <option value="12">12</option>
+      </select>
+    </div>
+    <button class="btn btn-primary">Submit Form</button>
+    <a href="{% url 'adopsi:list_adoptions' %}" class="btn btn-secondary">Batal</a>
+  </form>
+</div>
+{% endblock content %}
