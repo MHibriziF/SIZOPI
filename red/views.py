@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from utils.db_connection import execute_query, execute_transaction
 import uuid, datetime
-from dateutil.relativedelta import relativedelta
+# from dateutil.relativedelta import relativedelta
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 
