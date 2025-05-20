@@ -681,12 +681,3 @@ INSERT INTO RESERVASI VALUES ('user9','Safari Edukasi Reptil','2025-05-01 00:00:
 	('user2','Ekshibisi Ular','2025-05-03 00:00:00',3.0,'Dibatalkan'),
 	('user3','Ekshibisi Lumba-Lumba','2025-05-04 00:00:00',2.0,'Terjadwal'),
 	('user20','Pertunjukan Koala Cina','2025-05-03 00:00:00',5.0,'Terjadwal');
-10-03', 1150000),
-	('2eec2f5a-42eb-4a47-9b10-03cf113ccff0', 'c73cad48-3420-4ccd-be73-02bffe28d40f', 'lunas', '2023-10-09', '2023-11-09', 850000),
-	('e5ecfbb2-46a8-4d61-bfff-98b0c2b84c51', 'd485123f-117c-493a-9df9-d002984f84bb', 'tertunda', '2024-01-30', '2024-07-30', 3200000);
-
-INSERT INTO RESERVASI VALUES ('user9','Safari Edukasi Reptil','2025-05-01 00:00:00',1.0,'Terjadwal'),
-	('user7','Safari Edukasi Mamalia','2025-05-02 00:00:00',7.0,'Terjadwal'),
-	('user2','Ekshibisi Ular','2025-05-03 00:00:00',3.0,'Dibatalkan'),
-	('user3','Ekshibisi Lumba-Lumba','2025-05-04 00:00:00',2.0,'Terjadwal'),
-	('user20','Pertunjukan Koala Cina','2025-05-03 00:00:00',5.0,'Terjadwal');
