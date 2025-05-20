@@ -6,77 +6,51 @@ from datetime import date
 def reservasi(request):
     if not request.session.get('username'):
         return redirect('main:login')
-    # data_reservasi = execute_query(
-    #     """
-    #     """,
-    # )
 
     if 'admin' not in request.session["roles"]:
-        # Hardcode dulu
-        data_reservasi = [{
-            'nama_atraksi' : 'Ekshibisi Ular',
-            'lokasi' : 'Galeri Reptil Utara',
-            'jam' : '09:00',
-            'tanggal': date(2025, 5, 3),
-            'tiket' : 5,
-            'status' : 'Terjadwal',
-        },
-        {
-            'nama_atraksi' : 'Pertunjukan Koala Cina',
-            'lokasi' : 'Area Interaktif Barat',
-            'jam' : '14:00',
-            'tanggal': date(2025, 5, 3),
-            'tiket' : 5,
-            'status' : 'Terjadwal',
-        },
-        {
-            'nama_atraksi' : 'Pertunjukan Koala Cina',
-            'lokasi' : 'Area Interaktif Barat',
-            'jam' : '14:00',
-            'tanggal': date(2025, 5, 3),
-            'tiket' : 3,
-            'status' : 'Dibatalkan',
-        }
-        ]
-
+        query = """
+            SELECT 
+                r.nama_atraksi,
+                a.lokasi,
+                f.jadwal::time AS jam,
+                r.tanggal_kunjungan AS tanggal,
+                r.jumlah_tiket AS tiket,
+                r.status
+            FROM RESERVASI r
+            JOIN ATRAKSI a ON r.nama_atraksi = a.nama_atraksi
+            JOIN FASILITAS f ON a.nama_atraksi = f.nama
+            ORDER BY r.tanggal_kunjungan DESC;
+        """
+        data_reservasi = execute_query(query)
         context = {
             'data_reservasi' : data_reservasi,
             'roles' : 'pengunjung'
         }
-        return render(request, 'reservasi.html', context)
+    
     else:
-        # Hardcode dulu
-        data_reservasi = [{
-            'nama_atraksi' : 'Ekshibisi Ular',
-            'lokasi' : 'Galeri Reptil Utara',
-            'jam' : '09:00',
-            'tanggal': date(2025, 5, 3),
-            'tiket' : 5,
-            'status' : 'Terjadwal',
-        },
-        {
-            'nama_atraksi' : 'Pertunjukan Koala Cina',
-            'lokasi' : 'Area Interaktif Barat',
-            'jam' : '14:00',
-            'tanggal': date(2025, 5, 3),
-            'tiket' : 5,
-            'status' : 'Terjadwal',
-        },
-        {
-            'nama_atraksi' : 'Pertunjukan Koala Cina',
-            'lokasi' : 'Area Interaktif Barat',
-            'jam' : '14:00',
-            'tanggal': date(2025, 5, 3),
-            'tiket' : 3,
-            'status' : 'Dibatalkan',
-        }
-        ]
-
+        username = request.session.get("username")
+        query = """
+            SELECT 
+                r.nama_atraksi,
+                a.lokasi,
+                f.jadwal::time AS jam,
+                r.tanggal_kunjungan AS tanggal,
+                r.jumlah_tiket AS tiket,
+                r.status
+            FROM RESERVASI r
+            JOIN ATRAKSI a ON r.nama_atraksi = a.nama_atraksi
+            JOIN FASILITAS f ON a.nama_atraksi = f.nama
+            WHERE r.username_p = %s
+            ORDER BY r.tanggal_kunjungan DESC;
+        """
+        
+        data_reservasi = execute_query(query, [username])
         context = {
             'data_reservasi' : data_reservasi,
             'roles' : 'admin',
         }
-        return render(request, 'reservasi.html', context)
+
+    return render(request, 'reservasi.html', context)
 
 
 def kelola_wahana(request):
