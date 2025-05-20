@@ -2,10 +2,33 @@ CREATE SCHEMA IF NOT EXISTS SIZOPI;
 SET search_path TO SIZOPI;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+DROP TABLE IF EXISTS RESERVASI CASCADE;
+DROP TABLE IF EXISTS ADOPSI CASCADE;
+DROP TABLE IF EXISTS ORGANISASI CASCADE;
+DROP TABLE IF EXISTS INDIVIDU CASCADE;
+DROP TABLE IF EXISTS ADOPTER CASCADE;
+DROP TABLE IF EXISTS WAHANA CASCADE;
+DROP TABLE IF EXISTS JADWAL_PEMERIKSAAN_KESEHATAN CASCADE;
+DROP TABLE IF EXISTS BERPARTISIPASI CASCADE;
+DROP TABLE IF EXISTS JADWAL_PENUGASAN CASCADE;
+DROP TABLE IF EXISTS ATRAKSI CASCADE;
+DROP TABLE IF EXISTS FASILITAS CASCADE;
+DROP TABLE IF EXISTS MEMBERI CASCADE;
+DROP TABLE IF EXISTS PAKAN CASCADE;
+DROP TABLE IF EXISTS CATATAN_MEDIS CASCADE;
+DROP TABLE IF EXISTS HEWAN CASCADE;
+DROP TABLE IF EXISTS HABITAT CASCADE;
+DROP TABLE IF EXISTS STAF_ADMIN CASCADE;
+DROP TABLE IF EXISTS PELATIH_HEWAN CASCADE;
+DROP TABLE IF EXISTS PENJAGA_HEWAN CASCADE;
+DROP TABLE IF EXISTS SPESIALISASI CASCADE;
+DROP TABLE IF EXISTS DOKTER_HEWAN CASCADE;
+DROP TABLE IF EXISTS PENGUNJUNG CASCADE;
+DROP TABLE IF EXISTS PENGGUNA CASCADE;
 
 CREATE TABLE PENGGUNA (
     username        VARCHAR(50) PRIMARY KEY,
-    email           VARCHAR(100) NOT NULL,
+    email           VARCHAR(100) NOT NULL UNIQUE,
     password        VARCHAR(50)  NOT NULL,
     nama_depan      VARCHAR(50)  NOT NULL,
     nama_tengah     VARCHAR(50),
@@ -104,11 +127,11 @@ CREATE TABLE PAKAN (
 );
 
 CREATE TABLE MEMBERI (
-    id_hewan     UUID      NOT NULL,
-    jadwal       TIMESTAMP NOT NULL,
+    id_hewan     UUID,
+    jadwal       TIMESTAMP,
     username_jh  VARCHAR(50),
-    PRIMARY KEY (id_hewan, username_jh, jadwal),
-    FOREIGN KEY (id_hewan) REFERENCES HEWAN(id)
+    PRIMARY KEY (id_hewan, jadwal),
+    FOREIGN KEY (id_hewan, jadwal) REFERENCES PAKAN(id_hewan, jadwal)
         ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (username_jh) REFERENCES PENJAGA_HEWAN(username_jh)
         ON DELETE CASCADE ON UPDATE CASCADE
@@ -124,7 +147,7 @@ CREATE TABLE ATRAKSI (
   nama_atraksi  VARCHAR(50)   PRIMARY KEY,
   lokasi        VARCHAR(100)  NOT NULL,
   FOREIGN KEY (nama_atraksi)
-    REFERENCES SIZOPI.FASILITAS(nama_atraksi)
+    REFERENCES SIZOPI.FASILITAS(nama)
     ON DELETE CASCADE
     ON UPDATE CASCADE
 );
@@ -142,7 +165,7 @@ CREATE TABLE BERPARTISIPASI (
     nama_fasilitas VARCHAR(50),
     id_hewan       UUID,
     PRIMARY KEY (nama_fasilitas, id_hewan),
-	FOREIGN KEY (nama_fasilitas) REFERENCES FASILITAS(nama_atraksi),
+	FOREIGN KEY (nama_fasilitas) REFERENCES FASILITAS(nama),
     FOREIGN KEY (id_hewan) REFERENCES HEWAN(id)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -150,7 +173,7 @@ CREATE TABLE BERPARTISIPASI (
 CREATE TABLE JADWAL_PEMERIKSAAN_KESEHATAN (
     id_hewan                   UUID NOT NULL,
     tgl_pemeriksaan_selanjutnya DATE NOT NULL,
-    freq_pemeriksaan_rutin     INT  NOT NULL,
+    freq_pemeriksaan_rutin     INT NOT NULL DEFAULT 3,
     PRIMARY KEY (id_hewan, tgl_pemeriksaan_selanjutnya),
     FOREIGN KEY (id_hewan) REFERENCES HEWAN(id)
         ON DELETE CASCADE ON UPDATE CASCADE
@@ -158,7 +181,7 @@ CREATE TABLE JADWAL_PEMERIKSAAN_KESEHATAN (
 
 CREATE TABLE WAHANA (
     nama_wahana VARCHAR(50) PRIMARY KEY,
-    peraturan   TEXT        NOT NULL
+    peraturan   TEXT        NOT NULL,
 	FOREIGN KEY(nama_wahana) REFERENCES FASILITAS(nama)
 		ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -500,18 +523,18 @@ INSERT INTO PAKAN VALUES ('6bfa0f97-98d6-4695-92b3-d1c3fd534c85','2025-04-26 18:
 	('30a7d589-8456-4cc1-9e60-9de65ff88f84','2025-04-25 04:49:13','Buah',4.0,'Selesai Diberikan'),
 	('9635be93-6e30-4d49-b31a-acd05d4f0073','2025-04-28 12:49:13','Pelet',1.0,'Selesai Diberikan');
 
-INSERT INTO MEMBERI VALUES ('a93ead3f-dbe9-4188-80ad-a1121e4484cf', '2025-04-20 09:00:00', 'user66'), 
-	('28dbda86-6918-4fa1-bf92-026409e9ba41', '2025-04-21 08:45:00', 'user67'),
-	('2181f896-37a5-4067-9014-b8e60cd29d5b', '2025-04-21 09:00:00', 'user68'),
-	('15e4f927-4f4b-4d9f-9442-baa159b427dd', '2025-04-22 07:30:00', 'user69'),
-	('6df036cd-a77c-4918-b48e-7c1bb03ed989', '2025-04-22 13:00:00', 'user70'),
-	('b5f960d7-35f2-4f08-a2a4-6a9411fa052d', '2025-04-23 08:00:00', 'user71'),
-	('6bfa0f97-98d6-4695-92b3-d1c3fd534c85', '2025-04-23 10:00:00', 'user72'),
-	('a8953c8d-086a-4787-a312-71620357e001', '2025-04-24 07:45:00', 'user73'),
-	('5541e8a9-11e5-44d9-b1da-2681e88742f7', '2025-04-24 10:00:00', 'user74'),
-	('5f2e9a77-bd81-4c8f-ab58-8969e1a887b5', '2025-04-25 08:00:00', 'user75');
+INSERT INTO MEMBERI VALUES ('cf8f1658-d3ee-431a-84a9-802079f2bb32', '2025-04-27 01:49:13', 'user66'), 
+	('cf8f1658-d3ee-431a-84a9-802079f2bb32', '2025-04-27 01:49:13', 'user67'),
+	('4c86b545-db9a-4468-9394-7b776fa6e921', '2025-04-23 10:49:13', 'user68'),
+	('4c86b545-db9a-4468-9394-7b776fa6e921', '2025-04-23 10:49:13', 'user69'),
+	('30a7d589-8456-4cc1-9e60-9de65ff88f84', '2025-04-25 04:49:13', 'user70'),
+	('6bfa0f97-98d6-4695-92b3-d1c3fd534c85', '2025-04-26 18:49:13', 'user71'),
+	('6bfa0f97-98d6-4695-92b3-d1c3fd534c85', '2025-04-26 18:49:13', 'user72'),
+	('30a7d589-8456-4cc1-9e60-9de65ff88f84', '2025-04-25 04:49:13', 'user73'),
+	('9635be93-6e30-4d49-b31a-acd05d4f0073', '2025-04-28 12:49:13', 'user74'),
+	('9635be93-6e30-4d49-b31a-acd05d4f0073', '2025-04-28 12:49:13', 'user75');
 
-INSERT INTO FASILITAS (nama_atraksi, jadwal, kapasitas_max) VALUES
+INSERT INTO FASILITAS (nama, jadwal, kapasitas_max) VALUES
   ('Safari Edukasi Reptil',    '2025-05-01 10:00:00', 30),
   ('Safari Edukasi Mamalia',    '2025-05-02 10:00:00', 30),
   ('Ekshibisi Ular',            '2025-05-03 09:00:00', 35),
@@ -519,7 +542,12 @@ INSERT INTO FASILITAS (nama_atraksi, jadwal, kapasitas_max) VALUES
   ('Petting Zoo Anak-Anak',     '2025-05-01 15:00:00', 40),
   ('Pertunjukan Mamalia Laut',  '2025-05-02 11:30:00', 25),
   ('Pertunjukan Burung Eksotik','2025-05-01 14:00:00', 50),
-  ('Pertunjukan Koala Cina',    '2025-05-03 16:00:00', 20);
+  ('Pertunjukan Koala Cina',    '2025-05-03 16:00:00', 20),
+  ('Kereta Safari Satwa',       '2025-05-04 09:00:00', 40),
+  ('Terowongan Akuarium',       '2025-05-04 10:30:00', 35),
+  ('Jelajah Hutan Primata',     '2025-05-04 11:00:00', 30),
+  ('Safari Burung Bebas',       '2025-05-04 12:30:00', 45),
+  ('Zona Petualangan Gajah',    '2025-05-04 14:00:00', 50);
 
 INSERT INTO ATRAKSI (nama_atraksi, lokasi) VALUES
   ('Safari Edukasi Reptil',    'Zona Rawa'),
@@ -566,11 +594,12 @@ INSERT INTO JADWAL_PEMERIKSAAN_KESEHATAN VALUES ('a93ead3f-dbe9-4188-80ad-a1121e
 	('6df036cd-a77c-4918-b48e-7c1bb03ed989', '2025-05-21', 2),
 	('c4d0c53e-9ac8-4252-b014-1961a3e9ebd5', '2025-05-11', 1);
 
-INSERT INTO WAHANA VALUES ('Petting Zoo Anak-Anak', 'Wajib cuci tangan sebelum/ setelah menyentuh hewan; Anak-anak harus didampingi orang tua.'),
-	('Safari Edukasi Reptil', 'Dilarang memberi makanan luar; Ikuti instruksi petugas; Jaga jarak aman dari pagar pengaman.'),
-	('Pertunjukan Mamalia Laut', 'Makanan hanya diberikan oleh petugas; Dilarang memotret dengan flash; Jangan menyentuh dolphin dan paus tanpa izin.'),
-	('Pertunjukan Burung Eksotik', 'Tidak boleh menggunakan flash kamera; Dilarang melempar makanan ke panggung; Duduk di kursi yang disediakan.'),
-	('Ekshibisi Ular', 'Tidak boleh mengetuk kaca; Dilarang membawa makanan/minuman ke area; Anak-anak harus dalam pengawasan.');
+INSERT INTO WAHANA VALUES 
+	('Kereta Safari Satwa', 'Penumpang harus tetap duduk selama perjalanan; Jangan memberi makan hewan dari kereta; Ikuti instruksi pemandu.'),
+	('Terowongan Akuarium', 'Dilarang mengetuk kaca akuarium; Tidak boleh memberi makan ikan; Ikuti jalur yang telah ditentukan.'),
+	('Jelajah Hutan Primata', 'Dilarang memberi makan primata; Jaga jarak aman dari pagar; Jangan berisik atau mengganggu satwa.'),
+	('Safari Burung Bebas', 'Duduk di area yang ditentukan; Tidak boleh menangkap atau mengganggu burung; Gunakan kamera tanpa flash.'),
+	('Zona Petualangan Gajah', 'Ikuti instruksi pemandu; Dilarang memberi makan gajah tanpa izin; Jaga jarak aman saat berinteraksi.');
 
 INSERT INTO ADOPTER VALUES ('user1', '41f524af-78b0-42d5-b6f1-66d7768caa10', 9500000),
 	('user2', 'b2c4fc20-3677-4e37-9b59-1d0e185442b7', 13000000),
