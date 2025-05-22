@@ -1,0 +1,70 @@
+<!-- Modal Tambah Reservasi Wahana -->
+<div id="modalAddReservasiWahana" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+    <div class="bg-white rounded-2xl p-8 w-full max-w-lg relative">
+        <h2 class="text-2xl font-bold mb-6 text-center">Reservasi Wahana</h2>
+        <form method="POST" action="#">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Nama Wahana</label>
+                <select id="namaWahanaSelect" name="nama_wahana" onchange="updateWahanaDetail()" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-300" required>
+                    <option class="text-black">Pilih Wahana</option>
+                    {% for w in data_fasilitas.data_wahana %}
+                        <option 
+                            class="text-black"
+                            value="{{ w.nama_wahana }}"
+                            data-peraturan="{{ w.peraturan }}"
+                            data-jam="{{ w.jam }}"
+                        >
+                            {{ w.nama_wahana }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Peraturan</label>
+                <textarea id="peraturanWahana" name="peraturan" class="w-full px-4 py-2 border rounded-lg bg-gray-100" readonly required></textarea>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Jam</label>
+                <input type="time" id="jamWahana" name="jam" class="w-full px-4 py-2 border rounded-lg bg-gray-100" readonly required>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Tanggal</label>
+                <input type="date" id="tanggalWahana" name="tanggal" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-300" required>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-gray-700 mb-2">Jumlah Tiket</label>
+                <input type="number" name="tiket" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-300" required min="1">
+            </div>
+
+            <div class="flex justify-end space-x-4">
+                <button type="button" onclick="closeModalAddReservasiWahana()" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openModalAddReservasiWahana() {
+        document.getElementById('modalAddReservasiWahana').classList.remove('hidden');
+        document.getElementById('modalAddReservasiWahana').classList.add('flex');
+    }
+
+    function closeModalAddReservasiWahana() {
+        document.getElementById('modalAddReservasiWahana').classList.remove('flex');
+        document.getElementById('modalAddReservasiWahana').classList.add('hidden');
+    }
+
+    function updateWahanaDetail() {
+        const select = document.getElementById('namaWahanaSelect');
+        const selectedOption = select.options[select.selectedIndex];
+
+        document.getElementById('peraturanWahana').value = selectedOption.getAttribute('data-peraturan') || '';
+        document.getElementById('jamWahana').value = selectedOption.getAttribute('data-jam') || '';
+    }
+</script>

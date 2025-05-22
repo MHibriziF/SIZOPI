@@ -7,4 +7,6 @@ urlpatterns = [
     path('kelola-wahana/', kelola_wahana, name='kelola_wahana'),
     path('kelola-atraksi/', kelola_atraksi, name='kelola_atraksi'),
     path('kelola-pengunjung/', kelola_pengunjung, name='kelola_pengunjung'),
+    path('delete-wahana/<str:nama_wahana>/', delete_wahana, name='delete_wahana'),
+    path('delete-wahana/<str:nama_atraksi>/', delete_atraksi, name='delete_atraksi'),
 ]

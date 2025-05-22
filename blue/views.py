@@ -1,83 +1,113 @@
 from django.shortcuts import render, redirect
-from utils.db_connection import execute_query
+from utils.db_connection import execute_query, execute_transaction
+from .decorators import admin_required
 from datetime import date
+
+
+def query_fasilitas(fasilitas : str, field : str) -> str:
+    return f"""
+        SELECT 
+            fa.nama_{fasilitas},
+            fa.{field},
+            TO_CHAR(f.jadwal, 'HH24:MI') AS jam 
+        FROM {fasilitas} fa
+        JOIN FASILITAS f ON fa.nama_{fasilitas} = f.nama
+        ORDER BY nama_{fasilitas};
+    """
 
 # Create your views here.
 def reservasi(request):
     if not request.session.get('username'):
         return redirect('main:login')
 
-    if 'admin' not in request.session["roles"]:
-        query = """
-            SELECT 
-                r.nama_atraksi,
-                a.lokasi,
-                f.jadwal::time AS jam,
-                r.tanggal_kunjungan AS tanggal,
-                r.jumlah_tiket AS tiket,
-                r.status
-            FROM RESERVASI r
-            JOIN ATRAKSI a ON r.nama_atraksi = a.nama_atraksi
-            JOIN FASILITAS f ON a.nama_atraksi = f.nama
-            ORDER BY r.tanggal_kunjungan DESC;
-        """
-        data_reservasi = execute_query(query)
-        context = {
-            'data_reservasi' : data_reservasi,
-            'roles' : 'pengunjung'
-        }
-    
-    else:
-        username = request.session.get("username")
-        query = """
-            SELECT 
-                r.nama_atraksi,
-                a.lokasi,
-                f.jadwal::time AS jam,
-                r.tanggal_kunjungan AS tanggal,
-                r.jumlah_tiket AS tiket,
-                r.status
-            FROM RESERVASI r
-            JOIN ATRAKSI a ON r.nama_atraksi = a.nama_atraksi
-            JOIN FASILITAS f ON a.nama_atraksi = f.nama
-            WHERE r.username_p = %s
-            ORDER BY r.tanggal_kunjungan DESC;
-        """
-        
-        data_reservasi = execute_query(query, [username])
-        context = {
-            'data_reservasi' : data_reservasi,
-            'roles' : 'admin',
-        }
+    data_wahana = execute_query(query_fasilitas("wahana", "peraturan"));
+    data_atraksi = execute_query(query_fasilitas("atraksi", "lokasi"));
+    data_fasilitas = {
+        'data_atraksi' : data_atraksi,
+        'data_wahana'  : data_wahana
+    }
 
+    query = """
+            SELECT 
+                r.nama_atraksi,
+                a.lokasi,
+                TO_CHAR(f.jadwal, 'HH24:MI') AS jam,
+                r.tanggal_kunjungan AS tanggal,
+                r.jumlah_tiket AS tiket,
+                r.status
+            FROM RESERVASI r
+            JOIN ATRAKSI a ON r.nama_atraksi = a.nama_atraksi
+            JOIN FASILITAS f ON a.nama_atraksi = f.nama
+    """
+    params = []
+    if 'admin' in request.session.get("roles", []):
+        query += " ORDER BY r.tanggal_kunjungan DESC;"
+        roles = "admin"
+    else:
+        query += " WHERE r.username_p = %s ORDER BY r.tanggal_kunjungan DESC;"
+        params = [request.session.get("username")]
+        roles = "pengunjung"
+        
+    data_reservasi = execute_query(query, params)
+    context = {
+        'data_fasilitas' : data_fasilitas,
+        'data_reservasi' : data_reservasi,
+        'roles' : roles,
+    }   
     return render(request, 'reservasi.html', context)
 
-
+@admin_required
 def kelola_wahana(request):
-    if not request.session.get('username'):
-        return redirect('main:login')
-    
-    if 'admin' not in request.session["roles"] :
-        return redirect('main:dashboard')
-    
-    # data_wahana = execute_query(
-    #     "SELECT * FROM WAHANA"
-    # )
-    # print(data_wahana)
+    if request.method == 'POST':
+        nama_wahana = request.POST.get('nama_wahana')
+        kapasitas = request.POST.get('kapasitas')
+        jadwal = request.POST.get('jadwal')
+        peraturan_list = request.POST.getlist('peraturan[]')
+        peraturan_str = ';'.join([p.strip() for p in peraturan_list if p.strip()])
 
-    # Hardcode dulu
-    data_wahana = [{
-        'nama_wahana': 'Petting Zoo Anak-Anak',
-        'kapasitas' : 40,
-        'jadwal' : '15:00:00',
-        'peraturan' : ['Wajib cuci tangan sebelum/ setelah menyentuh hewan', 'Anak-anak harus didampingi orang tua.'],
-    },
-    {
-        'nama_wahana': 'Safari Edukasi Reptil',
-        'kapasitas' : 40,
-        'jadwal' : '15:00:00',
-        'peraturan' : ['Dilarang memberi makanan luar; Ikuti instruksi petugas', 'Jaga jarak aman dari pagar pengaman.'],
-    }] 
+        queries = []
+        params = []
+        # Simpan ke FASILITAS
+        query_fasilitas = """
+            INSERT INTO FASILITAS (nama, kapasitas_max, jadwal)
+            VALUES (%s, %s, %s)
+        """
+        queries.append(query_fasilitas)
+        params.append((nama_wahana, kapasitas, f'2025-05-01 {jadwal}'))
+
+        # Simpan ke WAHANA
+        query_wahana = """
+            INSERT INTO WAHANA (nama_wahana, peraturan)
+            VALUES (%s, %s)
+        """
+
+        queries.append(query_wahana)
+        params.append((nama_wahana, peraturan_str))
+
+        add_wahana = execute_transaction(queries, params)
+        if add_wahana:
+            return redirect('blue:kelola_wahana')
+        else:
+            return redirect('blue:kelola_pengunjung')
+
+    query = """
+        SELECT 
+            w.nama_wahana,
+            f.kapasitas_max AS kapasitas,
+            TO_CHAR(F.jadwal, 'HH24:MI:SS') AS jadwal,
+            w.peraturan
+        FROM WAHANA w
+        JOIN FASILITAS F ON w.nama_wahana = F.nama
+    """
+    wahana_raw = execute_query(query)
+    data_wahana = []
+    for row in wahana_raw:
+        data_wahana.append({
+            'nama_wahana': row['nama_wahana'],
+            'kapasitas': row['kapasitas'],
+            'jadwal': row['jadwal'],
+            'peraturan': [p.strip() for p in row['peraturan'].split(';')],
+        })
 
     context = {
         'data_wahana' : data_wahana,
@@ -85,13 +115,17 @@ def kelola_wahana(request):
     
     return render(request, 'wahana.html', context)
 
+@admin_required
+def delete_wahana(request, nama_wahana):
+    query = execute_query("DELETE FROM WAHANA WHERE nama_wahana = %s", [nama_wahana])
+    if query:
+        pass
+    else:
+        pass
+    return redirect('blue:kelola_wahana')
+
+@admin_required
 def kelola_atraksi(request):
-    if not request.session.get('username'):
-        return redirect('main:login')
-    
-    if 'admin' not in request.session["roles"] :
-        return redirect('main:dashboard')
-    
     data_atraksi = execute_query("""
         SELECT 
             a.nama_atraksi,
@@ -108,7 +142,7 @@ def kelola_atraksi(request):
         FROM 
             ATRAKSI a
         JOIN 
-            FASILITAS f ON a.nama_atraksi = f.nama_atraksi
+            FASILITAS f ON a.nama_atraksi = f.nama
         LEFT JOIN 
             JADWAL_PENUGASAN p ON p.nama_atraksi = a.nama_atraksi
         LEFT JOIN 
@@ -116,7 +150,7 @@ def kelola_atraksi(request):
         LEFT JOIN 
             PENGGUNA pg ON ph.username_lh = pg.username
         LEFT JOIN 
-            BERPARTISIPASI b ON b.nama_fasilitas = f.nama_atraksi
+            BERPARTISIPASI b ON b.nama_fasilitas = f.nama
         LEFT JOIN 
             HEWAN h ON b.id_hewan = h.id
         GROUP BY 
@@ -145,12 +179,10 @@ def kelola_atraksi(request):
     
     return render(request, 'atraksi.html', context)
 
-def kelola_pengunjung(request):
-    if not request.session.get('username'):
-        return redirect('main:login')
-    
-    if 'admin' not in request.session["roles"] :
-        return redirect('main:dashboard')
-    
-    return render(request, 'kelola_pengunjung.html')
+@admin_required
+def delete_atraksi(request, nama_atraksi):
+    pass
 
+@admin_required
+def kelola_pengunjung(request):
+    return render(request, 'kelola_pengunjung.html')
