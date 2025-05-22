@@ -1,10 +1,12 @@
 {
   "version": 2,
-  "functions": {
-    "SIZOPI/wsgi.py": {
-      "runtime": "@vercel/[email protected]"
+  "builds": [
+    {
+      "src": "SIZOPI/wsgi.py",
+      "use": "@vercel/python@3.1.12",
+      "config": { "runtime": "python3.11", "maxLambdaSize": "15mb" }
     }
-  },
+  ],
   "routes": [
     { "src": "/static/(.*)", "dest": "/static/$1" },
     { "src": "/(.*)",        "dest": "SIZOPI/wsgi.py" }
