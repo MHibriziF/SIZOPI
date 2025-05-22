@@ -10,14 +10,8 @@
   ],
 
   "buildCommand":
-    "pip install -r requirements.txt && python manage.py collectstatic --noinput",
+    "pip install -r requirements.txt && python manage.py collectstatic --noinput && mv staticfiles public",
 
-  "routes": [
-    {
-      "src": "/static/(.*)",
-      "dest": "/staticfiles/$1",            
-      "headers": { "cache-control": "public,max-age=31536000,immutable" }
-    },
-    { "src": "/(.*)", "dest": "index.py" }
-  ]
+    "routes": [{ "src": "/(.*)", "dest": "index.py" }]
+
 }
