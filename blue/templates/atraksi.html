@@ -97,50 +97,6 @@
         }
         });
     });
-
-    function bukaModalAtraksi() {
-        document.getElementById('modalAddAtraksi').classList.remove('hidden');
-        document.getElementById('modalAddAtraksi').classList.add('flex');
-    }
-
-    function tutupModalAtraksi() {
-        document.getElementById('modalAddAtraksi').classList.remove('flex');
-        document.getElementById('modalAddAtraksi').classList.add('hidden');
-    }
-
-    function openEditModal(element) {
-        const nama = element.getAttribute('data-nama');
-        const lokasi = element.getAttribute('data-lokasi');
-        const kapasitas = element.getAttribute('data-kapasitas');
-        const jadwal = element.getAttribute('data-jadwal');
-        const pelatih = element.getAttribute('data-pelatih');
-        const hewanList = element.getAttribute('data-hewan').split(',');
-
-        document.getElementById('edit_nama_atraksi').value = nama;
-        document.getElementById('edit_lokasi').value = lokasi;
-        document.getElementById('edit_kapasitas').value = kapasitas;
-        document.getElementById('edit_jadwal').value = jadwal;
-
-        const pelatihList = element.getAttribute('data-pelatih').split(',');
-        const selectPelatih = document.getElementById('edit_pelatih');
-        for (let option of selectPelatih.options) {
-            option.selected = pelatihList.includes(option.value);
-        }
-
-        const select = document.getElementById('edit_hewan_terlibat');
-        for (let option of select.options) {
-            option.selected = hewanList.includes(option.value);
-    }
-
-    document.getElementById('modalEditAtraksi').classList.remove('hidden');
-    document.getElementById('modalEditAtraksi').classList.add('flex');
-    }
-
-    function tutupModalEditAtraksi() {
-        document.getElementById('modalEditAtraksi').classList.remove('flex');
-        document.getElementById('modalEditAtraksi').classList.add('hidden');
-    }
-   
 </script>
 
 {% endblock content %}
