@@ -4,6 +4,7 @@ from django.views.decorators.http import require_http_methods
 from utils.db_connection import execute_query, execute_transaction
 import uuid
 import datetime
+import json
 
 def home(request):
     return render(request, 'main.html')
@@ -24,49 +25,19 @@ def register(request):
         if password != confirm_password:
             messages.error(request, "Password dan konfirmasi password tidak cocok.")
             return render(request, "register.html")
-            
-        existing_user = execute_query(
-            "SELECT username FROM PENGGUNA WHERE username = %s",
-            (username,)
-        )
         
-        if existing_user:
-            messages.error(request, "Username sudah digunakan. Silakan pilih username lain.")
-            return render(request, "register.html")
-            
-        existing_email = execute_query(
-            "SELECT email FROM PENGGUNA WHERE email = %s",
-            (email,)
-        )
+        role_data = {}
         
-        if existing_email:
-            messages.error(request, "Email sudah digunakan. Silakan gunakan email lain.")
-            return render(request, "register.html")
-
-        sqls = [
-            """
-            INSERT INTO PENGGUNA
-            (username, email, password, nama_depan, nama_tengah, nama_belakang, no_telepon)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """
-        ]
-        params = [
-            (username, email, password, nama_depan, nama_tengah, nama_belakang, no_telepon)
-        ]
-
         if role == "pengunjung":
             alamat = request.POST.get("role_field1")
             tgl_lahir = request.POST.get("role_field2")
             if not alamat or not tgl_lahir:
                 messages.error(request, "Alamat dan tanggal lahir wajib diisi untuk pengunjung.")
                 return render(request, "register.html")
-
-            sqls.append("""
-                INSERT INTO PENGUNJUNG
-                (username_p, alamat, tgl_lahir)
-                VALUES (%s, %s, %s)
-            """)
-            params.append((username, alamat, tgl_lahir))
+            role_data = {
+                "alamat": alamat,
+                "tgl_lahir": tgl_lahir
+            }
             
         elif role == "dokter":
             no_str = request.POST.get("role_field1")
@@ -79,60 +50,39 @@ def register(request):
             if not spesialisasi:
                 messages.error(request, "Pilih minimal satu spesialisasi.")
                 return render(request, "register.html")
-                
-            sqls.append("""
-                INSERT INTO DOKTER_HEWAN
-                (username_DH, no_STR)
-                VALUES (%s, %s)
-            """)
-            params.append((username, no_str))
             
-
-            for spec in spesialisasi:
-                sqls.append("""
-                    INSERT INTO SPESIALISASI
-                    (username_SH, nama_spesialis)
-                    VALUES (%s, %s)
-                """)
-                params.append((username, spec))
-                
-        elif role == "penjaga":
-            id_staf = str(uuid.uuid4())
-            sqls.append("""
-                INSERT INTO PENJAGA_HEWAN
-                (username_jh, id_staf)
-                VALUES (%s, %s)
-            """)
-            params.append((username, id_staf))
+            role_data = {
+                "no_str": no_str,
+                "spesialisasi": spesialisasi
+            }
             
-        elif role == "admin":
-            id_staf = str(uuid.uuid4())
-            sqls.append("""
-                INSERT INTO STAF_ADMIN
-                (username_sa, id_staf)
-                VALUES (%s, %s)
-            """)
-            params.append((username, id_staf))
-            
-        elif role == "pelatih":
-            id_staf = str(uuid.uuid4())
-            sqls.append("""
-                INSERT INTO PELATIH_HEWAN
-                (username_lh, id_staf)
-                VALUES (%s, %s)
-            """)
-            params.append((username, id_staf))
-            
-        else:
+        elif role not in ["penjaga", "admin", "pelatih"]:
             messages.error(request, "Peran tidak valid. Pilih pengunjung, dokter, atau staff.")
             return render(request, "register.html")
 
-        success = execute_transaction(sqls, params)
-        if success:
-            messages.success(request, "Registrasi berhasil! Silakan login.")
-            return redirect("main:login")
-        else:
-            messages.error(request, "Registrasi gagal: terjadi kesalahan pada sistem.")
+        try:
+            result = execute_query(
+                """
+                SELECT success, message FROM register_new_user(
+                    %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb
+                )
+                """,
+                (username, email, password, nama_depan, nama_tengah, nama_belakang, 
+                no_telepon, role, json.dumps(role_data))
+            )
+            
+            if result and result[0]['success']:
+                messages.success(request, result[0]['message'])
+                return redirect("main:login")
+            else:
+                error_message = result[0]['message'] if result else "Registrasi gagal: terjadi kesalahan pada sistem."
+                messages.error(request, error_message)
+                
+        except Exception as e:
+            error_message = str(e)
+            if "ERROR:" in error_message:
+                error_message = error_message.split("ERROR:")[-1].strip()
+            messages.error(request, error_message)
 
     return render(request, "register.html")
 
@@ -142,37 +92,32 @@ def login(request):
         username = request.POST.get("username")
         password = request.POST.get("password")
 
-        rows = execute_query(
-            "SELECT password FROM PENGGUNA WHERE username = %s",
-            (username,)
-        )
-        
-        if rows and rows[0]["password"] == password:
-            roles = []
-            if execute_query("SELECT 1 FROM PENGUNJUNG WHERE username_p = %s", (username,)):
-                roles.append("pengunjung")
-            if execute_query("SELECT 1 FROM DOKTER_HEWAN WHERE username_DH = %s", (username,)):
-                roles.append("dokter")
-            if execute_query("SELECT 1 FROM PENJAGA_HEWAN WHERE username_jh = %s", (username,)):
-                roles.append("penjaga")
-            if execute_query("SELECT 1 FROM STAF_ADMIN WHERE username_sa = %s", (username,)):
-                roles.append("admin")
-            if execute_query("SELECT 1 FROM PELATIH_HEWAN WHERE username_lh = %s", (username,)):
-                roles.append("pelatih")
-            
-            user_data = execute_query(
-                "SELECT nama_depan, nama_belakang FROM PENGGUNA WHERE username = %s",
-                (username,)
+        try:
+            result = execute_query(
+                "SELECT is_valid, message, user_roles FROM verify_user_credentials(%s, %s)",
+                (username, password)
             )
             
-            request.session["username"] = username
-            request.session["roles"] = roles
-            request.session["full_name"] = f"{user_data[0]['nama_depan']} {user_data[0]['nama_belakang']}"
-            
-            messages.success(request, f"Selamat datang, {username}!")
-            return redirect("main:dashboard")
-        else:
-            messages.error(request, "Username atau password salah.")
+            if result and result[0]['is_valid']:
+                roles = result[0]['user_roles'] or []
+                
+                user_data = execute_query(
+                    "SELECT nama_depan, nama_belakang FROM PENGGUNA WHERE username = %s",
+                    (username,)
+                )
+                
+                request.session["username"] = username
+                request.session["roles"] = roles
+                request.session["full_name"] = f"{user_data[0]['nama_depan']} {user_data[0]['nama_belakang']}"
+                
+                messages.success(request, f"Selamat datang, {username}!")
+                return redirect("main:dashboard")
+            else:
+                error_message = result[0]['message'] if result else "Username atau password salah, silakan coba lagi."
+                messages.error(request, error_message)
+                
+        except Exception as e:
+            messages.error(request, "Terjadi kesalahan sistem saat login.")
 
     return render(request, "login.html")
 
@@ -350,84 +295,38 @@ def profile(request):
         
     username = request.session.get('username')
     
-    user_data = execute_query(
-        """
-        SELECT p.*, 
-               CASE 
-                   WHEN dh.username_DH IS NOT NULL THEN 'dokter' 
-                   WHEN pj.username_jh IS NOT NULL THEN 'penjaga' 
-                   WHEN sa.username_sa IS NOT NULL THEN 'admin' 
-                   WHEN ph.username_lh IS NOT NULL THEN 'pelatih' 
-                   WHEN pg.username_p IS NOT NULL THEN 'pengunjung' 
-               END as role
-        FROM PENGGUNA p
-        LEFT JOIN DOKTER_HEWAN dh ON p.username = dh.username_DH
-        LEFT JOIN PENJAGA_HEWAN pj ON p.username = pj.username_jh
-        LEFT JOIN STAF_ADMIN sa ON p.username = sa.username_sa
-        LEFT JOIN PELATIH_HEWAN ph ON p.username = ph.username_lh
-        LEFT JOIN PENGUNJUNG pg ON p.username = pg.username_p
-        WHERE p.username = %s
-        """,
-        (username,)
-    )
-    
-    if not user_data:
-        messages.error(request, "Data pengguna tidak ditemukan.")
-        return redirect('main:home')
-        
-    role = user_data[0]['role']
-    
-    additional_data = {}
-    if role == 'dokter':
-        additional_data = execute_query(
-            "SELECT no_STR FROM DOKTER_HEWAN WHERE username_DH = %s",
-            (username,)
-        )[0]
-        
-        spesialisasi = execute_query(
-            "SELECT nama_spesialis FROM SPESIALISASI WHERE username_SH = %s",
-            (username,)
-        )
-        additional_data['spesialisasi'] = [s['nama_spesialis'] for s in spesialisasi]
-        
-    elif role == 'pengunjung':
-        additional_data = execute_query(
-            "SELECT alamat, tgl_lahir FROM PENGUNJUNG WHERE username_p = %s",
-            (username,)
-        )[0]
-        
-
-        adopter_data = execute_query(
-            "SELECT id_adopter FROM ADOPTER WHERE username_adopter = %s",
+    try:
+        user_info = execute_query(
+            "SELECT * FROM get_user_info(%s)",
             (username,)
         )
         
-        if adopter_data:
-            additional_data['is_adopter'] = True
-            additional_data['id_adopter'] = adopter_data[0]['id_adopter']
-        else:
-            additional_data['is_adopter'] = False
+        if not user_info:
+            messages.error(request, "Data pengguna tidak ditemukan.")
+            return redirect('main:home')
             
-    elif role == 'penjaga':
-        additional_data = execute_query(
-            "SELECT id_staf FROM PENJAGA_HEWAN WHERE username_jh = %s",
-            (username,)
-        )[0]
+        user_data = user_info[0]
+        role = user_data['user_role']
+        additional_data = user_data['role_data'] or {}
         
-    elif role == 'admin':
-        additional_data = execute_query(
-            "SELECT id_staf FROM STAF_ADMIN WHERE username_sa = %s",
-            (username,)
-        )[0]
+        if role == 'pengunjung':
+            adopter_data = execute_query(
+                "SELECT id_adopter FROM ADOPTER WHERE username_adopter = %s",
+                (username,)
+            )
+            
+            if adopter_data:
+                additional_data['is_adopter'] = True
+                additional_data['id_adopter'] = adopter_data[0]['id_adopter']
+            else:
+                additional_data['is_adopter'] = False
         
-    elif role == 'pelatih':
-        additional_data = execute_query(
-            "SELECT id_staf FROM PELATIH_HEWAN WHERE username_lh = %s",
-            (username,)
-        )[0]
+    except Exception as e:
+        messages.error(request, "Terjadi kesalahan saat mengambil data profil.")
+        return redirect('main:home')
     
     context = {
-        'user_data': user_data[0],
+        'user_data': user_data,
         'additional_data': additional_data,
         'role': role
     }
@@ -441,69 +340,23 @@ def edit_profile(request):
         
     username = request.session.get('username')
     
-    user_data = execute_query(
-        """
-        SELECT p.*, 
-               CASE 
-                   WHEN dh.username_DH IS NOT NULL THEN 'dokter' 
-                   WHEN pj.username_jh IS NOT NULL THEN 'penjaga' 
-                   WHEN sa.username_sa IS NOT NULL THEN 'admin' 
-                   WHEN ph.username_lh IS NOT NULL THEN 'pelatih' 
-                   WHEN pg.username_p IS NOT NULL THEN 'pengunjung' 
-               END as role
-        FROM PENGGUNA p
-        LEFT JOIN DOKTER_HEWAN dh ON p.username = dh.username_DH
-        LEFT JOIN PENJAGA_HEWAN pj ON p.username = pj.username_jh
-        LEFT JOIN STAF_ADMIN sa ON p.username = sa.username_sa
-        LEFT JOIN PELATIH_HEWAN ph ON p.username = ph.username_lh
-        LEFT JOIN PENGUNJUNG pg ON p.username = pg.username_p
-        WHERE p.username = %s
-        """,
-        (username,)
-    )
-    
-    if not user_data:
-        messages.error(request, "Data pengguna tidak ditemukan.")
-        return redirect('main:home')
-        
-    role = user_data[0]['role']
-    
-    additional_data = {}
-    if role == 'dokter':
-        additional_data = execute_query(
-            "SELECT no_STR FROM DOKTER_HEWAN WHERE username_DH = %s",
-            (username,)
-        )[0]
-        
-        spesialisasi = execute_query(
-            "SELECT nama_spesialis FROM SPESIALISASI WHERE username_SH = %s",
+    try:
+        user_info = execute_query(
+            "SELECT * FROM get_user_info(%s)",
             (username,)
         )
-        additional_data['spesialisasi'] = [s['nama_spesialis'] for s in spesialisasi]
         
-    elif role == 'pengunjung':
-        additional_data = execute_query(
-            "SELECT alamat, tgl_lahir FROM PENGUNJUNG WHERE username_p = %s",
-            (username,)
-        )[0]
+        if not user_info:
+            messages.error(request, "Data pengguna tidak ditemukan.")
+            return redirect('main:home')
+            
+        user_data = user_info[0]
+        role = user_data['user_role']
+        additional_data = user_data['role_data'] or {}
         
-    elif role == 'penjaga':
-        additional_data = execute_query(
-            "SELECT id_staf FROM PENJAGA_HEWAN WHERE username_jh = %s",
-            (username,)
-        )[0]
-        
-    elif role == 'admin':
-        additional_data = execute_query(
-            "SELECT id_staf FROM STAF_ADMIN WHERE username_sa = %s",
-            (username,)
-        )[0]
-        
-    elif role == 'pelatih':
-        additional_data = execute_query(
-            "SELECT id_staf FROM PELATIH_HEWAN WHERE username_lh = %s",
-            (username,)
-        )[0]
+    except Exception as e:
+        messages.error(request, "Terjadi kesalahan saat mengambil data profil.")
+        return redirect('main:home')
     
     if request.method == "POST":
         email = request.POST.get("email")
@@ -512,47 +365,54 @@ def edit_profile(request):
         nama_belakang = request.POST.get("nama_belakang")
         no_telepon = request.POST.get("no_telepon")
         
-        sql = """
-            UPDATE PENGGUNA
-            SET email = %s, nama_depan = %s, nama_tengah = %s, nama_belakang = %s, no_telepon = %s
-            WHERE username = %s
-        """
-        params = (email, nama_depan, nama_tengah, nama_belakang, no_telepon, username)
-        
-        success = execute_query(sql, params)
-        
-        if role == 'pengunjung':
-            alamat = request.POST.get("alamat")
-            tgl_lahir = request.POST.get("tgl_lahir")
-            
+        try:
             sql = """
-                UPDATE PENGUNJUNG
-                SET alamat = %s, tgl_lahir = %s
-                WHERE username_p = %s
+                UPDATE PENGGUNA
+                SET email = %s, nama_depan = %s, nama_tengah = %s, nama_belakang = %s, no_telepon = %s
+                WHERE username = %s
             """
-            params = (alamat, tgl_lahir, username)
+            params = (email, nama_depan, nama_tengah, nama_belakang, no_telepon, username)
+            
             success = execute_query(sql, params)
             
-        elif role == 'dokter':
-            sql = "DELETE FROM SPESIALISASI WHERE username_SH = %s"
-            params = (username,)
-            execute_query(sql, params)
-            
-            spesialisasi = request.POST.getlist("spesialisasi")
-            for spec in spesialisasi:
-                sql = "INSERT INTO SPESIALISASI (username_SH, nama_spesialis) VALUES (%s, %s)"
-                params = (username, spec)
+            if role == 'pengunjung':
+                alamat = request.POST.get("alamat")
+                tgl_lahir = request.POST.get("tgl_lahir")
+                
+                sql = """
+                    UPDATE PENGUNJUNG
+                    SET alamat = %s, tgl_lahir = %s
+                    WHERE username_p = %s
+                """
+                params = (alamat, tgl_lahir, username)
+                success = execute_query(sql, params)
+                
+            elif role == 'dokter':
+                sql = "DELETE FROM SPESIALISASI WHERE username_SH = %s"
+                params = (username,)
                 execute_query(sql, params)
-        
-        if success:
-            messages.success(request, "Profil berhasil diperbarui.")
-            request.session["full_name"] = f"{nama_depan} {nama_belakang}"
-            return redirect('main:profile')
-        else:
-            messages.error(request, "Gagal memperbarui profil.")
+                
+                spesialisasi = request.POST.getlist("spesialisasi")
+                for spec in spesialisasi:
+                    sql = "INSERT INTO SPESIALISASI (username_SH, nama_spesialis) VALUES (%s, %s)"
+                    params = (username, spec)
+                    execute_query(sql, params)
+            
+            if success:
+                messages.success(request, "Profil berhasil diperbarui.")
+                request.session["full_name"] = f"{nama_depan} {nama_belakang}"
+                return redirect('main:profile')
+            else:
+                messages.error(request, "Gagal memperbarui profil.")
+                
+        except Exception as e:
+            error_message = str(e)
+            if "ERROR:" in error_message:
+                error_message = error_message.split("ERROR:")[-1].strip()
+            messages.error(request, error_message)
     
     context = {
-        'user_data': user_data[0],
+        'user_data': user_data,
         'additional_data': additional_data,
         'role': role
     }
@@ -571,28 +431,35 @@ def change_password(request):
         new_password = request.POST.get("new_password")
         confirm_password = request.POST.get("confirm_password")
         
-        current_password = execute_query(
-            "SELECT password FROM PENGGUNA WHERE username = %s",
-            (username,)
-        )[0]['password']
-        
-        if old_password != current_password:
-            messages.error(request, "Password lama tidak sesuai.")
-            return render(request, "change_password.html")
+        try:
+            result = execute_query(
+                "SELECT is_valid, message FROM verify_user_credentials(%s, %s)",
+                (username, old_password)
+            )
             
-        if new_password != confirm_password:
-            messages.error(request, "Password baru dan konfirmasi tidak cocok.")
-            return render(request, "change_password.html")
+            if not result or not result[0]['is_valid']:
+                messages.error(request, "Password lama tidak sesuai.")
+                return render(request, "change_password.html")
+                
+            if new_password != confirm_password:
+                messages.error(request, "Password baru dan konfirmasi tidak cocok.")
+                return render(request, "change_password.html")
+                
+            sql = "UPDATE PENGGUNA SET password = %s WHERE username = %s"
+            params = (new_password, username)
             
-        sql = "UPDATE PENGGUNA SET password = %s WHERE username = %s"
-        params = (new_password, username)
-        
-        success = execute_query(sql, params)
-        
-        if success:
-            messages.success(request, "Password berhasil diubah.")
-            return redirect('main:profile')
-        else:
-            messages.error(request, "Gagal mengubah password.")
+            success = execute_query(sql, params)
+            
+            if success:
+                messages.success(request, "Password berhasil diubah.")
+                return redirect('main:profile')
+            else:
+                messages.error(request, "Gagal mengubah password.")
+                
+        except Exception as e:
+            error_message = str(e)
+            if "ERROR:" in error_message:
+                error_message = error_message.split("ERROR:")[-1].strip()
+            messages.error(request, error_message)
     
     return render(request, 'change_password.html')
