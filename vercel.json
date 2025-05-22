@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "requirements.txt", "use": "@vercel/python" },
-    { "src": "SIZOPI/wsgi.py",      "use": "vercel-wsgi" }
-  ],
+  "functions": {
+    "SIZOPI/wsgi.py": {
+      "runtime": "@vercel/[email protected]"
+    }
+  },
   "routes": [
     { "src": "/static/(.*)", "dest": "/static/$1" },
     { "src": "/(.*)",        "dest": "SIZOPI/wsgi.py" }
