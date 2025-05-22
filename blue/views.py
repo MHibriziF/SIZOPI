@@ -117,7 +117,7 @@ def kelola_wahana(request):
 
 @admin_required
 def delete_wahana(request, nama_wahana):
-    query = execute_query("DELETE FROM WAHANA WHERE nama_wahana = %s", [nama_wahana])
+    query = execute_query("DELETE FROM FASILITAS WHERE nama = %s", [nama_wahana])
     if query:
         pass
     else:
@@ -181,7 +181,12 @@ def kelola_atraksi(request):
 
 @admin_required
 def delete_atraksi(request, nama_atraksi):
-    pass
+    query = execute_query("DELETE FROM FASILITAS WHERE nama = %s", [nama_atraksi])
+    if query:
+        pass
+    else:
+        pass
+    return redirect('blue:kelola_atraksi')
 
 @admin_required
 def kelola_pengunjung(request):

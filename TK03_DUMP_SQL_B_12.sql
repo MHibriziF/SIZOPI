@@ -157,6 +157,8 @@ CREATE TABLE JADWAL_PENUGASAN (
     tgl_penugasan   TIMESTAMP NOT NULL,
     nama_atraksi    VARCHAR(50),
     PRIMARY KEY (username_lh, tgl_penugasan),
+	FOREIGN KEY (nama_atraksi) REFERENCES ATRAKSI(nama_atraksi)
+		ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (username_lh) REFERENCES PELATIH_HEWAN(username_lh)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -165,7 +167,8 @@ CREATE TABLE BERPARTISIPASI (
     nama_fasilitas VARCHAR(50),
     id_hewan       UUID,
     PRIMARY KEY (nama_fasilitas, id_hewan),
-	FOREIGN KEY (nama_fasilitas) REFERENCES FASILITAS(nama),
+	FOREIGN KEY (nama_fasilitas) REFERENCES FASILITAS(nama)
+		ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (id_hewan) REFERENCES HEWAN(id)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
