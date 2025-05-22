@@ -164,8 +164,57 @@
         overflow: hidden;
       }
       
+      .alert-trigger {
+        border-radius: 1rem;
+        border: none;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        animation: slideInDown 0.5s ease;
+      }
+      
+      .alert-trigger-success {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        border-left: 5px solid #1e7e34;
+      }
+      
+      .alert-trigger-info {
+        background: linear-gradient(135deg, #17a2b8, #007bff);
+        color: white;
+        border-left: 5px solid #138496;
+      }
+      
+      .alert-trigger .alert-icon {
+        font-size: 1.5rem;
+        margin-right: 1rem;
+        vertical-align: middle;
+      }
+      
+      .alert-trigger .alert-content {
+        display: inline-block;
+        vertical-align: middle;
+      }
+      
+      .alert-trigger .alert-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        font-size: 1.1rem;
+      }
+      
+      .alert-trigger .alert-description {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 0.95rem;
+      }
+      
       @keyframes fadeIn {
         from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      
+      @keyframes slideInDown {
+        from { opacity: 0; transform: translateY(-30px); }
         to { opacity: 1; transform: translateY(0); }
       }
       
@@ -195,6 +244,15 @@
         .page-header {
           padding: 1.25rem;
         }
+        
+        .alert-trigger {
+          padding: 0.75rem 1rem;
+        }
+        
+        .alert-trigger .alert-icon {
+          font-size: 1.25rem;
+          margin-right: 0.75rem;
+        }
       }
     </style>
 {% endblock meta %}
@@ -204,6 +262,48 @@
 {% include 'components/navbar.html' %}
 
 <div class="container py-4">
+    {% if messages %}
+        {% for message in messages %}
+            {% if "SUKSES: Jadwal pemeriksaan hewan" in message.message %}
+                <div class="alert-trigger alert-trigger-success animate-fade-in">
+                    <i class="bi bi-calendar-check-fill alert-icon"></i>
+                    <div class="alert-content">
+                        <div class="alert-title">Jadwal Pemeriksaan Diperbarui!</div>
+                        <p class="alert-description">{{ message.message }}</p>
+                    </div>
+                </div>
+            {% elif "SUKSES: Rekam medis hewan" in message.message %}
+                <div class="alert-trigger alert-trigger-info animate-fade-in">
+                    <i class="bi bi-clipboard-check-fill alert-icon"></i>
+                    <div class="alert-content">
+                        <div class="alert-title">Rekam Medis Berhasil Ditambahkan!</div>
+                        <p class="alert-description">{{ message.message }}</p>
+                    </div>
+                </div>
+            {% elif message.tags == 'success' %}
+                <div class="alert alert-success alert-dismissible fade show animate-fade-in" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>{{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% elif message.tags == 'error' %}
+                <div class="alert alert-danger alert-dismissible fade show animate-fade-in" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% elif message.tags == 'warning' %}
+                <div class="alert alert-warning alert-dismissible fade show animate-fade-in" role="alert">
+                    <i class="bi bi-exclamation-circle-fill me-2"></i>{{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% elif message.tags == 'info' %}
+                <div class="alert alert-info alert-dismissible fade show animate-fade-in" role="alert">
+                    <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
     <div class="page-header animate-fade-in">
         <div class="row">
             <div class="col-md-8">
@@ -402,18 +502,17 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const statusKesehatan = document.getElementById('status_kesehatan');
-        if (statusKesehatan) {
-            const diagnosaPengobatan = document.querySelectorAll('.diagnosa-pengobatan');
-            
-            statusKesehatan.addEventListener('change', function() {
-                diagnosaPengobatan.forEach(el => {
-                    el.style.display = this.value === 'Sakit' ? 'block' : 'none';
-                });
-            });
-            
-            statusKesehatan.dispatchEvent(new Event('change'));
-        }
+        const triggerAlerts = document.querySelectorAll('.alert-trigger');
+        triggerAlerts.forEach(alert => {
+            setTimeout(() => {
+                alert.style.transition = 'all 0.5s ease';
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-20px)';
+                setTimeout(() => {
+                    alert.remove();
+                }, 500);
+            }, 10000);
+        });
         
         setTimeout(() => {
             document.querySelectorAll('.animate-fade-in').forEach(el => {

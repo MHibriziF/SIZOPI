@@ -100,26 +100,25 @@ def rekam_medis_list(request):
         messages.error(request, "Hewan tidak ditemukan")
         return redirect('green:rekam_medis_list')
     
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT cm.tanggal_pemeriksaan, p.nama_depan || ' ' || p.nama_belakang as nama_dokter, 
-                   cm.status_kesehatan, cm.diagnosis, cm.pengobatan, cm.catatan_tindak_lanjut
-            FROM SIZOPI.CATATAN_MEDIS cm
-            JOIN SIZOPI.PENGGUNA p ON cm.username_dh = p.username
-            WHERE cm.id_hewan = %s
-            ORDER BY cm.tanggal_pemeriksaan DESC
-        """, [id_hewan])
-        
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT * FROM get_medical_records(%s)
+            """, [id_hewan])
+            
+            rekam_medis_list = []
+            for row in cursor.fetchall():
+                rekam_medis_list.append({
+                    'tanggal_pemeriksaan': row[2],
+                    'nama_dokter': row[3],
+                    'status_kesehatan': row[4],
+                    'diagnosis': row[5],
+                    'pengobatan': row[6],
+                    'catatan_tindak_lanjut': row[7]
+                })
+    except Exception as e:
+        messages.error(request, f"Terjadi kesalahan saat mengambil data: {str(e)}")
         rekam_medis_list = []
-        for row in cursor.fetchall():
-            rekam_medis_list.append({
-                'tanggal_pemeriksaan': row[0],
-                'nama_dokter': row[1],
-                'status_kesehatan': row[2],
-                'diagnosis': row[3],
-                'pengobatan': row[4],
-                'catatan_tindak_lanjut': row[5]
-            })
     
     context = {
         'hewan': hewan,
@@ -140,41 +139,49 @@ def rekam_medis_create(request, id_hewan):
         status_kesehatan = request.POST.get('status_kesehatan')
         diagnosis = request.POST.get('diagnosis')
         pengobatan = request.POST.get('pengobatan')
+        catatan_tindak_lanjut = request.POST.get('catatan_tindak_lanjut')
         
         if not tanggal_pemeriksaan:
             messages.error(request, "Tanggal pemeriksaan harus diisi")
             return render(request, 'rekam_medis/rekam_medis_form.html', {'hewan': hewan})
         
-        if status_kesehatan == 'Sakit' and (not diagnosis or not pengobatan):
-            messages.error(request, "Diagnosis dan pengobatan harus diisi untuk status sakit")
-            return render(request, 'rekam_medis/rekam_medis_form.html', {'hewan': hewan})
-        
         try:
             with connection.cursor() as cursor:
-                cursor.execute("""
-                    SELECT COUNT(*) FROM SIZOPI.CATATAN_MEDIS 
-                    WHERE id_hewan = %s AND tanggal_pemeriksaan = %s
-                """, [id_hewan, tanggal_pemeriksaan])
-                
-                if cursor.fetchone()[0] > 0:
-                    messages.error(request, "Rekam medis untuk tanggal ini sudah ada")
-                    return render(request, 'rekam_medis/rekam_medis_form.html', {'hewan': hewan})
+                cursor.execute("SET client_min_messages TO NOTICE")
                 
                 cursor.execute("""
-                    INSERT INTO SIZOPI.CATATAN_MEDIS (id_hewan, username_dh, tanggal_pemeriksaan, diagnosis, pengobatan, status_kesehatan, catatan_tindak_lanjut)
-                    VALUES (%s, %s, %s, %s, %s, %s, NULL)
-                """, [id_hewan, request.session.get('username'), tanggal_pemeriksaan, diagnosis, pengobatan, status_kesehatan])
+                    SELECT success, message FROM add_medical_record(
+                        %s, %s, %s, %s, %s, %s, %s
+                    )
+                """, [
+                    id_hewan, 
+                    request.session.get('username'), 
+                    tanggal_pemeriksaan, 
+                    diagnosis, 
+                    pengobatan, 
+                    status_kesehatan,
+                    catatan_tindak_lanjut
+                ])
                 
-                cursor.execute("""
-                    UPDATE SIZOPI.HEWAN
-                    SET status_kesehatan = %s
-                    WHERE id = %s
-                """, [status_kesehatan, id_hewan])
-                
-                messages.success(request, "Rekam medis berhasil ditambahkan")
-                return redirect('green:rekam_medis_list')
+                result = cursor.fetchone()
+                if result and result[0]: 
+                    success_message = result[1]
+                    messages.success(request, success_message)
+                    
+                    if status_kesehatan == 'Sakit':
+                        trigger_message = f'SUKSES: Jadwal pemeriksaan hewan "{hewan["nama"]}" telah diperbarui karena status kesehatan "Sakit".'
+                        messages.success(request, trigger_message)
+                    
+                    return redirect(f'{reverse("green:rekam_medis_list")}?id_hewan={id_hewan}')
+                else:
+                    error_message = result[1] if result else "Terjadi kesalahan saat menambah rekam medis"
+                    messages.error(request, error_message)
+                    
         except Exception as e:
-            messages.error(request, f"Terjadi kesalahan: {str(e)}")
+            error_message = str(e)
+            if "ERROR:" in error_message:
+                error_message = error_message.split("ERROR:")[-1].strip()
+            messages.error(request, error_message)
     
     return render(request, 'rekam_medis/rekam_medis_form.html', {'hewan': hewan})
 
@@ -241,7 +248,6 @@ def rekam_medis_delete(request, id_hewan, tanggal):
     if request.method == 'POST':
         try:
             with connection.cursor() as cursor:
-                # Hapus rekam medis
                 cursor.execute("""
                     DELETE FROM SIZOPI.CATATAN_MEDIS
                     WHERE id_hewan = %s AND tanggal_pemeriksaan = %s
@@ -267,32 +273,25 @@ def jadwal_pemeriksaan_list(request):
         messages.error(request, "Hewan tidak ditemukan")
         return redirect('green:jadwal_pemeriksaan_list')
 
-    frekuensi = None
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT freq_pemeriksaan_rutin FROM SIZOPI.JADWAL_PEMERIKSAAN_KESEHATAN
-            WHERE id_hewan = %s
-            LIMIT 1
-        """, [id_hewan])
-        
-        result = cursor.fetchone()
-        if result:
-            frekuensi = result[0]
-    
-    # Ambil jadwal pemeriksaan
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT tgl_pemeriksaan_selanjutnya
-            FROM SIZOPI.JADWAL_PEMERIKSAAN_KESEHATAN
-            WHERE id_hewan = %s
-            ORDER BY tgl_pemeriksaan_selanjutnya
-        """, [id_hewan])
-        
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT * FROM get_medical_schedules(%s)
+            """, [id_hewan])
+            
+            jadwal_list = []
+            frekuensi = None
+            for row in cursor.fetchall():
+                jadwal_list.append({
+                    'tanggal': row[2],
+                    'days_until': row[4]
+                })
+                if frekuensi is None:
+                    frekuensi = row[3]
+    except Exception as e:
+        messages.error(request, f"Terjadi kesalahan saat mengambil data: {str(e)}")
         jadwal_list = []
-        for row in cursor.fetchall():
-            jadwal_list.append({
-                'tanggal': row[0]
-            })
+        frekuensi = None
     
     context = {
         'hewan': hewan,
@@ -305,52 +304,49 @@ def jadwal_pemeriksaan_list(request):
 
 @dokter_hewan_required
 def jadwal_pemeriksaan_create(request, id_hewan):
-    # Ambil data hewan
     hewan = get_hewan_by_id(id_hewan)
     if not hewan:
         messages.error(request, "Hewan tidak ditemukan")
         return redirect('green:jadwal_pemeriksaan_list')
     
-    # Ambil frekuensi pemeriksaan yang ada (jika ada)
-    frekuensi = 3  # Default: 3 bulan sekali
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT freq_pemeriksaan_rutin FROM SIZOPI.JADWAL_PEMERIKSAAN_KESEHATAN
-            WHERE id_hewan = %s
-            LIMIT 1
-        """, [id_hewan])
-        
-        result = cursor.fetchone()
-        if result:
-            frekuensi = result[0]
-    
     if request.method == 'POST':
         tanggal_pemeriksaan = request.POST.get('tanggal_pemeriksaan')
+        frekuensi_bulan = request.POST.get('frekuensi_bulan', 3)
         
         if not tanggal_pemeriksaan:
             messages.error(request, "Tanggal pemeriksaan harus diisi")
             return render(request, 'jadwal_pemeriksaan/jadwal_form.html', {'hewan': hewan})
         
         try:
+            frekuensi_bulan = int(frekuensi_bulan)
+        except (ValueError, TypeError):
+            frekuensi_bulan = 3 
+        try:
             with connection.cursor() as cursor:
-                cursor.execute("""
-                    SELECT COUNT(*) FROM SIZOPI.JADWAL_PEMERIKSAAN_KESEHATAN 
-                    WHERE id_hewan = %s AND tgl_pemeriksaan_selanjutnya = %s
-                """, [id_hewan, tanggal_pemeriksaan])
-                
-                if cursor.fetchone()[0] > 0:
-                    messages.error(request, "Jadwal pemeriksaan untuk tanggal ini sudah ada")
-                    return render(request, 'jadwal_pemeriksaan/jadwal_form.html', {'hewan': hewan})
+                cursor.execute("SET client_min_messages TO NOTICE")
                 
                 cursor.execute("""
-                    INSERT INTO SIZOPI.JADWAL_PEMERIKSAAN_KESEHATAN (id_hewan, tgl_pemeriksaan_selanjutnya, freq_pemeriksaan_rutin)
-                    VALUES (%s, %s, %s)
-                """, [id_hewan, tanggal_pemeriksaan, frekuensi])
+                    SELECT success, message FROM add_medical_schedule(%s, %s, %s)
+                """, [id_hewan, tanggal_pemeriksaan, frekuensi_bulan])
                 
-                messages.success(request, "Jadwal pemeriksaan berhasil ditambahkan")
-                return redirect('green:jadwal_pemeriksaan_list')
+                result = cursor.fetchone()
+                if result and result[0]:  
+                    success_message = result[1]
+                    messages.success(request, success_message)
+
+                    trigger_message = f'SUKSES: Jadwal pemeriksaan rutin hewan "{hewan["nama"]}" telah ditambahkan sesuai frekuensi.'
+                    messages.success(request, trigger_message)
+                    
+                    return redirect(f'{reverse("green:jadwal_pemeriksaan_list")}?id_hewan={id_hewan}')
+                else:
+                    error_message = result[1] if result else "Terjadi kesalahan saat menambah jadwal"
+                    messages.error(request, error_message)
+                    
         except Exception as e:
-            messages.error(request, f"Terjadi kesalahan: {str(e)}")
+            error_message = str(e)
+            if "ERROR:" in error_message:
+                error_message = error_message.split("ERROR:")[-1].strip()
+            messages.error(request, error_message)
     
     return render(request, 'jadwal_pemeriksaan/jadwal_form.html', {'hewan': hewan})
 
