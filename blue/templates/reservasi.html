@@ -40,7 +40,7 @@
             <tbody class="text-gray-700">
                 {% for reservasi in data_reservasi %}
                 <tr class="border-t">
-                    <td class="px-6 py-4">{{ reservasi.nama_atraksi }}</td>
+                    <td class="px-6 py-4">{{ reservasi.nama_fasilitas }}</td>
                     <td class="px-6 py-4">{{ reservasi.lokasi }}</td>
                     <td class="px-6 py-4">{{ reservasi.jam }}</td>
                     <td class="px-6 py-4">{{ reservasi.tanggal | date:"j F Y" }}</td>
@@ -49,7 +49,7 @@
                     <td class="px-6 py-4 text-center">
                         <div class="flex justify-center space-x-2">
                             <button onclick="openEditModalReservasi(this)" 
-                                data-nama="{{ reservasi.nama_atraksi }}" 
+                                data-nama="{{ reservasi.nama_fasilitas }}" 
                                 data-lokasi="{{ reservasi.lokasi }}" 
                                 data-jam="{{ reservasi.jam }}" 
                                 data-tanggal="{{ reservasi.tanggal }}" 

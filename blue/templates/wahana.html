@@ -8,6 +8,22 @@
 {% include 'components/navbar.html' %}
 
 <div class="bg-[#F0F1C5] p-8 m-8 rounded-2xl shadow-md">
+    {% if messages %}
+        <div class="mt-4">
+            {% for message in messages %}
+                {% if 'wahana' in message.tags %}
+                    <div class="mb-4 px-4 py-3 rounded-lg 
+                        {% if 'success' in message.tags %}bg-green-100 text-green-800 border border-green-300
+                        {% else %}bg-red-100 text-red-800 border border-red-300
+                        {% endif %}">
+                        {{ message }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+
+
     <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-8 bg-[#6F826A] py-8 px-6 rounded-2xl">
         <h1 class="text-3xl font-bold mb-4 md:mb-0 text-white">Wahana</h1>
         <div class="flex space-x-4">
@@ -109,19 +125,20 @@
     }
 
     function openEditModal(element) {
-    const nama = element.getAttribute('data-nama');
-    const kapasitas = element.getAttribute('data-kapasitas');
-    const jadwal = element.getAttribute('data-jadwal');
-    const peraturanList = element.getAttribute('data-peraturan').split(',');
+        const nama = element.getAttribute('data-nama');
+        const kapasitas = element.getAttribute('data-kapasitas');
+        const jadwal = element.getAttribute('data-jadwal');
+        const peraturanList = element.getAttribute('data-peraturan').split(',');
 
-    document.getElementById('edit_nama_wahana').value = nama;
-    document.getElementById('edit_kapasitas').value = kapasitas;
-    document.getElementById('edit_jadwal').value = jadwal;
+        document.getElementById('edit_nama_wahana').value = nama;
+        document.getElementById('edit_nama_wahana_lama').value = nama;
+        document.getElementById('edit_kapasitas').value = kapasitas;
+        document.getElementById('edit_jadwal').value = jadwal;
 
-    const container = document.getElementById('edit_peraturan_container');
-    container.innerHTML = ''; // bersihkan dulu
+        const container = document.getElementById('edit_peraturan_container');
+        container.innerHTML = ''; // bersihkan dulu
 
-    peraturanList.forEach(peraturan => {
+        peraturanList.forEach(peraturan => {
             const peraturanDiv = document.createElement('div');
             peraturanDiv.className = "flex items-center space-x-2 mb-2";
             peraturanDiv.innerHTML = `
