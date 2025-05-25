@@ -15,6 +15,8 @@
             --primary-light: #8EAF7B;
             --primary-dark: #3a4a33;
             --card-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+            --accent-blue: #007bff;
+            --accent-purple: #6f42c1;
         }
         
         .content-wrapper {
@@ -47,6 +49,110 @@
             border-radius: 2rem;
             font-size: 1rem;
             display: inline-block;
+        }
+        
+        .alert-trigger {
+            border-radius: 1rem;
+            border: none;
+            padding: 1.25rem 1.75rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            animation: slideInDown 0.6s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .alert-trigger::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #fff, rgba(255,255,255,0.7), #fff);
+        }
+        
+        .alert-trigger-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border-left: 5px solid #1e7e34;
+        }
+        
+        .alert-trigger-info {
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            color: white;
+            border-left: 5px solid #5a32a3;
+        }
+        
+        .alert-trigger-warning {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+            color: #212529;
+            border-left: 5px solid #d39e00;
+        }
+        
+        .alert-trigger .alert-icon {
+            font-size: 1.75rem;
+            margin-right: 1.25rem;
+            vertical-align: middle;
+            animation: pulse 2s infinite;
+        }
+        
+        .alert-trigger .alert-content {
+            display: inline-block;
+            vertical-align: middle;
+            flex: 1;
+        }
+        
+        .alert-trigger .alert-title {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .alert-trigger .alert-description {
+            margin: 0;
+            opacity: 0.95;
+            font-size: 1rem;
+            line-height: 1.4;
+        }
+        
+        .alert-close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: inherit;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .alert-close-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.1);
+        }
+        
+        @keyframes slideInDown {
+            from { 
+                opacity: 0; 
+                transform: translateY(-40px) scale(0.95); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
         
         .btn-primary {
@@ -130,6 +236,21 @@
             border-radius: 0.5rem;
         }
         
+        .badge-upcoming {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+        }
+        
+        .badge-overdue {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+        }
+        
+        .badge-today {
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+            color: white;
+        }
+        
         .bg-danger {
             background-color: #dc3545 !important;
         }
@@ -205,6 +326,35 @@
             color: #6c757d;
             margin-bottom: 2rem;
         }
+        
+        .timeline-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--primary-light);
+            margin-right: 0.75rem;
+        }
+        
+        @media (max-width: 767.98px) {
+            .alert-trigger {
+                padding: 1rem 1.25rem;
+                margin-bottom: 1rem;
+            }
+            
+            .alert-trigger .alert-icon {
+                font-size: 1.5rem;
+                margin-right: 1rem;
+            }
+            
+            .alert-trigger .alert-title {
+                font-size: 1.1rem;
+            }
+            
+            .content-wrapper {
+                padding: 1.5rem;
+            }
+        }
     </style>
 {% endblock meta %}
 
@@ -213,6 +363,61 @@
 {% include 'components/navbar.html' %}
 
 <div class="container">
+    {% if messages %}
+        {% for message in messages %}
+            {% if "SUKSES: Jadwal pemeriksaan rutin hewan" in message.message %}
+                <div class="alert-trigger alert-trigger-info">
+                    <button class="alert-close-btn" onclick="this.parentElement.remove()">
+                        <i class="bi bi-x"></i>
+                    </button>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-calendar-plus-fill alert-icon"></i>
+                        <div class="alert-content">
+                            <div class="alert-title">🎉 Jadwal Rutin Ditambahkan Otomatis!</div>
+                            <p class="alert-description">{{ message.message }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% elif "SUKSES:" in message.message and "jadwal" in message.message|lower %}
+                <div class="alert-trigger alert-trigger-success">
+                    <button class="alert-close-btn" onclick="this.parentElement.remove()">
+                        <i class="bi bi-x"></i>
+                    </button>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill alert-icon"></i>
+                        <div class="alert-content">
+                            <div class="alert-title">✅ Berhasil!</div>
+                            <p class="alert-description">{{ message.message }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% elif message.tags == 'success' %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>{{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% elif message.tags == 'error' %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% elif message.tags == 'warning' %}
+                <div class="alert-trigger alert-trigger-warning">
+                    <button class="alert-close-btn" onclick="this.parentElement.remove()">
+                        <i class="bi bi-x"></i>
+                    </button>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle-fill alert-icon"></i>
+                        <div class="alert-content">
+                            <div class="alert-title">⚠️ Perhatian!</div>
+                            <p class="alert-description">{{ message }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
     <div class="page-header text-center text-md-start">
         <div class="container">
             <div class="row align-items-center">
@@ -251,7 +456,10 @@
 
         <div class="card">
             <div class="card-header">
-                <h5><i class="bi bi-calendar2-week me-2"></i>Jadwal Pemeriksaan</h5>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5><i class="bi bi-calendar2-week me-2"></i>Jadwal Pemeriksaan</h5>
+                    <span class="badge bg-light text-dark">{{ jadwal_list|length }} jadwal</span>
+                </div>
             </div>
             <div class="card-body p-0">
                 {% if jadwal_list %}
@@ -261,19 +469,53 @@
                             <tr>
                                 <th><i class="bi bi-calendar me-2"></i>Tanggal Pemeriksaan</th>
                                 <th><i class="bi bi-info-circle me-2"></i>Status</th>
+                                <th><i class="bi bi-hourglass me-2"></i>Hari Tersisa</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for jadwal in jadwal_list %}
                             <tr>
-                                <td>{{ jadwal.tanggal|date:"d F Y" }}</td>
                                 <td>
-                                    {% if jadwal.tanggal|date:'Y-m-d' < today|date:'Y-m-d' %}
-                                        <span class="badge bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>Lewat Jadwal</span>
-                                    {% elif jadwal.tanggal|date:'Y-m-d' == today|date:'Y-m-d' %}
-                                        <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Hari Ini</span>
+                                    <div class="d-flex align-items-center">
+                                        <span class="timeline-dot"></span>
+                                        {{ jadwal.tanggal|date:"d F Y" }}
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if jadwal.days_until < 0 %}
+                                        <span class="badge badge-overdue">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i>Terlambat
+                                        </span>
+                                    {% elif jadwal.days_until == 0 %}
+                                        <span class="badge badge-today">
+                                            <i class="bi bi-calendar-check-fill me-1"></i>Hari Ini
+                                        </span>
+                                    {% elif jadwal.days_until <= 7 %}
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="bi bi-exclamation-circle-fill me-1"></i>Segera
+                                        </span>
                                     {% else %}
-                                        <span class="badge bg-info"><i class="bi bi-calendar-check me-1"></i>Akan Datang</span>
+                                        <span class="badge badge-upcoming">
+                                            <i class="bi bi-calendar-event-fill me-1"></i>Terjadwal
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if jadwal.days_until < 0 %}
+                                        <span class="text-danger fw-bold">
+                                            <i class="bi bi-clock-history me-1"></i>
+                                            {{ jadwal.days_until_abs }} hari yang lalu
+                                        </span>
+                                    {% elif jadwal.days_until == 0 %}
+                                        <span class="text-success fw-bold">
+                                            <i class="bi bi-calendar-check me-1"></i>
+                                            Hari ini
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">
+                                            <i class="bi bi-calendar-date me-1"></i>
+                                            {{ jadwal.days_until }} hari lagi
+                                        </span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -285,11 +527,32 @@
                 <div class="empty-state">
                     <i class="bi bi-calendar-x"></i>
                     <p>Belum ada jadwal pemeriksaan yang ditambahkan</p>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tambahJadwalModal">
+                    <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#tambahJadwalModal">
                         <i class="bi bi-plus-lg me-2"></i>Tambah Jadwal Pemeriksaan Pertama
                     </button>
                 </div>
                 {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex">
+                    <div class="me-3">
+                        <i class="bi bi-lightbulb-fill text-warning" style="font-size: 2rem;"></i>
+                    </div>
+                    <div>
+                        <h5 class="card-title">💡 Tips Jadwal Pemeriksaan Otomatis</h5>
+                        <p class="card-text mb-2">
+                            <strong>Sistem akan otomatis menambahkan jadwal pemeriksaan rutin</strong> sesuai dengan frekuensi yang ditentukan. 
+                        </p>
+                        <ul class="mb-0">
+                            <li>Jika hewan didiagnosis <strong>sakit</strong>, jadwal pemeriksaan akan otomatis disesuaikan untuk follow-up dalam 7 hari.</li>
+                            <li>Ketika menambah jadwal baru, sistem akan membuat jadwal rutin berikutnya sesuai frekuensi dalam tahun yang sama.</li>
+                            <li>Anda akan melihat notifikasi khusus ketika sistem melakukan perubahan otomatis.</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -308,11 +571,29 @@
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="mb-4">
-                        <label for="tanggal_pemeriksaan" class="form-label">Tanggal Pemeriksaan Selanjutnya</label>
+                        <label for="tanggal_pemeriksaan" class="form-label">
+                            <i class="bi bi-calendar-date me-1"></i>Tanggal Pemeriksaan Selanjutnya
+                        </label>
                         <input type="date" id="tanggal_pemeriksaan" name="tanggal_pemeriksaan" 
                                class="form-control form-control-lg" required>
                         <div class="form-text mt-2">
-                            <i class="bi bi-info-circle me-1"></i>Pilih tanggal untuk jadwal pemeriksaan berikutnya.
+                            <i class="bi bi-info-circle me-1"></i>Pilih tanggal untuk jadwal pemeriksaan berikutnya. Sistem akan otomatis menambahkan jadwal rutin sesuai frekuensi.
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="frekuensi_bulan" class="form-label">
+                            <i class="bi bi-arrow-repeat me-1"></i>Frekuensi Pemeriksaan (Bulan)
+                        </label>
+                        <select id="frekuensi_bulan" name="frekuensi_bulan" class="form-control form-control-lg">
+                            <option value="1">Setiap 1 bulan</option>
+                            <option value="2">Setiap 2 bulan</option>
+                            <option value="3" selected>Setiap 3 bulan (Default)</option>
+                            <option value="4">Setiap 4 bulan</option>
+                            <option value="6">Setiap 6 bulan</option>
+                            <option value="12">Setiap 12 bulan</option>
+                        </select>
+                        <div class="form-text mt-2">
+                            <i class="bi bi-gear me-1"></i>Sistem akan membuat jadwal berikutnya secara otomatis berdasarkan frekuensi ini.
                         </div>
                     </div>
                 </div>
@@ -321,7 +602,7 @@
                         <i class="bi bi-x-circle me-1"></i>Batal
                     </button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-circle me-1"></i>Simpan
+                        <i class="bi bi-check-circle me-1"></i>Simpan & Buat Jadwal Otomatis
                     </button>
                 </div>
             </form>
@@ -333,37 +614,49 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('Bootstrap JS loaded:', typeof bootstrap !== 'undefined');
-        
         const today = new Date().toISOString().split('T')[0];
         const dateInput = document.getElementById('tanggal_pemeriksaan');
         if (dateInput) {
             dateInput.setAttribute('min', today);
-            console.log('Date input initialized with min date:', today);
         }
+        
+        const triggerAlerts = document.querySelectorAll('.alert-trigger');
+        triggerAlerts.forEach(alert => {
+            setTimeout(() => {
+                alert.style.transition = 'all 0.8s ease';
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-30px) scale(0.95)';
+                setTimeout(() => {
+                    alert.remove();
+                }, 800);
+            }, 12000);
+        });
+        
+        document.querySelectorAll('.alert-close-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const alert = this.parentElement;
+                alert.style.transition = 'all 0.5s ease';
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-20px) scale(0.95)';
+                setTimeout(() => {
+                    alert.remove();
+                }, 500);
+            });
+        });
         
         const modalElement = document.getElementById('tambahJadwalModal');
         if (modalElement) {
-            console.log('Modal element found');
-            
-            try {
-                const modal = new bootstrap.Modal(modalElement);
-                console.log('Modal successfully initialized');
-                
-                const debugButton = document.createElement('button');
-                debugButton.textContent = 'Test Modal (Debug)';
-                debugButton.classList.add('btn', 'btn-sm', 'btn-info', 'position-fixed', 'bottom-0', 'end-0', 'm-3');
-                debugButton.style.zIndex = '9999';
-                debugButton.addEventListener('click', function() {
-                    modal.show();
-                });
-                document.body.appendChild(debugButton);
-            } catch (e) {
-                console.error('Error initializing modal:', e);
-            }
-        } else {
-            console.error('Modal element not found');
+            const modal = new bootstrap.Modal(modalElement);
+
+            modalElement.addEventListener('shown.bs.modal', function() {
+                const dateInput = document.getElementById('tanggal_pemeriksaan');
+                if (dateInput) {
+                    dateInput.focus();
+                }
+            });
         }
+        
+        console.log('Enhanced jadwal pemeriksaan page loaded with trigger alerts');
     });
 </script>
 {% endblock extra_js %}
