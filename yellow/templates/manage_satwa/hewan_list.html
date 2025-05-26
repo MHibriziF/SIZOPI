@@ -170,6 +170,15 @@
     <!-- Main Content -->
     <div class="flex-grow bg-[rgba(236,240,202,0.5)] p-4 md:p-6 lg:p-8">
         <div class="w-full max-w-full mx-auto bg-[#61785f] rounded-xl p-3 md:p-4 shadow-md text-white">
+            {% if messages %}
+                <div class="mb-4">
+                    {% for message in messages %}
+                        <div class="alert {{ message.tags }} p-4 rounded-lg mb-4">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
             <!-- Header and Search -->
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
                 <h1 class="text-xl sm:text-2xl font-bold">Animal List</h1>
