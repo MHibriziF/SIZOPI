@@ -3,6 +3,165 @@
 
 {% block meta %}
 <title>Animal List - SIZOPI</title>
+<style>
+      :root {
+        --primary-color: #4A5A43;
+        --secondary-color: #A7C796;
+        --accent-color: #D4E7C5;
+        --dark-overlay: rgba(0, 0, 0, 0.7);
+        --light-overlay: rgba(255, 255, 255, 0.9);
+        --medium-overlay: rgba(255, 255, 255, 0.85);
+      }
+      
+      body {
+        font-family: 'Poppins', sans-serif;
+      }
+      
+      .page-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+      
+      .page-header h2 {
+        margin-bottom: 0.25rem;
+        font-weight: 600;
+      }
+      
+      .page-header p {
+        margin-bottom: 0;
+        opacity: 0.9;
+      }
+      
+      .overlay-bg {
+        background-color: var(--medium-overlay) !important;
+        border-radius: 0.5rem !important;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+      
+      .card.overlay-bg {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      
+      .card.overlay-bg:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+      }
+      
+      .table-header-overlay th {
+        background-color: var(--dark-overlay) !important;
+        color: #fff !important;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        border: none;
+        padding: 1rem 0.75rem;
+      }
+      
+      .table-row-overlay td {
+        background-color: var(--light-overlay);
+        vertical-align: middle;
+        padding: 0.75rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      }
+      
+      .table-hover tbody tr:hover {
+        transform: translateX(5px);
+        transition: transform 0.2s ease;
+      }
+      
+      .badge {
+        padding: 0.5em 0.75em;
+        font-weight: 500;
+        border-radius: 50rem;
+      }
+      
+      .badge.bg-success {
+        background-color: rgba(40, 167, 69, 0.9) !important;
+      }
+      
+      .badge.bg-danger {
+        background-color: rgba(220, 53, 69, 0.9) !important;
+      }
+      
+      .badge.bg-warning {
+        background-color: rgba(255, 193, 7, 0.9) !important;
+      }
+      
+      .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        transition: all 0.3s ease;
+      }
+      
+      .btn-primary:hover {
+        background-color: #3a4a33;
+        border-color: #3a4a33;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      
+      .btn i {
+        margin-right: 0.25rem;
+        transition: transform 0.3s ease;
+      }
+      
+      .btn:hover i {
+        transform: translateY(-2px);
+      }
+      
+      .search-container {
+        margin-bottom: 1.5rem;
+      }
+      
+      .search-input {
+        background-color: var(--light-overlay);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 50rem;
+        padding: 0.75rem 1.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+      }
+      
+      .search-input:focus {
+        box-shadow: 0 0 0 0.25rem rgba(167, 199, 150, 0.4);
+        border-color: var(--secondary-color);
+      }
+      
+      .animal-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--accent-color);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.75rem;
+        font-weight: bold;
+        color: var(--primary-color);
+      }
+      
+      @media (max-width: 992px) {
+        .container {
+          max-width: 100%;
+        }
+      }
+      
+      @keyframes shimmer {
+        0% { background-position: -1000px 0; }
+        100% { background-position: 1000px 0; }
+      }
+      
+      .shimmer {
+        animation: shimmer 2s infinite linear;
+        background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 100%);
+        background-size: 1000px 100%;
+      }
+    </style>
 {% endblock meta %}
 
 {% block content %}
@@ -57,45 +216,53 @@
                     <table class="w-full text-left">
                         <thead class="bg-[#e8edce] text-[#61785f] border-b border-[#ccd4a7] sticky top-0">
                             <tr>
-                                <th class="py-3 px-2 sm:px-4">Gambar</th>
                                 <th class="py-3 px-2 sm:px-4">Nama</th>
                                 <th class="py-3 px-2 sm:px-4 hidden sm:table-cell">Species</th>
                                 <th class="py-3 px-2 sm:px-4 hidden md:table-cell">Asal Hewan</th>
                                 <th class="py-3 px-2 sm:px-4 hidden md:table-cell">Tanggal Lahir</th>
-                                <th class="py-3 px-2 sm:px-4 hidden md:table-cell">Status</th>
-                                <th class="py-3 px-2 sm:px-4 hidden lg:table-cell">Habitat</th>
+                                <th class="py-3 px-2 sm:px-4 hidden md:table-cell">Habitat</th>
+                                <th class="py-3 px-2 sm:px-4 hidden lg:table-cell">Status</th>
                                 <th class="py-3 px-2 sm:px-4 text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="text-gray-700">
-                            {% for i in "1234567" %}
-                            <tr class="border-b border-[#e1e8c3]">
-                                <td class="py-2 sm:py-3 px-2 sm:px-4">
-                                    <img src="https://assets.pikiran-rakyat.com/crop/151x122:834x574/750x500/photo/2023/04/10/878356339.png" alt="Animal" class="h-16 w-16 sm:h-20 sm:w-20 object-cover rounded-full">
-                                </td>
-                                <td class="py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-base">Antoni E.</td>
-                                <td class="py-2 sm:py-3 px-2 sm:px-4 hidden sm:table-cell">Primata</td>
-                                <td class="py-2 sm:py-3 px-2 sm:px-4 hidden md:table-cell">Indonesia</td>
-                                <td class="py-2 sm:py-3 px-2 sm:px-4 hidden md:table-cell">15-03-2020</td>
-                                <td class="py-2 sm:py-3 px-2 sm:px-4 hidden md:table-cell">
-                                    <span class="px-2 py-1 rounded-full text-xs 
-                                          {% if i|divisibleby:3 %}bg-green-100 text-green-800
-                                          {% elif i|divisibleby:2 %}bg-yellow-100 text-yellow-800
-                                          {% else %}bg-red-100 text-red-800{% endif %}">
-                                        {% if i|divisibleby:3 %}Sehat
-                                        {% elif i|divisibleby:2 %}Rehabilitasi
-                                        {% else %}Tidak Sehat{% endif %}
-                                    </span>
-                                </td>
-                                <td class="py-2 sm:py-3 px-2 sm:px-4 hidden lg:table-cell">Lab komputer</td>
-                                <td class="py-2 sm:py-3 px-2 sm:px-4 text-right">
-                                    <button class="text-blue-600 hover:text-blue-800 edit-modal-trigger">
-                                        <span class="fa fa-pencil"></span>
-                                    </button>
-                                    <button class="text-red-600 hover:text-red-800 ml-3" onclick="return confirmDelete()">
-                                        <span class="fa fa-trash"></span>
-                                    </button>
-                                </td>
+                            {% for hewan in hewan_list %}
+                            <tr class="table-row-overlay">   
+                            <td class="px-3 py-3 d-flex align-items-center">
+                                <div class="animal-avatar">
+                                {{ hewan.nama|default:"?"| slice:":1" }}
+                                </div>
+                                {{ hewan.nama|default:"Tidak ada nama" }}
+                            </td>
+                            <td class="px-3 py-3">{{ hewan.spesies }}</td>
+                            <td class="px-3 py-3">{{ hewan.asal_hewan }}</td>
+                            <td class="px-3 py-3">{{ hewan.tanggal_lahir|date:"d/m/Y"|default:"-" }}</td>
+                            <td class="px-3 py-3">{{ hewan.nama_habitat }}</td>
+                            <td class="px-3 py-3">
+                                {% if hewan.status_kesehatan == 'Sehat' or 'sehat' %}
+                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>{{ hewan.status_kesehatan }}</span>
+                                {% elif hewan.status_kesehatan == 'Sakit' %}
+                                <span class="badge bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>{{ hewan.status_kesehatan }}</span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark"><i class="bi bi-eye me-1"></i>{{ hewan.status_kesehatan }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-2 px-2 sm:px-4 text-right">
+                                <button class="text-blue-600 hover:text-blue-800 edit-modal-trigger" data-id="1">
+                                    <span class="fa fa-pencil"></span>
+                                </button>
+                                <a href="{% url 'yellow:hapus_hewan' hewan.id %}" class="text-red-600 hover:text-red-800" onclick="return confirm('Apakah Anda yakin ingin menghapus hewan ini?')">
+                                    <span class="fa fa-trash"></span>
+                                </a>   
+                            </td>
+                            </tr>
+                            {% empty %}
+                            <tr class="table-row-overlay">
+                            <td colspan="7" class="text-center py-5">
+                                <i class="bi bi-clipboard-x fs-1 text-muted mb-3 d-block"></i>
+                                <p class="mb-2">Tidak ada data hewan yang tersedia</p>
+                                <p class="small text-muted">Silakan hubungi administrator jika ini merupakan kesalahan</p>
+                            </td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -128,41 +295,44 @@
         
         <!-- Modal Body -->
         <div class="p-6">
-            <form>
+            <form method="POST" action="{% url 'yellow:tambah_hewan' %}">
+                {% csrf_token %}
+                <p>Action URL: {% url 'yellow:tambah_hewan' %}</p>
+                
                 <!-- Animal Image URL -->
                 <div class="mb-4">
-                    <label for="newAnimalImageUrl" class="block text-sm font-medium text-gray-700 mb-1">URL Gambar</label>
-                    <input type="url" id="newAnimalImageUrl" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" placeholder="https://example.com/image.jpg">
+                    <label for="url_foto_new" class="block text-sm font-medium text-gray-700 mb-1">URL Gambar</label>
+                    <input type="url" id="url_foto_new" name="url_foto" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" placeholder="https://example.com/image.jpg">
                 </div>
                 
                 <!-- Animal Name -->
                 <div class="mb-4">
-                    <label for="newAnimalName" class="block text-sm font-medium text-gray-700 mb-1">Nama</label>
-                    <input type="text" id="newAnimalName" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" placeholder="Masukkan nama hewan">
+                    <label for="nama_new" class="block text-sm font-medium text-gray-700 mb-1">Nama</label>
+                    <input type="text" id="nama_new" name="nama" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" placeholder="Masukkan nama hewan">
                 </div>
                 
                 <!-- Animal Species -->
                 <div class="mb-4">
-                    <label for="newAnimalSpecies" class="block text-sm font-medium text-gray-700 mb-1">Species</label>
-                    <input type="text" id="newAnimalSpecies" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" placeholder="contoh: Mamalia, Reptil, dll">
+                    <label for="spesies_new" class="block text-sm font-medium text-gray-700 mb-1">Species</label>
+                    <input type="text" id="spesies_new" name="spesies" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" placeholder="contoh: Mamalia, Reptil, dll">
                 </div>
                 
                 <!-- Animal Origin -->
                 <div class="mb-4">
-                    <label for="newAnimalOrigin" class="block text-sm font-medium text-gray-700 mb-1">Asal Hewan</label>
-                    <input type="text" id="newAnimalOrigin" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" placeholder="contoh: Indonesia, Australia, dll">
+                    <label for="asal_hewan_new" class="block text-sm font-medium text-gray-700 mb-1">Asal Hewan</label>
+                    <input type="text" id="asal_hewan_new" name="asal_hewan" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" placeholder="contoh: Indonesia, Australia, dll">
                 </div>
                 
                 <!-- Animal Birth Date -->
                 <div class="mb-4">
-                    <label for="newAnimalBirthDate" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Lahir</label>
-                    <input type="date" id="newAnimalBirthDate" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
+                    <label for="tanggal_lahir_new" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Lahir</label>
+                    <input type="date" id="tanggal_lahir_new" name="tanggal_lahir" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
                 </div>
                 
                 <!-- Animal Status -->
                 <div class="mb-4">
-                    <label for="newAnimalStatus" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                    <select id="newAnimalStatus" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
+                    <label for="status_kesehatan_new" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select id="status_kesehatan_new" name="status_kesehatan" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
                         <option value="">-- Pilih Status --</option>
                         <option value="sehat">Sehat</option>
                         <option value="rehabilitasi">Rehabilitasi</option>
@@ -172,8 +342,13 @@
                 
                 <!-- Animal Habitat -->
                 <div class="mb-4">
-                    <label for="newAnimalHabitat" class="block text-sm font-medium text-gray-700 mb-1">Habitat</label>
-                    <input type="text" id="newAnimalHabitat" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" placeholder="contoh: Hutan, Savana, dll">
+                    <label for="nama_habitat_new" class="block text-sm font-medium text-gray-700 mb-1">Habitat</label>
+                    <select id="nama_habitat_new" name="nama_habitat" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" required>
+                        <option value="">-- Pilih Habitat --</option>
+                        {% for habitat in habitat_list %}
+                        <option value="{{ habitat }}">{{ habitat }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
                 
                 <!-- Action Buttons -->
@@ -209,7 +384,7 @@
                 <!-- Animal Image URL -->
                 <div class="mb-4">
                     <label for="animalImageUrl" class="block text-sm font-medium text-gray-700 mb-1">URL Gambar</label>
-                    <input type="url" id="animalImageUrl" value="https://example.com/image.jpg" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" placeholder="https://example.com/image.jpg">
+                    <input type="url" id="animalImageUrl" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" placeholder="https://example.com/image.jpg">
                     <div class="mt-2">
                         <img src="https://assets.pikiran-rakyat.com/crop/151x122:834x574/750x500/photo/2023/04/10/878356339.png" class="h-24 w-24 object-cover rounded-lg mx-auto" alt="Animal Preview">
                     </div>
@@ -218,25 +393,25 @@
                 <!-- Animal Name -->
                 <div class="mb-4">
                     <label for="animalName" class="block text-sm font-medium text-gray-700 mb-1">Nama</label>
-                    <input type="text" id="animalName" value="Antoni E." class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
+                    <input type="text" id="animalName"  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
                 </div>
                 
                 <!-- Animal Species -->
                 <div class="mb-4">
                     <label for="animalSpecies" class="block text-sm font-medium text-gray-700 mb-1">Species</label>
-                    <input type="text" id="animalSpecies" value="Primata" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
+                    <input type="text" id="animalSpecies"  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
                 </div>
                 
                 <!-- Animal Origin -->
                 <div class="mb-4">
                     <label for="animalOrigin" class="block text-sm font-medium text-gray-700 mb-1">Asal Hewan</label>
-                    <input type="text" id="animalOrigin" value="Indonesia" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
+                    <input type="text" id="animalOrigin"  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
                 </div>
                 
                 <!-- Animal Birth Date -->
                 <div class="mb-4">
                     <label for="animalBirthDate" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Lahir</label>
-                    <input type="date" id="animalBirthDate" value="2020-03-15" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
+                    <input type="date" id="animalBirthDate"  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
                 </div>
                 
                 <!-- Animal Status -->
@@ -252,7 +427,7 @@
                 <!-- Animal Habitat -->
                 <div class="mb-4">
                     <label for="animalHabitat" class="block text-sm font-medium text-gray-700 mb-1">Habitat</label>
-                    <input type="text" id="animalHabitat" value="Lab komputer" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
+                    <input type="text" id="animalHabitat" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
                 </div>
                 
                 <!-- Action Buttons -->
@@ -390,11 +565,7 @@
         // Add form submission handling
         const addForm = addModal.querySelector('form');
         addForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            // Here you would add code to submit the form data to your backend
-            // For now, we'll just close the modal
             closeAddModal();
-            // You might want to refresh the table or add the new entry directly
         });
     });
 </script>
