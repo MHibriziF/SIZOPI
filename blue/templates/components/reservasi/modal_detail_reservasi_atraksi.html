@@ -1,0 +1,114 @@
+<!-- Modal Detail Reservasi Atraksi -->
+<div id="modalDetailReservasi" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+    <div class="bg-white rounded-2xl p-8 w-full max-w-lg max-h-[95vh] overflow-y-auto relative">
+        <h2 class="text-2xl font-bold mb-6 text-center">Detail Reservasi</h2>
+        <form>
+            <input type="hidden" id="username_p_atraksi" name="nama_reservasi_atraksi_detail">
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Nama Atraksi</label>
+                <input type="text" id="detailNamaAtraksi" class="w-full px-4 py-2 border rounded-lg bg-gray-100" readonly>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Lokasi</label>
+                <input type="text" id="detailLokasiAtraksi" class="w-full px-4 py-2 border rounded-lg bg-gray-100" readonly>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Jam</label>
+                <input type="time" id="detailJamAtraksi" class="w-full px-4 py-2 border rounded-lg bg-gray-100" readonly>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Tanggal</label>
+                <input type="date" id="detailTanggalAtraksi" class="w-full px-4 py-2 border rounded-lg bg-gray-100" readonly>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Jumlah Tiket</label>
+                <input type="number" id="detailJumlahTiket" class="w-full px-4 py-2 border rounded-lg bg-gray-100" readonly>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-gray-700 mb-2">Status</label>
+                <select id="detailStatus" class="w-full px-4 py-2 border rounded-lg bg-gray-100" disabled>
+                    <option value="Terjadwal">Terjadwal</option>
+                    <option value="Dibatalkan">Dibatalkan</option>
+                </select>
+            </div>
+
+            <div class="flex justify-end space-x-4">
+                <button type="button" onclick="closeModalDetailReservasi()" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100">Tutup</button>
+                <button type="button" onclick="goToEditFromDetail()" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600">Edit</button>
+                <button type="button" onclick="goToCancelFromDetail()" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">Batalkan Reservasi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function showDetailsAtraksi(row) {
+        const nama = row.getAttribute('data-nama');
+        const lokasi = row.getAttribute('data-lokasi-or-peraturan');
+        const jam = row.getAttribute('data-jam');
+        const tanggal = row.getAttribute('data-tanggal');
+        const tiket = row.getAttribute('data-tiket');
+        const status = row.getAttribute('data-status');
+        const username_p = row.getAttribute('data-username');
+        document.getElementById('detailNamaAtraksi').value = nama;
+        document.getElementById('detailLokasiAtraksi').value = lokasi;
+        document.getElementById('detailJamAtraksi').value = jam;
+        document.getElementById('detailTanggalAtraksi').value = tanggal;
+        document.getElementById('detailJumlahTiket').value = tiket;
+        document.getElementById('username_p_atraksi').value = username_p; 
+
+        const selectStatus = document.getElementById("detailStatus");
+        if (status) {
+            selectStatus.value = status;
+        }
+
+        document.getElementById('modalDetailReservasi').classList.remove('hidden');
+        document.getElementById('modalDetailReservasi').classList.add('flex');
+    }
+
+    function goToEditFromDetail() {
+        closeModalDetailReservasi();
+
+        // Simulasi ambil data dari detail
+        const nama = document.getElementById('detailNamaAtraksi').value;
+        const lokasi = document.getElementById('detailLokasiAtraksi').value;
+        const jam = document.getElementById('detailJamAtraksi').value;
+        const tanggal = document.getElementById('detailTanggalAtraksi').value;
+        const tiket = document.getElementById('detailJumlahTiket').value;
+        const status = document.getElementById('detailStatus').value;
+        const username_p = document.getElementById('username_p_atraksi').value;
+
+        // Set ke modal edit
+        document.getElementById('editReservasiAtraksiNama').value = nama;
+        document.getElementById('editReservasiAtraksiTanggal').value = tanggal;
+        document.getElementById('editReservasiAtraksiUsername').value = username_p;
+        
+        document.getElementById('editNamaAtraksi').value = nama;
+        document.getElementById('editLokasiAtraksi').value = lokasi;
+        document.getElementById('editJamAtraksi').value = jam;
+        document.getElementById('editTanggalAtraksi').value = tanggal;
+        document.getElementById('editJumlahTiket').value = tiket;
+        document.getElementById('editStatus').value = status;
+        document.getElementById('editReservasiAtraksiNama').value = nama;
+        document.getElementById('modalEditReservasi').classList.remove('hidden');
+        document.getElementById('modalEditReservasi').classList.add('flex');
+    }
+
+    function goToCancelFromDetail() {
+        closeModalDetailReservasi();
+        const nama = document.getElementById('detailNamaAtraksi').value;
+        const tanggal = document.getElementById('detailTanggalAtraksi').value;
+        const username_p = document.getElementById('username_p_atraksi').value;
+        confirmCancelModal(nama, tanggal, username_p);
+    }
+
+    function closeModalDetailReservasi() {
+        document.getElementById('modalDetailReservasi').classList.remove('flex');
+        document.getElementById('modalDetailReservasi').classList.add('hidden');
+    }
+</script>

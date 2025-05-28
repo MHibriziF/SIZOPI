@@ -8,20 +8,29 @@
 {% include 'components/navbar.html' %}
 
 <div class="bg-[#F0F1C5] p-8 m-8 rounded-2xl shadow-md">
+    {% if messages %}
+        <div class="mt-4">
+            {% for message in messages %}
+                {% if 'atraksi' in message.tags %}
+                    <div class="mb-4 px-4 py-3 rounded-lg 
+                        {% if 'success' in message.tags %}bg-green-100 text-green-800 border border-green-300
+                        {% else %}bg-red-100 text-red-800 border border-red-300
+                        {% endif %}">
+                        {{ message }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+
     <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-8 bg-[#6F826A] py-8 px-6 rounded-2xl">
         <h1 class="text-3xl font-bold mb-4 md:mb-0 text-white">Atraksi</h1>
         <div class="flex space-x-4">
-            <input type="text" placeholder="Search..." class="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-300">
+            <input type="text" id="searchInput" placeholder="Search..." class="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-300">
             <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold" onclick=bukaModalAtraksi()>
                 Add Atraksi
             </button>
         </div>
-    </div>
-
-    <div class="flex justify-end mb-4">
-        <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold">
-            Filter
-        </button>
     </div>
 
     <div class="overflow-x-auto">
@@ -32,7 +41,7 @@
                     <th class="px-6 py-3 text-left text-sm font-semibold">Lokasi</th>
                     <th class="px-6 py-3 text-left text-sm font-semibold">Kapasitas</th>
                     <th class="px-6 py-3 text-left text-sm font-semibold">Jadwal</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold">Hewan Terlibat</th>
+                    <th style="width: 300px;" class="px-6 py-3 text-left text-sm font-semibold">Hewan Terlibat</th>
                     <th class="px-6 py-3 text-left text-sm font-semibold">Pelatih</th>
                     <th class="px-6 py-3 text-center text-sm font-semibold">Aksi</th>
                 </tr>
@@ -44,7 +53,7 @@
                     <td class="px-6 py-4">{{ atraksi.lokasi }}</td>
                     <td class="px-6 py-4">{{ atraksi.kapasitas }}</td>
                     <td class="px-6 py-4">{{ atraksi.jadwal }}</td>
-                    <td class="px-6 py-4">
+                    <td style="width: 300px;" class="px-6 py-4">
                         <ul class="list-disc list-inside">
                             {% for hewan in atraksi.hewan_terlibat %}
                                 <li>{{ hewan }}</li>
@@ -59,8 +68,8 @@
                                 data-lokasi="{{ atraksi.lokasi }}" 
                                 data-kapasitas="{{ atraksi.kapasitas }}" 
                                 data-jadwal="{{ atraksi.jadwal }}" 
-                                data-pelatih="{{ atraksi.pelatih }}" 
-                                data-hewan="{{ atraksi.hewan_terlibat|join:',' }}" 
+                                data-pelatih="{{ atraksi.pelatih_terpilih|join:',' }}" 
+                                data-hewan="{{ atraksi.id_hewan_terlibat|join:',' }}" 
                                 onclick="openEditModal(this)">
                                 ✏️
                             </button>
@@ -74,175 +83,29 @@
     </div>
 </div>
 
-<!-- Modal -->
-<div id="modalAddAtraksi" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
-    <div class="bg-white rounded-2xl p-8 w-full max-w-lg relative max-h-[90vh] overflow-y-auto">
-        <h2 class="text-2xl font-bold mb-6 text-center">Tambah Atraksi</h2>
-        <form method="POST" action="#">
-            {% csrf_token %}
-            
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">Nama Atraksi</label>
-                <input type="text" name="nama_atraksi" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" required>
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">Lokasi</label>
-                <input type="text" name="lokasi" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" required>
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">Kapasitas Maksimum</label>
-                <input type="number" name="kapasitas" min="1" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" required>
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">Pelatih Pertunjukan</label>
-                <!-- HARDCODED DATA -->
-
-                <select name="pelatih" multiple class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" required>
-                    {% for pelatih in data_pelatih %}
-                        <option value="{{ pelatih.nama_depan }}{% if pelatih.nama_tengah %} {{ pelatih.nama_tengah }}{% endif %} {{ pelatih.nama_belakang }}">
-                            {{ pelatih.nama_depan }}{% if pelatih.nama_tengah %} {{ pelatih.nama_tengah }}{% endif %} {{ pelatih.nama_belakang }}
-                        </option>
-                    {% endfor %}
-                </select>
-                <p class="text-sm text-gray-500 mt-1">Hold Ctrl (Cmd di Mac) untuk memilih lebih dari satu pelatih.</p>
-            </div>
-            
-
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">Jadwal</label>
-                <input type="time" name="jadwal" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" required>
-            </div>
-
-            <div class="mb-6">
-                <label class="block text-gray-700 mb-2">Hewan yang Terlibat</label>
-                <select name="hewan_terlibat" multiple class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300">
-                    <option value="Buaya">Buaya</option>
-                    <option value="Iguana">Iguana</option>
-                    <option value="Ular">Ular</option>
-                    <option value="Komodo">Komodo</option>
-                    <!-- Add more options if needed -->
-                </select>
-                <p class="text-sm text-gray-500 mt-1">Hold Ctrl (Cmd di Mac) untuk memilih lebih dari satu hewan.</p>
-            </div>
-
-            <div class="flex justify-end space-x-4">
-                <button type="button" onclick="tutupModalAtraksi()" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100">Cancel</button>
-                <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg">Save</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Modal Edit -->
-<div id="modalEditAtraksi" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
-    <div class="bg-white rounded-2xl p-8 w-full max-w-lg relative max-h-[90vh] overflow-y-auto">
-        <h2 class="text-2xl font-bold mb-6 text-center">Edit Atraksi</h2>
-        <form method="POST" action="#" id="formEditAtraksi">
-            {% csrf_token %}
-            
-            <input type="hidden" name="id_atraksi" id="edit_id_atraksi">
-
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">Nama Atraksi</label>
-                <input type="text" name="nama_atraksi" id="edit_nama_atraksi" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" required>
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">Lokasi</label>
-                <input type="text" name="lokasi" id="edit_lokasi" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" required>
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">Kapasitas Maksimum</label>
-                <input type="number" name="kapasitas" id="edit_kapasitas" min="1" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" required>
-            </div>
-            <!-- HARDCODED DATA -->
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">Pelatih Pertunjukan</label>
-                <select name="pelatih" id="edit_pelatih" multiple class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" required>
-                    {% for pelatih in data_pelatih %}
-                        <option value="{{ pelatih.nama_depan }}{% if pelatih.nama_tengah %} {{ pelatih.nama_tengah }}{% endif %} {{ pelatih.nama_belakang }}">
-                            {{ pelatih.nama_depan }}{% if pelatih.nama_tengah %} {{ pelatih.nama_tengah }}{% endif %} {{ pelatih.nama_belakang }}
-                        </option>
-                    {% endfor %}
-                </select>
-                <p class="text-sm text-gray-500 mt-1">Hold Ctrl (Cmd di Mac) untuk memilih lebih dari satu pelatih.</p>
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">Jadwal</label>
-                <input type="time" name="jadwal" id="edit_jadwal" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" required>
-            </div>
-
-            <div class="mb-6">
-                <label class="block text-gray-700 mb-2">Hewan yang Terlibat</label>
-                <select name="hewan_terlibat" id="edit_hewan_terlibat" multiple class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300">
-                    <option value="Buaya">Buaya</option>
-                    <option value="Iguana">Iguana</option>
-                    <option value="Ular">Ular</option>
-                    <option value="Komodo">Komodo</option>
-                </select>
-                <p class="text-sm text-gray-500 mt-1">Hold Ctrl (Cmd di Mac) untuk memilih lebih dari satu hewan.</p>
-            </div>
-
-            <div class="flex justify-end space-x-4">
-                <button type="button" onclick="tutupModalEditAtraksi()" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100">Cancel</button>
-                <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg">Save Changes</button>
-            </div>
-        </form>
-    </div>
-</div>
-
+{% include 'components/atraksi/modal_tambah_atraksi.html' %}
+{% include 'components/atraksi/modal_edit_atraksi.html' %}
 {% include 'components/confirm_delete.html' %}
 
 <!-- Scripts -->
 <script>
-    function bukaModalAtraksi() {
-        document.getElementById('modalAddAtraksi').classList.remove('hidden');
-        document.getElementById('modalAddAtraksi').classList.add('flex');
-    }
+    // Filter hasil dari search
+    document.getElementById('searchInput').addEventListener('input', function() {
+    const filter = this.value.toLowerCase();
+    const rows = document.querySelectorAll('tbody tr');
 
-    function tutupModalAtraksi() {
-        document.getElementById('modalAddAtraksi').classList.remove('flex');
-        document.getElementById('modalAddAtraksi').classList.add('hidden');
-    }
+    rows.forEach(row => {
+        // Ambil nama atraksi dari kolom pertama
+        const nama = row.querySelector('td:first-child').textContent.toLowerCase();
 
-    function openEditModal(element) {
-        const nama = element.getAttribute('data-nama');
-        const lokasi = element.getAttribute('data-lokasi');
-        const kapasitas = element.getAttribute('data-kapasitas');
-        const jadwal = element.getAttribute('data-jadwal');
-        const pelatih = element.getAttribute('data-pelatih');
-        const hewanList = element.getAttribute('data-hewan').split(',');
-
-        document.getElementById('edit_nama_atraksi').value = nama;
-        document.getElementById('edit_lokasi').value = lokasi;
-        document.getElementById('edit_kapasitas').value = kapasitas;
-        document.getElementById('edit_jadwal').value = jadwal;
-
-        const pelatihList = element.getAttribute('data-pelatih').split(',');
-        const selectPelatih = document.getElementById('edit_pelatih');
-        for (let option of selectPelatih.options) {
-            option.selected = pelatihList.includes(option.value);
+        // Jika cocok, tampilkan barisnya, kalau tidak sembunyikan
+        if (nama.includes(filter)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
         }
-
-        const select = document.getElementById('edit_hewan_terlibat');
-        for (let option of select.options) {
-            option.selected = hewanList.includes(option.value);
-    }
-
-    document.getElementById('modalEditAtraksi').classList.remove('hidden');
-    document.getElementById('modalEditAtraksi').classList.add('flex');
-    }
-
-    function tutupModalEditAtraksi() {
-        document.getElementById('modalEditAtraksi').classList.remove('flex');
-        document.getElementById('modalEditAtraksi').classList.add('hidden');
-    }
-   
+        });
+    });
 </script>
 
 {% endblock content %}

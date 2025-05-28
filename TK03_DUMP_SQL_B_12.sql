@@ -157,6 +157,8 @@ CREATE TABLE JADWAL_PENUGASAN (
     tgl_penugasan   TIMESTAMP NOT NULL,
     nama_atraksi    VARCHAR(50),
     PRIMARY KEY (username_lh, tgl_penugasan),
+	FOREIGN KEY (nama_atraksi) REFERENCES ATRAKSI(nama_atraksi)
+		ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (username_lh) REFERENCES PELATIH_HEWAN(username_lh)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -165,7 +167,8 @@ CREATE TABLE BERPARTISIPASI (
     nama_fasilitas VARCHAR(50),
     id_hewan       UUID,
     PRIMARY KEY (nama_fasilitas, id_hewan),
-	FOREIGN KEY (nama_fasilitas) REFERENCES FASILITAS(nama),
+	FOREIGN KEY (nama_fasilitas) REFERENCES FASILITAS(nama)
+		ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (id_hewan) REFERENCES HEWAN(id)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -226,14 +229,14 @@ CREATE TABLE ADOPSI (
 
 CREATE TABLE RESERVASI (
 	username_p  VARCHAR(50),
-	nama_atraksi VARCHAR(50),
+	nama_fasilitas VARCHAR(50),
 	tanggal_kunjungan DATE NOT NULL,
 	jumlah_tiket INT NOT NULL,
 	status VARCHAR(50) NOT NULL,
-	PRIMARY KEY (username_p, nama_atraksi, tanggal_kunjungan),
+	PRIMARY KEY (username_p, nama_fasilitas, tanggal_kunjungan),
 	FOREIGN KEY (username_p) REFERENCES PENGUNJUNG(username_p)
 		ON DELETE CASCADE ON UPDATE CASCADE,
-	FOREIGN KEY (nama_atraksi) REFERENCES ATRAKSI(nama_atraksi)
+	FOREIGN KEY (nama_fasilitas) REFERENCES FASILITAS(nama_fasilitas)
 		ON DELETE CASCADE ON UPDATE CASCADE		
 );
 
@@ -680,4 +683,4 @@ INSERT INTO RESERVASI VALUES ('user9','Safari Edukasi Reptil','2025-05-01 00:00:
 	('user7','Safari Edukasi Mamalia','2025-05-02 00:00:00',7.0,'Terjadwal'),
 	('user2','Ekshibisi Ular','2025-05-03 00:00:00',3.0,'Dibatalkan'),
 	('user3','Ekshibisi Lumba-Lumba','2025-05-04 00:00:00',2.0,'Terjadwal'),
-	('user20','Pertunjukan Koala Cina','2025-05-03 00:00:00',5.0,'Terjadwal');
+	('user20','Pertunjukan Koala Cina','2025-05-03 00:00:00',5.0,'Terjadwal')
