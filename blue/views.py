@@ -461,9 +461,22 @@ def post_kelola_atraksi(request):
         insert_hewan(hewan_list, queries, params)
 
     result = execute_transaction(queries, params)
+
     if result:
-        pesan = "Atraksi berhasil diperbarui" if nama_lama else "Atraksi berhasil disimpan"
-        messages.success(request, pesan, extra_tags='atraksi')
+        if nama_lama:
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT rotasi_oto_pelatih_func(%s);", [nama_atraksi])
+                    result_edit = cursor.fetchone()
+                    if result_edit:
+                        pesan = result_edit[0]
+                        messages.success(request, pesan, extra_tags='atraksi')
+            except DatabaseError as e:
+                messages.error(request, f"{str(e)}", extra_tags='atraksi')
+                return redirect('blue:kelola_atraksi')
+        else:
+            pesan = "Atraksi berhasil disimpan"
+            messages.success(request, pesan, extra_tags='atraksi')
     else:
         pesan = "Atraksi gagal diperbarui, pastikan data sudah benar" if nama_lama else "Atraksi gagal disimpan, pastikan data sudah benar"
         messages.error(request, pesan, extra_tags='atraksi')
