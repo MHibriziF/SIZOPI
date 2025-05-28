@@ -13,92 +13,168 @@
       color: var(--text-dark);
       font-family: 'Poppins', sans-serif;
     }
+    table thead th {
+      position: sticky;
+      top: 0;
+      background: white;
+      z-index: 10;
+    }
   </style>
 {% endblock %}
+
 {% block content %}
 {% load static %}
 {% include 'components/navbar.html' %}
 
-<div class="mx-16 my-8 rounded-2xl shadow-[4px_7px_33px_rgba(0,0,0,0.25)] overflow-hidden bg-white">
-  <!-- header bar -->
-  <div class="flex flex-col md:flex-row items-center md:justify-between bg-[var(--primary-header)] px-6 py-3">
+{% if messages %}
+  <div class="mb-4">
+    {% for message in messages %}
+      <div class="p-3 {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %} rounded">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<div class="mx-16 my-8 rounded-2xl shadow-[4px_7px_33px_rgba(0,0,0,0.25)] overflow-hidden bg-[var(--light-bg)]">
+
+  <!-- HEADER BAR -->
+  <div class="flex items-center justify-between bg-[var(--primary-header)] px-6 py-3">
     <h2 class="text-white text-xl font-bold">Daftar Adopter</h2>
-    <div class="flex items-center mt-3 md:mt-0 space-x-4 w-full md:w-auto">
-      
-        <!-- sort by -->
-      <div class="flex items-center space-x-2">
-        <span class="text-white whitespace-nowrap text-sm">sort by</span>
-        <select id="sortSelect"
-                class="px-2 py-1 rounded-lg bg-[var(--primary-button)] text-white text-xs focus:outline-none">
-          <option value="username">Username</option>
+  </div>
+
+  <!-- TOP-5 ADOPTER -->
+  <div class="px-6 py-4 border-b border-gray-200">
+    <h3 class="text-[var(--text-dark)] text-sm font-semibold mb-2">
+      Top 5 Adopter (1 Tahun Terakhir)
+    </h3>
+    {% if top_adopters %}
+      <ol class="list-decimal list-inside text-sm space-y-1">
+        {% for t in top_adopters %}
+          <li>{{ t.nama_adopter }} — Rp {{ t.total }}</li>
+        {% endfor %}
+      </ol>
+    {% else %}
+      <p class="text-gray-500 text-sm">Belum ada kontribusi tahun ini.</p>
+    {% endif %}
+  </div>
+
+
+  <!-- ====== ADOPTER INDIVIDU ====== -->
+  <div class="my-6 mx-8 bg-white shadow-lg rounded-lg overflow-hidden">
+    <!-- Header Bar -->
+    <div class="flex items-center justify-between bg-[var(--primary-header)] px-6 py-3">
+      <h4 class="text-white text-lg font-medium">Daftar Adopter Individu</h4>
+      <div class="flex items-center space-x-3">
+        <input id="searchIndividu"
+               type="text"
+               placeholder="Cari Nama Individu..."
+               class="px-3 py-1 rounded-lg bg-white text-sm border border-gray-300 focus:outline-none"/>
+        <select id="sortIndividu"
+                class="px-3 py-1 rounded-lg bg-[var(--primary-button)] text-white text-sm focus:outline-none">
+          <option value="nama">Nama</option>
           <option value="kontribusi">Total Kontribusi</option>
         </select>
       </div>
     </div>
-  </div>
-
-  <!-- search bar -->
-  <div class="px-6 py-3 bg-[var(--light-bg)] flex justify-end">
-    <input id="searchInput"
-           type="text"
-           placeholder="search..."
-           class="w-full md:w-64 pl-3 pr-3 py-1 rounded-lg bg-white placeholder-[var(--primary-header)] text-[var(--primary-header)] text-sm focus:outline-none border border-gray-300"/>
-  </div>
-
-  <div class="px-6 pb-4">
-    <h3 class="text-[var(--text-dark)] text-sm font-semibold">
-      Adopter dengan Total Kontribusi Tertinggi dalam Setahun Terakhir
-    </h3>
-    <ol class="list-decimal list-inside text-sm mt-2 space-y-1">
-      {% for t in top_adopters %}
-        <li>
-          {{ t.username_adopter }} — Rp {{ t.total }}
-        </li>
-      {% endfor %}
-    </ol>
-    {% if not top_adopters %}
-        <p class="text-gray-500">Belum ada kontribusi tahun ini.</p>
-      {% endif %}
-  </div>
-
-  <!-- scrollable table region, fixed height -->
-  <div class="bg-[var(--light-bg)] p-4" style="height: 400px;">
-    <div class="h-full overflow-y-auto pr-2">
-      <table id="adopterTable" class="min-w-full text-sm">
+    <div class="h-72 overflow-y-auto">
+      <table id="tableIndividu" class="min-w-full text-sm bg-white">
         <thead>
           <tr class="text-left text-[var(--primary-header)] uppercase text-xs">
-            <th class="px-3 py-2">Username</th>
+            <th class="px-3 py-2">Nama</th>
             <th class="px-3 py-2">Total Kontribusi</th>
-            <th class="px-3 py-2">Riwayat Adopsi</th>
+            <th class="px-3 py-2">Riwayat</th>
             <th class="px-3 py-2">Aksi</th>
           </tr>
         </thead>
         <tbody>
-          {% for a in adopters %}
+          {% for a in individuals %}
           <tr class="odd:bg-white even:bg-[var(--light-bg)]">
-            <td class="px-3 py-2 text-[var(--primary-header)]">{{ a.username_adopter }}</td>
+            <td class="px-3 py-2 font-medium">{{ a.nama_adopter }}</td>
             <td class="px-3 py-2">Rp {{ a.total_kontribusi }}</td>
             <td class="px-3 py-2">
               <a href="{% url 'adopsi:admin_adopter_history' a.id_adopter %}"
-                 class="inline-block px-2 py-1 rounded-lg bg-[var(--primary-button)] text-white text-xs">
-                Riwayat
+                 class="px-2 py-1 rounded-lg bg-[var(--primary-button)] text-white text-xs">
+                Lihat Detail
               </a>
             </td>
             <td class="px-3 py-2">
-              <form action="{% url 'adopsi:admin_delete_adopter' a.id_adopter %}"
-                    method="post" class="inline">
-                {% csrf_token %}
-                <button type="submit"
-                        class="px-2 py-1 rounded-lg bg-red-600 text-white text-xs hover:bg-red-700">
-                  Hapus
-                </button>
-              </form>
+              <button
+                class="delete-btn px-2 py-1 rounded-lg bg-red-600 text-white text-xs hover:bg-red-700"
+                data-id="{{ a.id_adopter }}"
+                data-active="{{ a.is_active|yesno:"1,0" }}"
+                data-delete-url="{% url 'adopsi:admin_delete_adopter' a.id_adopter %}"
+              >
+                Hapus
+              </button>
             </td>
           </tr>
           {% empty %}
           <tr>
             <td colspan="4" class="py-6 text-center text-gray-500 text-sm">
-              Belum ada adopter
+              Belum ada Adopter individu
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+  <!-- ====== ADOPTER ORGANISASI ====== -->
+  <div class="my-6 mx-8 bg-white shadow-lg rounded-lg overflow-hidden">
+    <!-- Header Bar -->
+    <div class="flex items-center justify-between bg-[var(--primary-header)] px-6 py-3">
+      <h4 class="text-white text-lg font-medium">Daftar Adopter Organisasi</h4>
+      <div class="flex items-center space-x-3">
+        <input id="searchOrganisasi"
+               type="text"
+               placeholder="Cari nama..."
+               class="px-3 py-1 rounded-lg bg-white text-sm border border-gray-300 focus:outline-none"/>
+        <select id="sortOrganisasi"
+                class="px-3 py-1 rounded-lg bg-[var(--primary-button)] text-white text-sm focus:outline-none">
+          <option value="nama">Nama Organisasi</option>
+          <option value="kontribusi">Total Kontribusi</option>
+        </select>
+      </div>
+    </div>
+    <div class="h-72 overflow-y-auto">
+      <table id="tableOrganisasi" class="min-w-full text-sm bg-white">
+        <thead>
+          <tr class="text-left text-[var(--primary-header)] uppercase text-xs">
+            <th class="px-3 py-2">Nama Organisasi</th>
+            <th class="px-3 py-2">Total Kontribusi</th>
+            <th class="px-3 py-2">Riwayat</th>
+            <th class="px-3 py-2">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in organizations %}
+          <tr class="odd:bg-white even:bg-[var(--light-bg)]">
+            <td class="px-3 py-2 font-medium">{{ o.nama_adopter }}</td>
+            <td class="px-3 py-2">Rp {{ o.total_kontribusi }}</td>
+            <td class="px-3 py-2">
+              <a href="{% url 'adopsi:admin_adopter_history' o.id_adopter %}"
+                 class="px-2 py-1 rounded-lg bg-[var(--primary-button)] text-white text-xs">
+                Lihat Detail
+              </a>
+            </td>
+            <td class="px-3 py-2">
+              <button
+                class="delete-btn px-2 py-1 rounded-lg bg-red-600 text-white text-xs hover:bg-red-700"
+                data-id="{{ o.id_adopter }}"
+                data-active="{{ o.is_active|yesno:"1,0" }}"
+                data-delete-url="{% url 'adopsi:admin_delete_adopter' o.id_adopter %}"
+              >
+                Hapus
+              </button>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="py-6 text-center text-gray-500 text-sm">
+              Belum ada Adopter Organisasi
             </td>
           </tr>
           {% endfor %}
@@ -108,33 +184,116 @@
   </div>
 </div>
 
+<!-- Modal Konfirmasi / Peringatan Hapus -->
+<div id="delete-modal"
+     class="fixed inset-0 hidden flex items-center justify-center bg-black bg-opacity-50 z-50">
+  <div id="delete-modal-content"
+       class="bg-[#8EAF7B] text-white rounded-xl p-6 w-full max-w-sm mx-4">
+    <p id="delete-message" class="text-center font-semibold"></p>
+    <div id="delete-buttons" class="mt-6 flex justify-center space-x-4">
+    </div>
+  </div>
+</div>
+
 <script>
-// -- filtering: search by username --
-document.getElementById('searchInput').addEventListener('input', function(){
-  const filter = this.value.toLowerCase()
-  document.querySelectorAll('#adopterTable tbody tr').forEach(row => {
-    const username = row.cells[0].innerText.toLowerCase()
-    row.style.display = username.includes(filter) ? '' : 'none'
-  })
-})
+// --- Individu ---
+const tableInd = document.querySelector('#tableIndividu tbody');
+document.getElementById('searchIndividu').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  tableInd.querySelectorAll('tr').forEach(r => {
+    r.style.display = r.cells[0].innerText.toLowerCase().includes(q) ? '' : 'none';
+  });
+});
+document.getElementById('sortIndividu').addEventListener('change', e => {
+  const key = e.target.value;
+  Array.from(tableInd.querySelectorAll('tr'))
+    .sort((a,b) => {
+      const va = key==='kontribusi'
+        ? +a.cells[1].innerText.replace(/\D/g,'')
+        : a.cells[0].innerText.toLowerCase();
+      const vb = key==='kontribusi'
+        ? +b.cells[1].innerText.replace(/\D/g,'')
+        : b.cells[0].innerText.toLowerCase();
+      return va<vb ? -1 : va>vb ? 1 : 0;
+    })
+    .forEach(r => tableInd.appendChild(r));
+});
 
-// -- sorting --
-document.getElementById('sortSelect').addEventListener('change', function(){
-  const tbody = document.querySelector('#adopterTable tbody')
-  const rows  = Array.from(tbody.querySelectorAll('tr'))
-  const key   = this.value
+// --- Organisasi ---
+const tableOrg = document.querySelector('#tableOrganisasi tbody');
+document.getElementById('searchOrganisasi').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  tableOrg.querySelectorAll('tr').forEach(r => {
+    r.style.display = r.cells[0].innerText.toLowerCase().includes(q) ? '' : 'none';
+  });
+});
+document.getElementById('sortOrganisasi').addEventListener('change', e => {
+  const key = e.target.value;
+  Array.from(tableOrg.querySelectorAll('tr'))
+    .sort((a,b) => {
+      const va = key==='kontribusi'
+        ? +a.cells[1].innerText.replace(/\D/g,'')
+        : a.cells[0].innerText.toLowerCase();
+      const vb = key==='kontribusi'
+        ? +b.cells[1].innerText.replace(/\D/g,'')
+        : b.cells[0].innerText.toLowerCase();
+      return va<vb ? -1 : va>vb ? 1 : 0;
+    })
+    .forEach(r => tableOrg.appendChild(r));
+});
 
-  rows.sort((a, b) => {
-    const va = key === 'kontribusi'
-      ? parseInt(a.cells[1].innerText.replace(/\D/g,''),10)
-      : a.cells[0].innerText.toLowerCase()
-    const vb = key === 'kontribusi'
-      ? parseInt(b.cells[1].innerText.replace(/\D/g,''),10)
-      : b.cells[0].innerText.toLowerCase()
-    return va < vb ? -1 : va > vb ? 1 : 0
-  })
+// --- Modal Hapus dan Konfirmasi ---
+const deleteModal = document.getElementById('delete-modal');
+const msgEl = document.getElementById('delete-message');
+const btnContainer= document.getElementById('delete-buttons');
 
-  rows.forEach(r => tbody.appendChild(r))
-})
+function openModal() { deleteModal.classList.remove('hidden'); }
+function closeModal() { deleteModal.classList.add('hidden'); }
+
+deleteModal.addEventListener('click', e => {
+  if (e.target === deleteModal) closeModal();
+});
+
+document.querySelectorAll('.delete-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const adopterId = btn.dataset.id;
+    const isActive  = btn.dataset.active === '1';
+
+    btnContainer.innerHTML = '';
+    if (isActive) {
+      msgEl.textContent = 'Adopter masih aktif berpartisipasi dalam program adopsi dan tidak dapat dihapus.';
+      const ok = document.createElement('button');
+      ok.textContent = 'OK';
+      ok.className = 'px-4 py-2 bg-[var(--primary-button)] text-white rounded-lg';
+      ok.addEventListener('click', closeModal);
+      btnContainer.appendChild(ok);
+
+    } else {
+      msgEl.textContent = 'Apakah Anda yakin ingin menghapus adopter ini?';
+
+      const no = document.createElement('button');
+      no.textContent = 'No';
+      no.className = 'px-4 py-2 bg-gray-300 text-gray-800 rounded-lg';
+      no.addEventListener('click', closeModal);
+
+      const yes = document.createElement('button');
+      yes.textContent = 'Yes';
+      yes.className = 'px-4 py-2 bg-red-600 text-white rounded-lg';
+      yes.addEventListener('click', () => {
+        const deleteUrl = btn.dataset.deleteUrl;
+        const form = document.createElement('form');
+        form.method = 'post';
+        form.action = deleteUrl;
+        form.innerHTML = `{% csrf_token %}`;
+        document.body.appendChild(form);
+        form.submit();
+      });
+      btnContainer.append(no, yes);
+    }
+
+    openModal();
+  });
+});
+
 </script>
 {% endblock %}

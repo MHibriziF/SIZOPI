@@ -3,6 +3,16 @@
 {% block content %}
 {% include 'components/navbar.html' %}
 
+{% if messages %}
+  <div class="mb-4">
+    {% for message in messages %}
+      <div class="p-3 {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %} rounded">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
 <div class="container mx-auto p-6">
   <div class="bg-white rounded-lg space-y-6">
 
@@ -92,10 +102,16 @@
                   class="text-red-600 hover:underline">
             Berhenti Adopsi
           </button>
+          {% if detail.status_pembayaran == 'lunas' %}
           <a href="{% url 'adopsi:extend_adoption' detail.id_hewan detail.tgl_mulai_adopsi %}"
              class="text-yellow-600 hover:underline">
             Perpanjang Periode Adopsi
           </a>
+          {% else %}
+            <button id="btn-open-pay-warning" class="text-yellow-600 hover:underline">
+              Perpanjang Periode Adopsi
+            </button>
+          {% endif %}
         </div>
       </div>
       <form id="stop-user-form"
@@ -133,10 +149,48 @@
   </div>
 </div>
 
+<!-- Modal Peringatan Bayar -->
+<div id="pay-modal"
+     class="fixed inset-0 hidden flex items-center justify-center bg-black bg-opacity-50 z-50">
+  <div id="pay-modal-content"
+       class="bg-[#8EAF7B] text-white rounded-xl p-6 w-full max-w-sm">
+    <p class="text-center font-semibold">
+      Silakan lunasi adopsi Anda terlebih dahulu
+      sebelum memperpanjang periode.
+    </p>
+    <div class="mt-6 flex justify-center">
+      <button id="pay-close"
+              class="px-4 py-2 bg-[#4A5A43] text-white rounded-lg">
+        Tutup
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
+  const btnPayWarn = document.getElementById('btn-open-pay-warning');
+  const payModal = document.getElementById('pay-modal');
+  const payClose = document.getElementById('pay-close');
+  const payContent = document.getElementById('pay-modal-content');
   const modal  = document.getElementById('confirm-modal');
   const btnNo  = document.getElementById('confirm-no');
   const btnYes = document.getElementById('confirm-yes');
+
+  if (btnPayWarn) {
+    btnPayWarn.addEventListener('click', () => {
+      payModal.classList.remove('hidden');
+    });
+  }
+
+  payClose.addEventListener('click', () => {
+    payModal.classList.add('hidden');
+  });
+
+  payModal.addEventListener('click', (e) => {
+    if (e.target === payModal) {
+      payModal.classList.add('hidden');
+    }
+  });
 
   const openAdmin = document.getElementById('btn-open-confirm');
   if (openAdmin) {

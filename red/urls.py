@@ -7,9 +7,6 @@ urlpatterns = [
     path('api/check-user/', views.api_check_user, name='api_check_user'),
     path('api/get-adopter/', views.api_get_adopter, name='api_get_adopter'),
 
-    # Admin Manajemen Adopter
-    path('adopters/', views.list_adopters, name='list_adopters'),
-
     # Manajemen Adopsi
     path('adoptions/', views.list_adoptions, name='list_adoptions'),
     path('adoption/create/<uuid:hewan_id>/', views.create_adoption, name='create_adoption'),
@@ -21,8 +18,8 @@ urlpatterns = [
     path('adoptions/<uuid:hewan_id>/<str:tgl_mulai>/extend/', views.extend_adoption, name='extend_adoption'),
     path('adoptions/<uuid:hewan_id>/<str:tgl_mulai>/stop/', views.stop_adoption_user, name='stop_adoption_user'),
 
-    # Admin Top-5 Kontribusi, Daftar & Riwayat Adopter
-    path('adopters/', views.admin_list_adopters, name='admin_list_adopters'),
+    # Admin Manajemen Adopter
+    path('adopters/', views.list_adopters, name='list_adopters'),
     path('adopters/<uuid:id_adopter>/history/', views.admin_adopter_history, name='admin_adopter_history'),
     path('adopters/<uuid:id_adopter>/delete/', views.admin_delete_adopter, name='admin_delete_adopter'),
 
