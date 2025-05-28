@@ -4,9 +4,46 @@ from django.db import connection
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 import uuid
-from green.views import get_hewan_by_id, get_all_hewan
+from green.views import get_hewan_by_id, get_all_hewan, is_dokter_hewan, is_penjaga_hewan
 
+def is_staf_administrasi(request):
+    """
+    Mengecek apakah user adalah staf administrasi
+    """
+    if not request.session.get('username'):
+        return False
+    
+    username = request.session.get('username')
+    roles = request.session.get('roles', [])
+    
+    return 'staf_administrasi' in roles
 
+def dokter_penjaga_admin_required(view_func):
+    """
+    Decorator untuk view hewan yang bisa diakses oleh dokter hewan, penjaga hewan, dan staf administrasi
+    """
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not (is_dokter_hewan(request) or is_penjaga_hewan(request) or is_staf_administrasi(request)):
+            messages.error(request, "Anda tidak memiliki akses untuk halaman ini. Hanya dokter hewan, penjaga hewan, dan staf administrasi yang diizinkan.")
+            return redirect('main:login')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+def penjaga_admin_required(view_func):
+    """
+    Decorator untuk view habitat yang bisa diakses oleh penjaga hewan dan staf administrasi
+    """
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not (is_penjaga_hewan(request) or is_staf_administrasi(request)):
+            messages.error(request, "Anda tidak memiliki akses untuk halaman ini. Hanya penjaga hewan dan staf administrasi yang diizinkan.")
+            return redirect('main:login')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+@login_required
+@dokter_penjaga_admin_required
 def hewan_list_view(request):
     """
     Fungsi untuk menampilkan daftar hewan dan menangani penambahan hewan baru.
@@ -21,6 +58,8 @@ def hewan_list_view(request):
         'habitat_list': habitat_list  # Kirim daftar habitat ke template
     })
 
+@login_required
+@dokter_penjaga_admin_required
 def tambah_hewan_view(request):
     """
     Fungsi untuk menambah hewan baru.
@@ -78,6 +117,8 @@ def tambah_hewan_view(request):
     # Jika bukan POST, redirect ke halaman daftar hewan
     return redirect('yellow:hewan_list')
 
+@login_required
+@dokter_penjaga_admin_required
 def hapus_hewan_view(request, id):
     """
     Fungsi untuk menghapus hewan berdasarkan ID.
@@ -93,6 +134,197 @@ def hapus_hewan_view(request, id):
     # Redirect kembali ke halaman daftar hewan
     return redirect('yellow:hewan_list')
 
+@login_required
+@dokter_penjaga_admin_required
+def edit_hewan_view(request, id):
+    """
+    Fungsi untuk mengedit hewan berdasarkan ID.
+    Hanya dapat mengedit status kesehatan dan nama habitat.
+    """
+    if request.method == 'POST':
+        print("Fungsi edit_hewan_view dipanggil")
+        
+        # Ambil data dari form
+        status_kesehatan = request.POST.get('status_kesehatan')
+        nama_habitat = request.POST.get('nama_habitat')
+        
+        print(f"[DEBUG] Data diterima: id={id}, status_kesehatan={status_kesehatan}, nama_habitat={nama_habitat}")
+        
+        try:
+            # Periksa apakah hewan dengan ID tersebut ada
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT COUNT(*) FROM SIZOPI.HEWAN
+                    WHERE id = %s
+                """, [id])
+                result = cursor.fetchone()
+
+            if result[0] == 0:
+                # Jika hewan tidak ditemukan, tampilkan pesan error
+                messages.error(request, f"Hewan dengan ID '{id}' tidak ditemukan.")
+            else:
+                # Validasi nama habitat jika diubah
+                if nama_habitat:
+                    with connection.cursor() as cursor:
+                        cursor.execute("""
+                            SELECT COUNT(*) FROM SIZOPI.HABITAT
+                            WHERE nama = %s
+                        """, [nama_habitat])
+                        habitat_result = cursor.fetchone()
+                    
+                    if habitat_result[0] == 0:
+                        messages.error(request, f"Habitat dengan nama '{nama_habitat}' tidak ditemukan.")
+                        return redirect('yellow:hewan_list')
+                
+                # Update hewan di database
+                with connection.cursor() as cursor:
+                    cursor.execute("""
+                        UPDATE SIZOPI.HEWAN 
+                        SET status_kesehatan = %s, nama_habitat = %s
+                        WHERE id = %s
+                    """, [status_kesehatan, nama_habitat, id])
+                messages.success(request, "Data hewan berhasil diperbarui!")
+                
+        except Exception as e:
+            messages.error(request, f"Terjadi kesalahan saat memperbarui hewan: {str(e)}")
+            print(f"Error saat memperbarui hewan: {str(e)}")
+
+        # Redirect kembali ke halaman daftar hewan
+        return redirect('yellow:hewan_list')
+
+    elif request.method == 'GET':
+        # Jika GET request, ambil data hewan untuk ditampilkan di form
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT id, nama, spesies, asal_hewan, tanggal_lahir, status_kesehatan, nama_habitat, url_foto
+                    FROM SIZOPI.HEWAN
+                    WHERE id = %s
+                """, [id])
+                hewan = cursor.fetchone()
+
+            if not hewan:
+                messages.error(request, f"Hewan dengan ID '{id}' tidak ditemukan.")
+                return redirect('yellow:hewan_list')
+
+            hewan_data = {
+                'id': hewan[0],
+                'nama': hewan[1],
+                'spesies': hewan[2],
+                'asal_hewan': hewan[3],
+                'tanggal_lahir': hewan[4],
+                'status_kesehatan': hewan[5],
+                'nama_habitat': hewan[6],
+                'url_foto': hewan[7],
+            }
+
+            # Ambil daftar habitat untuk dropdown
+            habitat_list = get_all_habitat_nama()
+
+            # Check if request is AJAX (for modal)
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
+                return JsonResponse({
+                    'hewan': hewan_data,
+                    'habitat_list': habitat_list
+                })
+            else:
+                # Render halaman edit hewan
+                return render(request, 'manage_satwa/edit_hewan.html', {
+                    'hewan': hewan_data,
+                    'habitat_list': habitat_list
+                })
+                
+        except Exception as e:
+            messages.error(request, f"Terjadi kesalahan saat mengambil data hewan: {str(e)}")
+            print(f"Error saat mengambil data hewan: {str(e)}")
+            return redirect('yellow:hewan_list')
+
+    # Jika method lain, redirect ke halaman daftar hewan
+    return redirect('yellow:hewan_list')
+
+@login_required
+@dokter_penjaga_admin_required
+def riwayat_hewan_view(request, id):
+    """
+    Fungsi untuk menampilkan riwayat perubahan hewan berdasarkan ID.
+    """
+    try:
+        # Ambil data hewan terlebih dahulu
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT id, nama, spesies, asal_hewan
+                FROM SIZOPI.HEWAN
+                WHERE id = %s
+            """, [id])
+            hewan = cursor.fetchone()
+
+        if not hewan:
+            messages.error(request, f"Hewan dengan ID '{id}' tidak ditemukan.")
+            return redirect('yellow:hewan_list')
+
+        # Ambil riwayat perubahan hewan
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT 
+                    r.id,
+                    r.kolom_perubahan,
+                    r.nilai_sebelum,
+                    r.nilai_sesudah,
+                    r.dibuat_pada
+                FROM SIZOPI.RIWAYAT_SATWA r
+                WHERE r.satwa_id = %s
+                ORDER BY r.dibuat_pada DESC
+            """, [id])
+            riwayat_list = cursor.fetchall()
+
+        # Format data hewan
+        hewan_data = {
+            'id': hewan[0],
+            'nama': hewan[1],
+            'spesies': hewan[2],
+            'asal_hewan': hewan[3]
+        }
+
+        # Format data riwayat
+        riwayat_formatted = []
+        for riwayat in riwayat_list:
+            # Format nama kolom menjadi lebih readable
+            kolom_display = {
+                'STATUS_KESEHATAN': 'Status Kesehatan',
+                'NAMA_HABITAT': 'Habitat'
+            }.get(riwayat[1], riwayat[1])
+
+            riwayat_formatted.append({
+                'id': riwayat[0],
+                'kolom_perubahan': riwayat[1],
+                'kolom_display': kolom_display,
+                'nilai_sebelum': riwayat[2] if riwayat[2] else '-',
+                'nilai_sesudah': riwayat[3] if riwayat[3] else '-',
+                'dibuat_pada': riwayat[4]
+            })
+
+        # Check if request is AJAX (for modal)
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
+            return JsonResponse({
+                'hewan': hewan_data,
+                'riwayat_list': riwayat_formatted
+            })
+        else:
+            # Render halaman riwayat hewan
+            return render(request, 'manage_satwa/riwayat_hewan.html', {
+                'hewan': hewan_data,
+                'riwayat_list': riwayat_formatted
+            })
+
+    except Exception as e:
+        messages.error(request, f"Terjadi kesalahan saat mengambil riwayat hewan: {str(e)}")
+        print(f"Error saat mengambil riwayat hewan: {str(e)}")
+        if request.headers.get('Accept') == 'application/json':
+            return JsonResponse({'error': str(e)}, status=500)
+        return redirect('yellow:hewan_list')
+
+@login_required
+@penjaga_admin_required
 def habitat_list_view(request):
     """
     Fungsi untuk menampilkan halaman daftar habitat.
@@ -111,6 +343,8 @@ def habitat_list_view(request):
         'habitat_list': habitat_list
     })
 
+@login_required
+@penjaga_admin_required
 def get_all_habitat():
     """
     Fungsi untuk mendapatkan semua data habitat dari database dalam format dictionary.
@@ -130,7 +364,9 @@ def get_all_habitat():
                 'status': row[3]
             })
         return habitat_list
-    
+
+@login_required   
+@penjaga_admin_required 
 def get_all_habitat_nama():
     """
     Fungsi untuk mengambil semua habitat dari database.
@@ -144,7 +380,9 @@ def get_all_habitat_nama():
     except Exception as e:
         print(f"Error saat mengambil data habitat: {str(e)}")
         return []
-    
+
+@login_required  
+@penjaga_admin_required  
 def tambah_habitat_view(request):
     """
     Fungsi untuk menambah habitat baru.
@@ -186,6 +424,8 @@ def tambah_habitat_view(request):
     # Jika bukan POST, redirect ke halaman daftar habitat
     return redirect('yellow:habitat_list')
 
+@login_required    
+@penjaga_admin_required
 def hapus_habitat_view(request, nama_habitat):
     """
     Fungsi untuk menghapus habitat berdasarkan nama habitat.
@@ -218,6 +458,8 @@ def hapus_habitat_view(request, nama_habitat):
     # Redirect kembali ke halaman daftar habitat
     return redirect('yellow:habitat_list')
 
+@login_required  
+@penjaga_admin_required  
 def habitat_detail_view(request, nama_habitat):
     """
     Fungsi untuk menampilkan detail habitat beserta daftar hewan yang berada di habitat tersebut.
@@ -284,3 +526,89 @@ def habitat_detail_view(request, nama_habitat):
         print(f"Error saat mengambil detail habitat: {str(e)}")
         messages.error(request, f"Terjadi kesalahan: {str(e)}")
         return redirect('yellow:habitat_list')
+
+@login_required  
+@penjaga_admin_required      
+def edit_habitat_view(request, nama_habitat):
+    """
+    Fungsi untuk mengedit habitat berdasarkan nama habitat.
+    Hanya dapat mengedit status lingkungan dan kapasitas.
+    """
+    if request.method == 'POST':
+        print("Fungsi edit_habitat_view dipanggil")
+        
+        # Ambil data dari form
+        kapasitas = request.POST.get('kapasitas')
+        status = request.POST.get('status')
+        
+        print(f"[DEBUG] Data diterima: nama_habitat={nama_habitat}, kapasitas={kapasitas}, status={status}")
+        
+        try:
+            # Periksa apakah habitat dengan nama tersebut ada
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT COUNT(*) FROM SIZOPI.HABITAT
+                    WHERE nama = %s
+                """, [nama_habitat])
+                result = cursor.fetchone()
+
+            if result[0] == 0:
+                # Jika habitat tidak ditemukan, tampilkan pesan error
+                messages.error(request, f"Habitat dengan nama '{nama_habitat}' tidak ditemukan.")
+            else:
+                # Update habitat di database
+                with connection.cursor() as cursor:
+                    cursor.execute("""
+                        UPDATE SIZOPI.HABITAT 
+                        SET kapasitas = %s, status = %s
+                        WHERE nama = %s
+                    """, [kapasitas, status, nama_habitat])
+                messages.success(request, f"Habitat '{nama_habitat}' berhasil diperbarui!")
+                
+        except Exception as e:
+            messages.error(request, f"Terjadi kesalahan saat memperbarui habitat: {str(e)}")
+            print(f"Error saat memperbarui habitat: {str(e)}")
+
+        # Redirect kembali ke halaman daftar habitat
+        return redirect('yellow:habitat_list')
+
+    elif request.method == 'GET':
+        # Jika GET request, ambil data habitat untuk ditampilkan di form
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT nama, luas_area, kapasitas, status
+                    FROM SIZOPI.HABITAT
+                    WHERE nama = %s
+                """, [nama_habitat])
+                habitat = cursor.fetchone()
+
+            if not habitat:
+                messages.error(request, f"Habitat dengan nama '{nama_habitat}' tidak ditemukan.")
+                return redirect('yellow:habitat_list')
+
+            habitat_data = {
+                'nama': habitat[0],
+                'luas_area': habitat[1],
+                'kapasitas': habitat[2],
+                'status': habitat[3],
+            }
+
+            # Check if request is AJAX (for modal)
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
+                return JsonResponse({
+                    'habitat': habitat_data
+                })
+            else:
+                # Render halaman edit habitat
+                return render(request, 'manage_habitat/edit_habitat.html', {
+                    'habitat': habitat_data
+                })
+                
+        except Exception as e:
+            messages.error(request, f"Terjadi kesalahan saat mengambil data habitat: {str(e)}")
+            print(f"Error saat mengambil data habitat: {str(e)}")
+            return redirect('yellow:habitat_list')
+
+    # Jika method lain, redirect ke halaman daftar habitat
+    return redirect('yellow:habitat_list')

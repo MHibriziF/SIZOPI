@@ -73,6 +73,10 @@
                                             data-habitat-name="{{ habitat.nama }}">
                                         Detail
                                     </button>
+                                    <button class="text-green-600 hover:text-green-800 mr-3 edit-habitat-btn" 
+                                            data-habitat-name="{{ habitat.nama }}">
+                                        Edit
+                                    </button>
                                     <a href="{% url 'yellow:hapus_habitat' habitat.nama %}" 
                                         class="text-red-600 hover:text-red-800"
                                         onclick="return confirm('Apakah Anda yakin ingin menghapus habitat ini?');">
@@ -265,7 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Buttons
     const addTriggers = document.querySelectorAll('.add-habitat-trigger');
-    const editTriggers = document.querySelectorAll('.edit-habitat-trigger');
+    const editTriggers = document.querySelectorAll('.edit-habitat-btn');
     const detailTriggers = document.querySelectorAll('.detail-habitat-btn');
     const closeAddBtns = document.querySelectorAll('.close-add-habitat');
     const closeEditBtns = document.querySelectorAll('.close-edit-habitat');
@@ -288,7 +292,77 @@ document.addEventListener('DOMContentLoaded', () => {
     addModal.addEventListener('click', e => { if(e.target === addModal) closeModal(addModal); });
     
     // Edit Habitat Modal (if needed)
-    editTriggers.forEach(btn => btn.addEventListener('click', () => openModal(editModal)));
+    editTriggers.forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const habitatName = btn.getAttribute('data-habitat-name');
+            
+            try {
+                // Fetch habitat data for editing
+                const response = await fetch(`{% url 'yellow:edit_habitat' 'PLACEHOLDER' %}`.replace('PLACEHOLDER', encodeURIComponent(habitatName)), {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Populate edit form with current data
+                document.getElementById('edit-habitat-nama').value = data.habitat.nama;
+                document.getElementById('edit-habitat-luas').value = data.habitat.luas_area;
+                document.getElementById('edit-habitat-kapasitas').value = data.habitat.kapasitas;
+                document.getElementById('edit-habitat-status').value = data.habitat.status;
+                
+                // Make nama and luas_area read-only since they can't be edited
+                document.getElementById('edit-habitat-nama').readOnly = true;
+                document.getElementById('edit-habitat-luas').readOnly = true;
+                
+                // Show modal
+                openModal(editModal);
+                
+            } catch (error) {
+                console.error('Error fetching habitat data:', error);
+                alert('Terjadi kesalahan saat mengambil data habitat untuk diedit.');
+            }
+        });
+    });
+
+    // Form submission for edit habitat
+    const editForm = document.getElementById('editHabitatForm');
+    if (editForm) {
+        editForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(editForm);
+            const habitatName = document.getElementById('edit-habitat-nama').value;
+            
+            try {
+                const response = await fetch(`{% url 'yellow:edit_habitat' 'PLACEHOLDER' %}`.replace('PLACEHOLDER', encodeURIComponent(habitatName)), {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                });
+                
+                if (response.ok) {
+                    alert('Habitat berhasil diperbarui!');
+                    closeModal(editModal);
+                    window.location.reload(); // Reload to show updated data
+                } else {
+                    throw new Error('Failed to update habitat');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat memperbarui habitat.');
+            }
+        });
+    }
     closeEditBtns.forEach(btn => btn.addEventListener('click', () => closeModal(editModal)));
     editModal.addEventListener('click', e => { if(e.target === editModal) closeModal(editModal); });
     

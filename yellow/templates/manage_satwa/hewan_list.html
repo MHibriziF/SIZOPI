@@ -161,6 +161,11 @@
         background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 100%);
         background-size: 1000px 100%;
       }
+      
+      .readonly-field {
+        background-color: #f8f9fa;
+        color: #6c757d;
+      }
     </style>
 {% endblock meta %}
 
@@ -173,7 +178,7 @@
             {% if messages %}
                 <div class="mb-4">
                     {% for message in messages %}
-                        <div class="alert {{ message.tags }} p-4 rounded-lg mb-4">
+                        <div class="alert alert-{{ message.tags }} p-4 rounded-lg mb-4 text-black bg-white">
                             {{ message }}
                         </div>
                     {% endfor %}
@@ -185,6 +190,7 @@
                 <div class="relative w-full sm:w-auto">
                     <input 
                         type="text" 
+                        id="searchInput"
                         placeholder="Search..." 
                         class="w-full sm:w-64 rounded-lg py-2 px-4 pr-8 text-gray-700 focus:outline-none"
                     >
@@ -204,11 +210,11 @@
                 <div class="flex items-center gap-2">
                     <span class="text-sm">sort by</span>
                     <div class="relative">
-                        <select class="bg-[#667f64] text-white rounded px-4 py-2 pr-8 appearance-none">
-                            <option>habitat</option>
-                            <option>species</option>
-                            <option>status</option>
-                            <option>name</option>
+                        <select id="sortSelect" class="bg-[#667f64] text-white rounded px-4 py-2 pr-8 appearance-none">
+                            <option value="nama">nama</option>
+                            <option value="spesies">spesies</option>
+                            <option value="status">status</option>
+                            <option value="habitat">habitat</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2">
                             <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -234,44 +240,52 @@
                                 <th class="py-3 px-2 sm:px-4 text-right">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="text-gray-700">
+                        <tbody class="text-gray-700" id="animalTableBody">
                             {% for hewan in hewan_list %}
                             <tr class="table-row-overlay">   
-                            <td class="px-3 py-3 d-flex align-items-center">
-                                <div class="animal-avatar">
-                                {{ hewan.nama|default:"?"| slice:":1" }}
-                                </div>
-                                {{ hewan.nama|default:"Tidak ada nama" }}
-                            </td>
-                            <td class="px-3 py-3">{{ hewan.spesies }}</td>
-                            <td class="px-3 py-3">{{ hewan.asal_hewan }}</td>
-                            <td class="px-3 py-3">{{ hewan.tanggal_lahir|date:"d/m/Y"|default:"-" }}</td>
-                            <td class="px-3 py-3">{{ hewan.nama_habitat }}</td>
-                            <td class="px-3 py-3">
-                                {% if hewan.status_kesehatan == 'Sehat' or 'sehat' %}
-                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>{{ hewan.status_kesehatan }}</span>
-                                {% elif hewan.status_kesehatan == 'Sakit' %}
-                                <span class="badge bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>{{ hewan.status_kesehatan }}</span>
-                                {% else %}
-                                <span class="badge bg-warning text-dark"><i class="bi bi-eye me-1"></i>{{ hewan.status_kesehatan }}</span>
-                                {% endif %}
-                            </td>
-                            <td class="py-2 px-2 sm:px-4 text-right">
-                                <button class="text-blue-600 hover:text-blue-800 edit-modal-trigger" data-id="1">
-                                    <span class="fa fa-pencil"></span>
-                                </button>
-                                <a href="{% url 'yellow:hapus_hewan' hewan.id %}" class="text-red-600 hover:text-red-800" onclick="return confirm('Apakah Anda yakin ingin menghapus hewan ini?')">
-                                    <span class="fa fa-trash"></span>
-                                </a>   
-                            </td>
+                                <td class="px-3 py-3 d-flex align-items-center">
+                                    <div class="animal-avatar">
+                                    {{ hewan.nama|default:"?"| slice:":1" }}
+                                    </div>
+                                    {{ hewan.nama|default:"Tidak ada nama" }}
+                                </td>
+                                <td class="px-3 py-3">{{ hewan.spesies }}</td>
+                                <td class="px-3 py-3">{{ hewan.asal_hewan }}</td>
+                                <td class="px-3 py-3">{{ hewan.tanggal_lahir|date:"d/m/Y"|default:"-" }}</td>
+                                <td class="px-3 py-3">{{ hewan.nama_habitat }}</td>
+                                <td class="px-3 py-3">
+                                    {% if hewan.status_kesehatan == 'Sehat' or 'sehat' %}
+                                    <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>{{ hewan.status_kesehatan }}</span>
+                                    {% elif hewan.status_kesehatan == 'Sakit' %}
+                                    <span class="badge bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>{{ hewan.status_kesehatan }}</span>
+                                    {% else %}
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-eye me-1"></i>{{ hewan.status_kesehatan }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-2 px-2 sm:px-4 text-right">
+                                    <button class="text-green-600 hover:text-green-800 mr-3 riwayat-modal-trigger" 
+                                            data-hewan-id="{{ hewan.id }}"
+                                            title="Lihat Riwayat">
+                                        <span class="fa fa-history"></span>
+                                    </button>
+                                    <button class="text-blue-600 hover:text-blue-800 mr-3 edit-modal-trigger" 
+                                            data-hewan-id="{{ hewan.id }}">
+                                        <span class="fa fa-pencil"></span>
+                                    </button>
+                                    <a href="{% url 'yellow:hapus_hewan' hewan.id %}" 
+                                        class="text-red-600 hover:text-red-800" 
+                                        onclick="return confirm('Apakah Anda yakin ingin menghapus hewan ini?')">
+                                        <span class="fa fa-trash"></span>
+                                    </a>   
+                                </td>
                             </tr>
                             {% empty %}
                             <tr class="table-row-overlay">
-                            <td colspan="7" class="text-center py-5">
-                                <i class="bi bi-clipboard-x fs-1 text-muted mb-3 d-block"></i>
-                                <p class="mb-2">Tidak ada data hewan yang tersedia</p>
-                                <p class="small text-muted">Silakan hubungi administrator jika ini merupakan kesalahan</p>
-                            </td>
+                                <td colspan="7" class="text-center py-5">
+                                    <i class="bi bi-clipboard-x fs-1 text-muted mb-3 d-block"></i>
+                                    <p class="mb-2">Tidak ada data hewan yang tersedia</p>
+                                    <p class="small text-muted">Silakan hubungi administrator jika ini merupakan kesalahan</p>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -306,7 +320,6 @@
         <div class="p-6">
             <form method="POST" action="{% url 'yellow:tambah_hewan' %}">
                 {% csrf_token %}
-                <p>Action URL: {% url 'yellow:tambah_hewan' %}</p>
                 
                 <!-- Animal Image URL -->
                 <div class="mb-4">
@@ -317,35 +330,36 @@
                 <!-- Animal Name -->
                 <div class="mb-4">
                     <label for="nama_new" class="block text-sm font-medium text-gray-700 mb-1">Nama</label>
-                    <input type="text" id="nama_new" name="nama" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" placeholder="Masukkan nama hewan">
+                    <input type="text" id="nama_new" name="nama" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" placeholder="Masukkan nama hewan" required>
                 </div>
                 
                 <!-- Animal Species -->
                 <div class="mb-4">
                     <label for="spesies_new" class="block text-sm font-medium text-gray-700 mb-1">Species</label>
-                    <input type="text" id="spesies_new" name="spesies" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" placeholder="contoh: Mamalia, Reptil, dll">
+                    <input type="text" id="spesies_new" name="spesies" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" placeholder="contoh: Mamalia, Reptil, dll" required>
                 </div>
                 
                 <!-- Animal Origin -->
                 <div class="mb-4">
                     <label for="asal_hewan_new" class="block text-sm font-medium text-gray-700 mb-1">Asal Hewan</label>
-                    <input type="text" id="asal_hewan_new" name="asal_hewan" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" placeholder="contoh: Indonesia, Australia, dll">
+                    <input type="text" id="asal_hewan_new" name="asal_hewan" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" placeholder="contoh: Indonesia, Australia, dll" required>
                 </div>
                 
                 <!-- Animal Birth Date -->
                 <div class="mb-4">
                     <label for="tanggal_lahir_new" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Lahir</label>
-                    <input type="date" id="tanggal_lahir_new" name="tanggal_lahir" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
+                    <input type="date" id="tanggal_lahir_new" name="tanggal_lahir" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" required>
                 </div>
                 
                 <!-- Animal Status -->
                 <div class="mb-4">
                     <label for="status_kesehatan_new" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                    <select id="status_kesehatan_new" name="status_kesehatan" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
+                    <select id="status_kesehatan_new" name="status_kesehatan" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" required>
                         <option value="">-- Pilih Status --</option>
-                        <option value="sehat">Sehat</option>
-                        <option value="rehabilitasi">Rehabilitasi</option>
-                        <option value="tidak_sehat">Tidak Sehat</option>
+                        <option value="Sehat">Sehat</option>
+                        <option value="Sakit">Sakit</option>
+                        <option value="Dalam Perawatan">Dalam Perawatan</option>
+                        <option value="Karantina">Karantina</option>
                     </select>
                 </div>
                 
@@ -374,13 +388,13 @@
     </div>
 </div>
 
-<!-- Edit Animal Modal -->
-<div id="editAnimalModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
-    <div class="bg-white rounded-lg max-w-md w-full mx-4 overflow-y-auto" style="max-height: 90vh;">
+<!-- Riwayat Hewan Modal -->
+<div id="riwayatHewanModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg max-w-4xl w-full mx-4 overflow-y-auto" style="max-height: 90vh;">
         <!-- Modal Header -->
         <div class="bg-[#61785f] text-white px-4 py-3 flex items-center justify-between rounded-t-lg sticky top-0 z-10">
-            <h3 class="font-bold">Edit Animal</h3>
-            <button class="close-modal text-white hover:text-gray-200">
+            <h3 class="font-bold">Riwayat Perubahan Hewan</h3>
+            <button class="close-riwayat-modal text-white hover:text-gray-200">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
@@ -389,62 +403,139 @@
         
         <!-- Modal Body -->
         <div class="p-6">
-            <form>
-                <!-- Animal Image URL -->
-                <div class="mb-4">
-                    <label for="animalImageUrl" class="block text-sm font-medium text-gray-700 mb-1">URL Gambar</label>
-                    <input type="url" id="animalImageUrl" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" placeholder="https://example.com/image.jpg">
-                    <div class="mt-2">
-                        <img src="https://assets.pikiran-rakyat.com/crop/151x122:834x574/750x500/photo/2023/04/10/878356339.png" class="h-24 w-24 object-cover rounded-lg mx-auto" alt="Animal Preview">
+            <!-- Informasi Hewan -->
+            <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                <h4 class="text-lg font-semibold text-gray-800 mb-2">Informasi Hewan</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <span class="text-sm text-gray-600">Nama:</span>
+                        <p class="font-medium" id="riwayat-hewan-nama">-</p>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-600">Spesies:</span>
+                        <p class="font-medium" id="riwayat-hewan-spesies">-</p>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-600">Asal:</span>
+                        <p class="font-medium" id="riwayat-hewan-asal">-</p>
                     </div>
                 </div>
+            </div>
+
+            <!-- Tabel Riwayat -->
+            <div class="bg-white rounded-lg overflow-hidden border">
+                <div class="bg-[#61785f] text-white px-4 py-2">
+                    <h5 class="font-medium">Riwayat Perubahan</h5>
+                </div>
+                <div class="max-h-96 overflow-y-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-100 sticky top-0">
+                            <tr>
+                                <th class="py-2 px-4 text-sm font-medium text-gray-700">Tanggal</th>
+                                <th class="py-2 px-4 text-sm font-medium text-gray-700">Kolom</th>
+                                <th class="py-2 px-4 text-sm font-medium text-gray-700">Nilai Sebelum</th>
+                                <th class="py-2 px-4 text-sm font-medium text-gray-700">Nilai Sesudah</th>
+                            </tr>
+                        </thead>
+                        <tbody id="riwayatTableBody" class="text-gray-700">
+                            <!-- Will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Empty State -->
+            <div id="riwayatEmptyState" class="text-center py-8 hidden">
+                <div class="text-gray-400 mb-2">
+                    <i class="fa fa-history text-4xl"></i>
+                </div>
+                <p class="text-gray-600">Belum ada riwayat perubahan untuk hewan ini</p>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="flex justify-end mt-6">
+                <button type="button" class="close-riwayat-modal bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Animal Modal -->
+<div id="editAnimalModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg max-w-md w-full mx-4 overflow-y-auto" style="max-height: 90vh;">
+        <!-- Modal Header -->
+        <div class="bg-[#61785f] text-white px-4 py-3 flex items-center justify-between rounded-t-lg sticky top-0 z-10">
+            <h3 class="font-bold">Edit Animal</h3>
+            <button class="close-edit-modal text-white hover:text-gray-200">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Modal Body -->
+        <div class="p-6">
+            <form id="editAnimalForm">
+                {% csrf_token %}
+                <input type="hidden" id="edit-hewan-id" name="id">
                 
-                <!-- Animal Name -->
+                <!-- Animal Name (Read-only) -->
                 <div class="mb-4">
-                    <label for="animalName" class="block text-sm font-medium text-gray-700 mb-1">Nama</label>
-                    <input type="text" id="animalName"  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
+                    <label for="edit-nama" class="block text-sm font-medium text-gray-700 mb-1">Nama</label>
+                    <input type="text" id="edit-nama" name="nama" class="w-full border border-gray-300 rounded px-3 py-2 readonly-field" readonly>
+                    <small class="text-gray-500">Nama hewan tidak dapat diubah</small>
                 </div>
                 
-                <!-- Animal Species -->
+                <!-- Animal Species (Read-only) -->
                 <div class="mb-4">
-                    <label for="animalSpecies" class="block text-sm font-medium text-gray-700 mb-1">Species</label>
-                    <input type="text" id="animalSpecies"  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
+                    <label for="edit-spesies" class="block text-sm font-medium text-gray-700 mb-1">Species</label>
+                    <input type="text" id="edit-spesies" name="spesies" class="w-full border border-gray-300 rounded px-3 py-2 readonly-field" readonly>
+                    <small class="text-gray-500">Spesies tidak dapat diubah</small>
                 </div>
                 
-                <!-- Animal Origin -->
+                <!-- Animal Origin (Read-only) -->
                 <div class="mb-4">
-                    <label for="animalOrigin" class="block text-sm font-medium text-gray-700 mb-1">Asal Hewan</label>
-                    <input type="text" id="animalOrigin"  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
+                    <label for="edit-asal" class="block text-sm font-medium text-gray-700 mb-1">Asal Hewan</label>
+                    <input type="text" id="edit-asal" name="asal_hewan" class="w-full border border-gray-300 rounded px-3 py-2 readonly-field" readonly>
+                    <small class="text-gray-500">Asal hewan tidak dapat diubah</small>
                 </div>
                 
-                <!-- Animal Birth Date -->
+                <!-- Animal Birth Date (Read-only) -->
                 <div class="mb-4">
-                    <label for="animalBirthDate" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Lahir</label>
-                    <input type="date" id="animalBirthDate"  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
+                    <label for="edit-tanggal" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Lahir</label>
+                    <input type="date" id="edit-tanggal" name="tanggal_lahir" class="w-full border border-gray-300 rounded px-3 py-2 readonly-field" readonly>
+                    <small class="text-gray-500">Tanggal lahir tidak dapat diubah</small>
                 </div>
                 
-                <!-- Animal Status -->
+                <!-- Animal Status (Editable) -->
                 <div class="mb-4">
-                    <label for="animalStatus" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                    <select id="animalStatus" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
-                        <option value="sehat">Sehat</option>
-                        <option value="rehabilitasi">Rehabilitasi</option>
-                        <option value="tidak_sehat">Tidak Sehat</option>
+                    <label for="edit-status" class="block text-sm font-medium text-gray-700 mb-1">Status Kesehatan</label>
+                    <select id="edit-status" name="status_kesehatan" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" required>
+                        <option value="">-- Pilih Status --</option>
+                        <option value="Sehat">Sehat</option>
+                        <option value="Sakit">Sakit</option>
+                        <option value="Dalam Perawatan">Dalam Perawatan</option>
+                        <option value="Karantina">Karantina</option>
                     </select>
                 </div>
                 
-                <!-- Animal Habitat -->
+                <!-- Animal Habitat (Editable) -->
                 <div class="mb-4">
-                    <label for="animalHabitat" class="block text-sm font-medium text-gray-700 mb-1">Habitat</label>
-                    <input type="text" id="animalHabitat" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]">
+                    <label for="edit-habitat" class="block text-sm font-medium text-gray-700 mb-1">Habitat</label>
+                    <select id="edit-habitat" name="nama_habitat" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#61785f]" required>
+                        <option value="">-- Pilih Habitat --</option>
+                        <!-- Will be populated by JavaScript -->
+                    </select>
                 </div>
                 
                 <!-- Action Buttons -->
                 <div class="flex justify-end gap-3 mt-6">
-                    <button type="button" class="close-modal bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded">
+                    <button type="button" class="close-edit-modal bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded">
                         Batal
                     </button>
-                    <button type="button" class="bg-[#546d52] hover:bg-[#3e513c] text-white py-2 px-4 rounded">
+                    <button type="submit" class="bg-[#546d52] hover:bg-[#3e513c] text-white py-2 px-4 rounded">
                         Simpan
                     </button>
                 </div>
@@ -453,129 +544,289 @@
     </div>
 </div>
 
-<!-- Add JavaScript for Modal Functionality -->
+<!-- JavaScript -->
 <script>
-    function confirmDelete() {
-        return confirm("Apakah Anda yakin ingin menghapus hewan ini?");
+document.addEventListener('DOMContentLoaded', function() {
+    // Get modals
+    const editModal = document.getElementById('editAnimalModal');
+    const addModal = document.getElementById('addAnimalModal');
+    const riwayatModal = document.getElementById('riwayatHewanModal');
+    
+    // Get trigger buttons
+    const editModalTriggers = document.querySelectorAll('.edit-modal-trigger');
+    const addModalTriggers = document.querySelectorAll('.add-modal-trigger');
+    const riwayatModalTriggers = document.querySelectorAll('.riwayat-modal-trigger');
+    
+    // Get close buttons
+    const closeEditButtons = document.querySelectorAll('.close-edit-modal');
+    const closeAddButtons = document.querySelectorAll('.close-add-modal');
+    const closeRiwayatButtons = document.querySelectorAll('.close-riwayat-modal');
+    
+    // Helper functions
+    function openModal(modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
     }
-    document.addEventListener('DOMContentLoaded', function() {
-        function confirmDelete() {
-            return confirm("Apakah Anda yakin ingin menghapus hewan ini?");
-        }
-
-        // Get both modals
-        const editModal = document.getElementById('editAnimalModal');
-        const addModal = document.getElementById('addAnimalModal');
-        
-        // Get all modal trigger buttons
-        const editModalTriggers = document.querySelectorAll('.edit-modal-trigger');
-        const addModalTriggers = document.querySelectorAll('.add-modal-trigger');
-        
-        // Get all close modal buttons
-        const closeEditButtons = document.querySelectorAll('.close-modal');
-        const closeAddButtons = document.querySelectorAll('.close-add-modal');
-        
-        // Function to open edit modal
-        function openEditModal() {
-            editModal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden'; // Prevent scrolling behind modal
-        }
-        
-        // Function to close edit modal
-        function closeEditModal() {
-            editModal.classList.add('hidden');
-            document.body.style.overflow = ''; // Re-enable scrolling
-        }
-        
-        // Function to open add modal
-        function openAddModal() {
-            addModal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden'; // Prevent scrolling behind modal
-        }
-        
-        // Function to close add modal
-        function closeAddModal() {
-            addModal.classList.add('hidden');
-            document.body.style.overflow = ''; // Re-enable scrolling
-        }
-        
-        // Add click event to all edit trigger buttons
-        editModalTriggers.forEach(button => {
-            button.addEventListener('click', openEditModal);
+    
+    function closeModal(modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+    
+    function formatDateTime(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleString('id-ID', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
         });
-        
-        // Add click event to all add trigger buttons
-        addModalTriggers.forEach(button => {
-            button.addEventListener('click', openAddModal);
-        });
-        
-        // Add click event to all edit close buttons
-        closeEditButtons.forEach(button => {
-            button.addEventListener('click', closeEditModal);
-        });
-        
-        // Add click event to all add close buttons
-        closeAddButtons.forEach(button => {
-            button.addEventListener('click', closeAddModal);
-        });
-        
-        // Close edit modal when clicking outside the modal content
-        editModal.addEventListener('click', function(e) {
-            if (e.target === editModal) {
-                closeEditModal();
-            }
-        });
-        
-        // Close add modal when clicking outside the modal content
-        addModal.addEventListener('click', function(e) {
-            if (e.target === addModal) {
-                closeAddModal();
-            }
-        });
-        
-        // Close modals with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                if (!editModal.classList.contains('hidden')) {
-                    closeEditModal();
+    }
+    
+    // Add modal functionality
+    addModalTriggers.forEach(button => {
+        button.addEventListener('click', () => openModal(addModal));
+    });
+    
+    closeAddButtons.forEach(button => {
+        button.addEventListener('click', () => closeModal(addModal));
+    });
+    
+    addModal.addEventListener('click', function(e) {
+        if (e.target === addModal) closeModal(addModal);
+    });
+    
+    // Edit modal functionality (existing code)
+    editModalTriggers.forEach(button => {
+        button.addEventListener('click', async function(e) {
+            e.preventDefault();
+            const hewanId = this.getAttribute('data-hewan-id');
+            
+            try {
+                const response = await fetch(`{% url 'yellow:edit_hewan' 'PLACEHOLDER' %}`.replace('PLACEHOLDER', hewanId), {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                if (!addModal.classList.contains('hidden')) {
-                    closeAddModal();
-                }
+                
+                const data = await response.json();
+                
+                document.getElementById('edit-hewan-id').value = data.hewan.id;
+                document.getElementById('edit-nama').value = data.hewan.nama;
+                document.getElementById('edit-spesies').value = data.hewan.spesies;
+                document.getElementById('edit-asal').value = data.hewan.asal_hewan;
+                document.getElementById('edit-tanggal').value = data.hewan.tanggal_lahir;
+                document.getElementById('edit-status').value = data.hewan.status_kesehatan;
+                
+                const habitatSelect = document.getElementById('edit-habitat');
+                habitatSelect.innerHTML = '<option value="">-- Pilih Habitat --</option>';
+                data.habitat_list.forEach(habitat => {
+                    const option = document.createElement('option');
+                    option.value = habitat;
+                    option.textContent = habitat;
+                    if (habitat === data.hewan.nama_habitat) {
+                        option.selected = true;
+                    }
+                    habitatSelect.appendChild(option);
+                });
+                
+                openModal(editModal);
+                
+            } catch (error) {
+                console.error('Error fetching hewan data:', error);
+                alert('Terjadi kesalahan saat mengambil data hewan untuk diedit.');
             }
-        });
-
-        // Image URL preview for edit modal
-        const imageUrlInput = document.getElementById('animalImageUrl');
-        const imagePreview = imageUrlInput.nextElementSibling.querySelector('img');
-        
-        imageUrlInput.addEventListener('change', function() {
-            const url = this.value;
-            if (url && url.trim() !== '') {
-                imagePreview.src = url;
-            } else {
-                imagePreview.src = "{% static 'images/default_animal.png' %}";
-            }
-        });
-        
-        // Image URL preview for add modal
-        const newImageUrlInput = document.getElementById('newAnimalImageUrl');
-        const newImagePreview = newImageUrlInput.nextElementSibling.querySelector('img');
-        
-        newImageUrlInput.addEventListener('change', function() {
-            const url = this.value;
-            if (url && url.trim() !== '') {
-                newImagePreview.src = url;
-            } else {
-                newImagePreview.src = "{% static 'images/default_animal.png' %}";
-            }
-        });
-        
-        // Add form submission handling
-        const addForm = addModal.querySelector('form');
-        addForm.addEventListener('submit', function(e) {
-            closeAddModal();
         });
     });
+    
+    // Riwayat modal functionality
+    riwayatModalTriggers.forEach(button => {
+        button.addEventListener('click', async function(e) {
+            e.preventDefault();
+            const hewanId = this.getAttribute('data-hewan-id');
+            
+            try {
+                const response = await fetch(`{% url 'yellow:riwayat_hewan' 'PLACEHOLDER' %}`.replace('PLACEHOLDER', hewanId), {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Populate hewan info
+                document.getElementById('riwayat-hewan-nama').textContent = data.hewan.nama;
+                document.getElementById('riwayat-hewan-spesies').textContent = data.hewan.spesies;
+                document.getElementById('riwayat-hewan-asal').textContent = data.hewan.asal_hewan;
+                
+                // Populate riwayat table
+                const tableBody = document.getElementById('riwayatTableBody');
+                const emptyState = document.getElementById('riwayatEmptyState');
+                
+                tableBody.innerHTML = '';
+                
+                if (data.riwayat_list && data.riwayat_list.length > 0) {
+                    emptyState.classList.add('hidden');
+                    tableBody.parentElement.parentElement.classList.remove('hidden');
+                    
+                    data.riwayat_list.forEach(riwayat => {
+                        const row = document.createElement('tr');
+                        row.className = 'border-b hover:bg-gray-50';
+                        
+                        row.innerHTML = `
+                            <td class="py-2 px-4 text-sm">${formatDateTime(riwayat.dibuat_pada)}</td>
+                            <td class="py-2 px-4 text-sm font-medium">${riwayat.kolom_display}</td>
+                            <td class="py-2 px-4 text-sm">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    ${riwayat.nilai_sebelum}
+                                </span>
+                            </td>
+                            <td class="py-2 px-4 text-sm">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    ${riwayat.nilai_sesudah}
+                                </span>
+                            </td>
+                        `;
+                        
+                        tableBody.appendChild(row);
+                    });
+                } else {
+                    tableBody.parentElement.parentElement.classList.add('hidden');
+                    emptyState.classList.remove('hidden');
+                }
+                
+                openModal(riwayatModal);
+                
+            } catch (error) {
+                console.error('Error fetching riwayat data:', error);
+                alert('Terjadi kesalahan saat mengambil riwayat hewan.');
+            }
+        });
+    });
+    
+    // Close edit modal
+    closeEditButtons.forEach(button => {
+        button.addEventListener('click', () => closeModal(editModal));
+    });
+    
+    editModal.addEventListener('click', function(e) {
+        if (e.target === editModal) closeModal(editModal);
+    });
+    
+    // Close riwayat modal
+    closeRiwayatButtons.forEach(button => {
+        button.addEventListener('click', () => closeModal(riwayatModal));
+    });
+    
+    riwayatModal.addEventListener('click', function(e) {
+        if (e.target === riwayatModal) closeModal(riwayatModal);
+    });
+    
+    // Handle edit form submission (existing code)
+    const editForm = document.getElementById('editAnimalForm');
+    editForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(editForm);
+        const hewanId = document.getElementById('edit-hewan-id').value;
+        
+        try {
+            const response = await fetch(`{% url 'yellow:edit_hewan' 'PLACEHOLDER' %}`.replace('PLACEHOLDER', hewanId), {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                }
+            });
+            
+            if (response.ok) {
+                alert('Data hewan berhasil diperbarui!');
+                closeModal(editModal);
+                window.location.reload();
+            } else {
+                throw new Error('Failed to update hewan');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat memperbarui data hewan.');
+        }
+    });
+    
+    // Search functionality (existing code)
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#animalTableBody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    // Sort functionality (existing code)
+    const sortSelect = document.getElementById('sortSelect');
+    if (sortSelect) {
+        sortSelect.addEventListener('change', function(e) {
+            const sortBy = e.target.value;
+            const tbody = document.getElementById('animalTableBody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            
+            rows.sort((a, b) => {
+                let aVal, bVal;
+                
+                switch(sortBy) {
+                    case 'nama':
+                        aVal = a.cells[0].textContent.toLowerCase();
+                        bVal = b.cells[0].textContent.toLowerCase();
+                        return aVal.localeCompare(bVal);
+                    case 'spesies':
+                        aVal = a.cells[1].textContent.toLowerCase();
+                        bVal = b.cells[1].textContent.toLowerCase();
+                        return aVal.localeCompare(bVal);
+                    case 'status':
+                        aVal = a.cells[5].textContent.toLowerCase();
+                        bVal = b.cells[5].textContent.toLowerCase();
+                        return aVal.localeCompare(bVal);
+                    case 'habitat':
+                        aVal = a.cells[4].textContent.toLowerCase();
+                        bVal = b.cells[4].textContent.toLowerCase();
+                        return aVal.localeCompare(bVal);
+                    default:
+                        return 0;
+                }
+            });
+            
+            rows.forEach(row => tbody.appendChild(row));
+        });
+    }
+    
+    // Close modals with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (!editModal.classList.contains('hidden')) closeModal(editModal);
+            if (!addModal.classList.contains('hidden')) closeModal(addModal);
+            if (!riwayatModal.classList.contains('hidden')) closeModal(riwayatModal);
+        }
+    });
+});
 </script>
 {% endblock content %}
