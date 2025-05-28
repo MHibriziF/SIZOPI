@@ -50,11 +50,11 @@
                     <td class="px-6 py-4">{{ wahana.kapasitas }}</td>
                     <td class="px-6 py-4">{{ wahana.jadwal }}</td>
                     <td class="px-6 py-4">
-                        <ul class="list-disc list-inside">
+                        <ol class="list-decimal list-inside">
                             {% for peraturan in wahana.peraturan %}
                                 <li>{{ peraturan }}</li>
                             {% endfor %}
-                        </ul>
+                        </ol>
                     </td>
                     <td class="px-6 py-4 text-center">
                         <div class="flex justify-center space-x-2">

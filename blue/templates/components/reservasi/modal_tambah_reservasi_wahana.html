@@ -1,6 +1,6 @@
 <!-- Modal Tambah Reservasi Wahana -->
 <div id="modalAddReservasiWahana" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
-    <div class="bg-white rounded-2xl p-8 w-full max-w-lg relative">
+    <div class="bg-white rounded-2xl p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto relative">
         <h2 class="text-2xl font-bold mb-6 text-center">Reservasi Wahana</h2>
         <form method="POST" action="#">
             {% csrf_token %}
@@ -23,7 +23,7 @@
 
             <div class="mb-4">
                 <label class="block text-gray-700 mb-2">Peraturan</label>
-                <textarea id="peraturanWahana" name="peraturan" class="w-full px-4 py-2 border rounded-lg bg-gray-100" readonly required></textarea>
+                <textarea id="peraturanWahana" name="peraturan" class="w-full px-4 py-2 border rounded-lg bg-gray-100 min-h-[100px]" readonly required></textarea>
             </div>
 
             <div class="mb-4">

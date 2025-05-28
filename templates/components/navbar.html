@@ -33,6 +33,7 @@
         {% endif %}
         
         {% if 'pengunjung' in request.session.roles %}
+          <a href="{%url 'blue:reservasi'%}" class="hover:text-green-200 transition">Reservasi</a>
           <a href="#" class="hover:text-green-200 transition">Informasi Kebun Binatang</a>
           
           {% comment %}

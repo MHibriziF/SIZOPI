@@ -4,7 +4,6 @@ from .decorators import admin_required
 from datetime import datetime
 from django.contrib import messages
 
-
 def query_fasilitas(fasilitas : str, field : str) -> str:
     return f"""
         SELECT 
@@ -16,46 +15,191 @@ def query_fasilitas(fasilitas : str, field : str) -> str:
         ORDER BY nama_{fasilitas};
     """
 
-# Create your views here.
 def reservasi(request):
     if not request.session.get('username'):
         return redirect('main:login')
+    if request.method == 'POST':
+        return post_reservasi(request)
+    return get_reservasi(request)
 
-    data_wahana = execute_query(query_fasilitas("wahana", "peraturan"));
-    data_atraksi = execute_query(query_fasilitas("atraksi", "lokasi"));
+def get_reservasi(request):
+    data_wahana = execute_query(query_fasilitas("wahana", "peraturan"))
+    data_atraksi = execute_query(query_fasilitas("atraksi", "lokasi"))
     data_fasilitas = {
-        'data_atraksi' : data_atraksi,
-        'data_wahana'  : data_wahana
+        'data_atraksi': data_atraksi,
+        'data_wahana': data_wahana
     }
 
-    query = """
+    query_atraksi = """
         SELECT 
             r.nama_fasilitas,
             a.lokasi,
             TO_CHAR(f.jadwal, 'HH24:MI') AS jam,
-            r.tanggal_kunjungan AS tanggal,
+            TO_CHAR(r.tanggal_kunjungan, 'YYYY-MM-DD') AS tanggal,
             r.jumlah_tiket AS tiket,
-            r.status
+            r.status,
+            r.username_p
         FROM RESERVASI r
         JOIN ATRAKSI a ON r.nama_fasilitas = a.nama_atraksi
         JOIN FASILITAS f ON a.nama_atraksi = f.nama
     """
+
+    query_wahana = """
+        SELECT 
+            r.nama_fasilitas,
+            string_to_array(w.peraturan, ';') AS peraturan,
+            TO_CHAR(f.jadwal, 'HH24:MI') AS jam,
+            TO_CHAR(r.tanggal_kunjungan, 'YYYY-MM-DD') AS tanggal,
+            r.jumlah_tiket AS tiket,
+            r.status,
+            r.username_p
+        FROM RESERVASI r
+        JOIN WAHANA w ON r.nama_fasilitas = w.nama_wahana
+        JOIN FASILITAS f ON w.nama_wahana = f.nama
+    """
+
+    query_reservasi = f"""
+        SELECT * FROM (
+            SELECT
+                'Atraksi' AS jenis_reservasi,
+                a.nama_atraksi AS nama_fasilitas,
+                a.lokasi as lokasi_or_peraturan,
+                TO_CHAR(f.jadwal, 'HH24:MI') AS jam,
+                TO_CHAR(r.tanggal_kunjungan, 'YYYY-MM-DD') AS tanggal,
+                r.jumlah_tiket AS tiket,
+                r.status,
+                r.username_p
+            FROM RESERVASI r
+            JOIN ATRAKSI a ON r.nama_fasilitas = a.nama_atraksi
+            JOIN FASILITAS f ON a.nama_atraksi = f.nama
+
+            UNION ALL
+
+            SELECT
+                'Wahana' AS jenis_reservasi,
+                w.nama_wahana AS nama_fasilitas,
+                w.peraturan as lokasi_or_peraturan,
+                TO_CHAR(f.jadwal, 'HH24:MI') AS jam,
+                TO_CHAR(r.tanggal_kunjungan, 'YYYY-MM-DD') AS tanggal,
+                r.jumlah_tiket AS tiket,
+                r.status,
+                r.username_p
+            FROM RESERVASI r
+            JOIN WAHANA w ON r.nama_fasilitas = w.nama_wahana
+            JOIN FASILITAS f ON w.nama_wahana = f.nama
+        ) AS semua_reservasi
+    """
+
     params = []
     if 'admin' in request.session.get("roles", []):
-        query += " ORDER BY r.tanggal_kunjungan DESC;"
+        query_atraksi += " ORDER BY r.tanggal_kunjungan DESC;"
+        query_wahana += " ORDER BY r.tanggal_kunjungan DESC;"
+        query_reservasi += " ORDER BY tanggal DESC, jam ASC;"
         roles = "admin"
     else:
-        query += " WHERE r.username_p = %s ORDER BY r.tanggal_kunjungan DESC;"
+        query_atraksi += " WHERE r.username_p = %s ORDER BY r.tanggal_kunjungan DESC;"
+        query_wahana += " WHERE r.username_p = %s ORDER BY r.tanggal_kunjungan DESC;"
+        query_reservasi += " WHERE username_p = %s ORDER BY tanggal DESC, jam ASC;"
         params = [request.session.get("username")]
         roles = "pengunjung"
-        
-    data_reservasi = execute_query(query, params)
+
+    data_reservasi = execute_query(query_reservasi, params)
+    data_reservasi_atraksi = execute_query(query_atraksi, params)
+    data_reservasi_wahana = execute_query(query_wahana, params)
+
     context = {
-        'data_fasilitas' : data_fasilitas,
-        'data_reservasi' : data_reservasi,
-        'roles' : roles,
-    }   
+        'data_fasilitas': data_fasilitas,
+        'data_reservasi': data_reservasi,  # semua reservasi, urut tanggal terdekat
+        'data_reservasi_atraksi': data_reservasi_atraksi,
+        'data_reservasi_wahana': data_reservasi_wahana,
+        'roles': roles,
+    }
+
     return render(request, 'reservasi.html', context)
+
+def is_editing_reservasi(request):
+    return request.POST.get("nama_reservasi_wahana_diedit") or request.POST.get("nama_reservasi_atraksi_diedit") 
+
+def post_reservasi(request):
+    username_p = request.POST.get("username_p")  or request.session.get("username")
+    nama_fasilitas = request.POST.get("nama_atraksi") or request.POST.get("nama_wahana")
+    tanggal = request.POST.get("tanggal")
+    jumlah_tiket = request.POST.get("tiket")
+
+    if is_editing_reservasi(request):
+        nama_fasilitas_lama = request.POST.get("nama_reservasi_wahana_diedit") or request.POST.get("nama_reservasi_atraksi_diedit")
+        tanggal_lama = request.POST.get("tanggal_reservasi_diedit")
+    
+        check_reservasi = execute_query(
+            "SELECT 1 FROM RESERVASI WHERE username_p = %s AND nama_fasilitas = %s AND tanggal_kunjungan = %s AND status = 'Terjadwal'",
+            [username_p, nama_fasilitas_lama, tanggal_lama]
+        )
+    
+        if not check_reservasi:
+            messages.error(request, "Reservasi gagal: Reservasi yang ingin diedit sudah dibatalkan", extra_tags='reservasi')
+            return redirect('blue:reservasi')
+        
+        sql = """
+            UPDATE RESERVASI
+            SET nama_fasilitas = %s, tanggal_kunjungan = %s, jumlah_tiket = %s
+            WHERE username_p = %s AND nama_fasilitas = %s AND tanggal_kunjungan = %s;
+        """
+        params = (nama_fasilitas, tanggal, int(jumlah_tiket), username_p, nama_fasilitas_lama, tanggal_lama)
+        result = execute_transaction([sql], [params])
+
+        if not result:
+            messages.error(request, "Reservasi gagal: Reservasi yang ingin diedit bertabrakan dengan jadwal reservasi lain", extra_tags='reservasi')
+            return redirect('blue:reservasi')
+        
+        messages.success(request, "Reservasi berhasil diperbarui", extra_tags='reservasi')
+        return redirect('blue:reservasi') 
+
+    not_valid_reservation = execute_query(
+        "SELECT * FROM RESERVASI WHERE username_p = %s AND nama_fasilitas = %s AND tanggal_kunjungan = %s", 
+        [username_p, nama_fasilitas, tanggal], 
+    )
+  
+    if not_valid_reservation:
+        messages.error(request, "Reservasi gagal: Anda telah membuat reservasi untuk fasilitas ini pada tanggal tersebut", extra_tags='reservasi')
+        return redirect('blue:reservasi')
+    
+    sql = """
+        INSERT INTO RESERVASI (username_p, nama_fasilitas, tanggal_kunjungan, jumlah_tiket, status)
+        VALUES (%s, %s, %s, %s, %s)
+    """
+    params = (username_p, nama_fasilitas, tanggal, int(jumlah_tiket), "Terjadwal")
+    execute_query(sql, params)
+    messages.success(request, "Reservasi berhasil dibuat", extra_tags='reservasi')
+    return redirect('blue:reservasi') 
+
+
+def cancel_reservasi(request):
+    if not request.session.get('username'):
+        return redirect('main:login')
+
+    username_p = request.POST.get("username_p")
+    nama_fasilitas = request.POST.get("nama_fasilitas")
+    tanggal = request.POST.get("tanggal_kunjungan")
+    print(username_p, nama_fasilitas, tanggal)
+
+    # Cek apakah reservasi masih terjadwal
+    check_reservasi = execute_query(
+        "SELECT 1 FROM RESERVASI WHERE username_p = %s AND nama_fasilitas = %s AND tanggal_kunjungan = %s AND STATUS = 'Terjadwal'",
+        [username_p, nama_fasilitas, tanggal]
+    )
+
+    if not check_reservasi:
+        messages.error(request, "Reservasi sudah dibatalkan", extra_tags='reservasi')
+        return redirect('blue:reservasi')
+    
+    # Batalkan reservasi
+    execute_query(
+        "UPDATE RESERVASI SET status = 'Dibatalkan' WHERE username_p = %s AND nama_fasilitas = %s AND tanggal_kunjungan = %s", 
+        [username_p, nama_fasilitas, tanggal],
+    )
+    
+    messages.success(request, "Reservasi berhasil dibatalkan", extra_tags='reservasi')
+    return redirect('blue:reservasi')
 
 @admin_required
 def kelola_wahana(request):
@@ -69,20 +213,11 @@ def get_kelola_wahana(request):
             w.nama_wahana,
             f.kapasitas_max AS kapasitas,
             TO_CHAR(F.jadwal, 'HH24:MI') AS jadwal,
-            w.peraturan
+            string_to_array(w.peraturan, ';') AS peraturan
         FROM WAHANA w
         JOIN FASILITAS F ON w.nama_wahana = F.nama
     """
-    wahana_raw = execute_query(query)
-    data_wahana = []
-    for row in wahana_raw:
-        data_wahana.append({
-            'nama_wahana': row['nama_wahana'],
-            'kapasitas': row['kapasitas'],
-            'jadwal': row['jadwal'],
-            'peraturan': [p.strip() for p in row['peraturan'].split(';')],
-        })
-
+    data_wahana = execute_query(query)
     context = {
         'data_wahana' : data_wahana,
     }
@@ -102,9 +237,6 @@ def post_kelola_wahana(request):
     queries = []
     params = []
     if nama_lama: # Jika ada nama lama, artinya update data
-        queries = []
-        params = []
-
         query_fasilitas = """
             UPDATE FASILITAS SET nama=%s, kapasitas_max=%s, jadwal=%s
             WHERE nama=%s
@@ -119,11 +251,6 @@ def post_kelola_wahana(request):
         queries.append(query_wahana)
         params.append((peraturan_str, nama_wahana))
 
-        result = execute_transaction(queries, params)
-        if result:
-            messages.success(request, "Wahana berhasil diperbarui", extra_tags='wahana')
-        else:
-            messages.error(request, "Wahana gagal diperbarui, pastikan nama fasilitas unik", extra_tags='wahana')
     else:
         # Simpan ke FASILITAS
         query_fasilitas = """
@@ -143,11 +270,14 @@ def post_kelola_wahana(request):
         queries.append(query_wahana)
         params.append((nama_wahana, peraturan_str))
 
-        add_wahana = execute_transaction(queries, params)
-        if add_wahana:
-            messages.success(request, "Wahana berhasil disimpan", extra_tags='wahana')
-        else:
-            messages.error(request, "Wahana gagal disimpan, pastikan nama fasilitas unik", extra_tags='wahana')
+    result = execute_transaction(queries, params)
+    if result:
+        pesan = "Wahana berhasil diperbarui" if nama_lama else "Wahana berhasil disimpan"
+        messages.success(request, pesan, extra_tags='wahana')
+    else:
+        pesan = "Wahana gagal diperbarui, pastikan nama fasilitas unik" if nama_lama else "Wahana gagal disimpan, pastikan nama fasilitas unik"
+        messages.error(request, pesan, extra_tags='wahana')
+     
     return redirect('blue:kelola_wahana')
 
 
@@ -197,12 +327,13 @@ def get_kelola_atraksi(request):
     data_pelatih = execute_query("""
         SELECT username, nama_depan, nama_tengah, nama_belakang
         FROM PENGGUNA p
-        JOIN PELATIH_HEWAN ph ON p.username = ph.username_lh;
+        JOIN PELATIH_HEWAN ph ON p.username = ph.username_lh
+        ORDER BY nama_depan, nama_tengah, nama_belakang asc;
     """)
  
     data_hewan = execute_query("""
         SELECT id, spesies, nama
-        FROM HEWAN;
+        FROM HEWAN ORDER BY spesies, nama asc;
     """)
 
     context = {
@@ -214,6 +345,21 @@ def get_kelola_atraksi(request):
     return render(request, 'atraksi.html', context)
 
 def post_kelola_atraksi(request):
+    def insert_pelatih(pelatih_list, queries, params):
+        for username in pelatih_list:
+            query_insert_jadwal = """
+                INSERT INTO JADWAL_PENUGASAN (nama_atraksi, username_lh, tgl_penugasan) VALUES (%s, %s, %s)
+            """
+            queries.append(query_insert_jadwal)
+            params.append((nama_atraksi, username, jadwal_str))
+    def insert_hewan(hewan_list, queries, params):  
+        for id_hewan in hewan_list:
+            query_insert_hewan = """
+                INSERT INTO BERPARTISIPASI (nama_fasilitas, id_hewan) VALUES (%s, %s)
+            """
+            queries.append(query_insert_hewan)
+            params.append((nama_atraksi, id_hewan))
+
     nama_lama = request.POST.get('nama_atraksi_lama')  
     nama_atraksi = request.POST.get('nama_atraksi')
     lokasi = request.POST.get('lokasi')
@@ -222,19 +368,44 @@ def post_kelola_atraksi(request):
     pelatih_list = request.POST.getlist('pelatih')
     hewan_list = request.POST.getlist('hewan_terlibat')
     
-    # cek kosong
-    if not (nama_atraksi and lokasi and kapasitas and jadwal):
-        messages.error(request, "Data atraksi tidak lengkap", extra_tags='atraksi')
-        return redirect('blue:kelola_atraksi')
-    
     tanggal_hari_ini = datetime.now().date()
     jadwal_str = f"{tanggal_hari_ini} {jadwal}"
 
     queries = []
     params = []
 
-    if nama_lama:  # update atraksi 
-        pass
+    if nama_lama:  # Jika ada nama lama, artinya update atraksi 
+        query_update_fasilitas = """
+            UPDATE FASILITAS SET nama = %s, kapasitas_max = %s, jadwal = %s WHERE nama = %s
+        """
+        queries.append(query_update_fasilitas)
+        params.append((nama_atraksi, kapasitas, jadwal_str, nama_lama))
+
+        query_update_atraksi = """
+            UPDATE ATRAKSI SET lokasi = %s WHERE nama_atraksi = %s
+        """
+        queries.append(query_update_atraksi)
+        params.append((lokasi, nama_atraksi))
+        
+        # Ambil data pelatih lama
+        pelatih_lama = execute_query("SELECT username_lh FROM JADWAL_PENUGASAN WHERE nama_atraksi = %s", [nama_lama])
+        pelatih_lama = set(row['username_lh'] for row in pelatih_lama)
+        pelatih_update = set(pelatih_list)
+
+        # hapus data lama
+        pelatih_yang_dihapus = pelatih_lama - pelatih_update
+        for username in pelatih_yang_dihapus:
+            queries.append("""
+                DELETE FROM JADWAL_PENUGASAN WHERE nama_atraksi = %s AND username_lh = %s
+            """)
+            params.append((nama_atraksi, username))
+        queries.append("DELETE FROM BERPARTISIPASI WHERE nama_fasilitas = %s")
+        params.append((nama_atraksi,))
+
+        # insert ulang data 
+        pelatih_yang_baru = pelatih_update - pelatih_lama
+        insert_pelatih(pelatih_yang_baru, queries, params)
+        insert_hewan(hewan_list, queries, params)
     else:  
         query_fasilitas = """
             INSERT INTO FASILITAS (nama, kapasitas_max, jadwal) VALUES (%s, %s, %s)
@@ -248,25 +419,16 @@ def post_kelola_atraksi(request):
         queries.append(query_atraksi)
         params.append((nama_atraksi, lokasi))
 
-        for username in pelatih_list:
-            query_insert_jadwal = """
-                INSERT INTO JADWAL_PENUGASAN (nama_atraksi, username_lh, tgl_penugasan) VALUES (%s, %s, %s)
-            """
-            queries.append(query_insert_jadwal)
-            params.append((nama_atraksi, username, jadwal_str))
-
-        for id_hewan in hewan_list:
-            query_insert_hewan = """
-                INSERT INTO BERPARTISIPASI (nama_fasilitas, id_hewan) VALUES (%s, %s)
-            """
-            queries.append(query_insert_hewan)
-            params.append((nama_atraksi, id_hewan))
+        insert_pelatih(pelatih_list, queries, params)
+        insert_hewan(hewan_list, queries, params)
 
     result = execute_transaction(queries, params)
     if result:
-        messages.success(request, "Atraksi berhasil disimpan", extra_tags='atraksi')
+        pesan = "Atraksi berhasil diperbarui" if nama_lama else "Atraksi berhasil disimpan"
+        messages.success(request, pesan, extra_tags='atraksi')
     else:
-        messages.error(request, "Gagal menyimpan atraksi, cek kembali data input", extra_tags='atraksi')
+        pesan = "Atraksi gagal diperbarui, pastikan data sudah benar" if nama_lama else "Atraksi gagal disimpan, pastikan data sudah benar"
+        messages.error(request, pesan, extra_tags='atraksi')
 
     return redirect('blue:kelola_atraksi')
 

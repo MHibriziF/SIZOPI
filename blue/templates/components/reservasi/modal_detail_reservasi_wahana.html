@@ -1,0 +1,125 @@
+<!-- Modal Detail Reservasi Wahana -->
+<div id="modalDetailReservasiWahana" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+    <div class="bg-white rounded-2xl p-8 w-full max-w-lg max-h-[95vh] overflow-y-auto relative">
+        <h2 class="text-2xl font-bold mb-6 text-center">Detail Reservasi</h2>
+        <form>
+            <input type="hidden" id="username_p_wahana" name="nama_reservasi_wahana_detail">
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Nama Wahana</label>
+                <input type="text" id="detailNamaWahana" class="w-full px-4 py-2 border rounded-lg bg-gray-100" readonly>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Peraturan</label>
+                <input type="hidden" id="detailPeraturanWahana">
+                <textarea type="text" id="tampilanDetailPeraturanWahana" class="w-full px-4 py-2 border rounded-lg bg-gray-100 min-h-[100px]" readonly></textarea>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Jam</label>
+                <input type="time" id="detailJamWahana" class="w-full px-4 py-2 border rounded-lg bg-gray-100" readonly>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Tanggal</label>
+                <input type="date" id="detailTanggalWahana" class="w-full px-4 py-2 border rounded-lg bg-gray-100" readonly>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Jumlah Tiket</label>
+                <input type="number" id="detailJumlahTiketWahana" class="w-full px-4 py-2 border rounded-lg bg-gray-100" readonly>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-gray-700 mb-2">Status</label>
+                <select id="detailStatusWahana" class="w-full px-4 py-2 border rounded-lg bg-gray-100" disabled>
+                    <option value="Terjadwal">Terjadwal</option>
+                    <option value="Dibatalkan">Dibatalkan</option>
+                </select>
+            </div>
+
+            <div class="flex justify-end space-x-4">
+                <button type="button" onclick="closeModalDetailReservasiWahana()" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100">Tutup</button>
+                <button type="button" onclick="goToEditFromDetailWahana()" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600">Edit</button>
+                <button type="button" onclick="goToCancelFromDetailWahana()" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">Batalkan Reservasi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function showDetailsWahana(row) {
+        const nama = row.getAttribute('data-nama');
+        const peraturan = row.getAttribute('data-lokasi-or-peraturan');
+        const jam = row.getAttribute('data-jam');
+        const tanggal = row.getAttribute('data-tanggal');
+        const tiket = row.getAttribute('data-tiket');
+        const status = row.getAttribute('data-status');
+        const username_p = row.getAttribute('data-username');
+
+        document.getElementById('username_p_wahana').value = username_p; 
+        document.getElementById('detailNamaWahana').value = nama;
+        document.getElementById('detailPeraturanWahana').value = peraturan;
+        document.getElementById('detailJamWahana').value = jam;
+        document.getElementById('detailTanggalWahana').value = tanggal;
+        document.getElementById('detailJumlahTiketWahana').value = tiket;
+        
+        tampilkanPeraturanDetail();
+        const selectStatus = document.getElementById("detailStatusWahana");
+        if (status) {
+            selectStatus.value = status;
+        }
+
+        document.getElementById('modalDetailReservasiWahana').classList.remove('hidden');
+        document.getElementById('modalDetailReservasiWahana').classList.add('flex');
+    }
+
+    function tampilkanPeraturanDetail() {
+        const peraturanString = document.getElementById('detailPeraturanWahana').value;
+        const peraturanArray = peraturanString.split(';');
+        const tampilkanPeraturan = peraturanArray.map((item, index) => `${index + 1}. ${item.trim()}`).join('\n');
+        document.getElementById('tampilanDetailPeraturanWahana').value = tampilkanPeraturan;
+    }
+
+    function goToEditFromDetailWahana() {
+        closeModalDetailReservasiWahana();
+
+        // Simulasi ambil data dari detail
+        const nama = document.getElementById('detailNamaWahana').value;
+        const peraturan = document.getElementById('detailPeraturanWahana').value;
+        const jam = document.getElementById('detailJamWahana').value;
+        const tanggal = document.getElementById('detailTanggalWahana').value;
+        const tiket = document.getElementById('detailJumlahTiketWahana').value;
+        const status = document.getElementById('detailStatusWahana').value;
+        const username_p = document.getElementById('username_p_wahana').value;
+
+        // Set ke modal edit
+        document.getElementById('editReservasiWahanaNama').value = nama;
+        document.getElementById('editReservasiWahanaTanggal').value = tanggal;
+        document.getElementById('editReservasiWahanaUsername').value = username_p;
+        
+        document.getElementById('editNamaWahana').value = nama;
+        document.getElementById('editPeraturanWahana').value = peraturan;
+        document.getElementById('editJamWahana').value = jam;
+        document.getElementById('editTanggalWahana').value = tanggal;
+        document.getElementById('editJumlahTiketWahana').value = tiket;
+        document.getElementById('editStatusWahana').value = status;
+        document.getElementById('editReservasiWahanaNama').value = nama;
+        tampilkanPeraturanEdit();
+        document.getElementById('modalEditReservasiWahana').classList.remove('hidden');
+        document.getElementById('modalEditReservasiWahana').classList.add('flex');
+    }
+
+    function goToCancelFromDetailWahana() {
+        closeModalDetailReservasiWahana();
+        const nama = document.getElementById('detailNamaWahana').value;
+        const tanggal = document.getElementById('detailTanggalWahana').value;
+        const username_p = document.getElementById('username_p_wahana').value; 
+        confirmCancelModal(nama, tanggal, username_p);
+    }
+
+    function closeModalDetailReservasiWahana() {
+        document.getElementById('modalDetailReservasiWahana').classList.remove('flex');
+        document.getElementById('modalDetailReservasiWahana').classList.add('hidden');
+    }
+</script>

@@ -4,6 +4,10 @@
         <h2 class="text-2xl font-bold mb-6 text-center">Edit Reservasi</h2>
         <form method="POST" action="#">
             {% csrf_token %}
+
+            <input type="hidden" id="editReservasiAtraksiNama" name="nama_reservasi_atraksi_diedit">
+            <input type="hidden" id="editReservasiAtraksiTanggal" name="tanggal_reservasi_diedit">
+            <input type="hidden" id="editReservasiAtraksiUsername" name="username_p">
             <div class="mb-4">
                 <label class="block text-gray-700 mb-2">Nama Atraksi</label>
                 <select id="editNamaAtraksi" name="nama_atraksi" onchange="updateEditAtraksiDetail()" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300">
@@ -35,9 +39,17 @@
                 <input type="date" id="editTanggalAtraksi" name="tanggal" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300">
             </div>
 
-            <div class="mb-6">
+            <div class="mb-4">
                 <label class="block text-gray-700 mb-2">Jumlah Tiket</label>
                 <input type="number" id="editJumlahTiket" name="tiket" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300" required min="1">
+            </div>
+         
+            <div class="mb-6">
+            <label for="editStatus" class="block text-sm font-medium text-gray-700">Status</label>
+            <select id="editStatus" name="status" disabled class="w-full px-4 py-2 border rounded-lg bg-gray-100">
+                <option value="Terjadwal">Terjadwal</option>
+                <option value="Dibatalkan">Dibatalkan</option>
+            </select>
             </div>
 
             <div class="flex justify-end space-x-4">
@@ -59,22 +71,32 @@
     }
 
     function openEditModalReservasi(button) {
+        event.stopPropagation();
         const nama = button.getAttribute('data-nama');
-        const lokasi = button.getAttribute('data-lokasi');
+        const lokasi = button.getAttribute('data-lokasi') || button.getAttribute('data-lokasi-or-peraturan');
         const jam = button.getAttribute('data-jam');
         const tanggal = button.getAttribute('data-tanggal');
         const tiket = button.getAttribute('data-tiket');
-
+        const status = button.getAttribute('data-status');
+        const username_p = button.getAttribute('data-username');
+        
+        // identifikasi untuk mengedit reservasi atraksi
+        document.getElementById('editReservasiAtraksiNama').value = nama;
+        document.getElementById('editReservasiAtraksiTanggal').value = tanggal;
+        document.getElementById('editReservasiAtraksiUsername').value = username_p;
+        
         document.getElementById('editNamaAtraksi').value = nama;
         document.getElementById('editLokasiAtraksi').value = lokasi;
         document.getElementById('editJamAtraksi').value = jam;
         document.getElementById('editTanggalAtraksi').value = tanggal;
         document.getElementById('editJumlahTiket').value = tiket;
-        console.log(nama)
-        console.log(lokasi)
-        console.log(jam)
-        console.log(tanggal)
-        console.log(tiket)
+
+        // Isi status
+        const selectStatus = document.getElementById("editStatus");
+        if (status) {
+            selectStatus.value = status;
+        }
+  
         document.getElementById('modalEditReservasi').classList.remove('hidden');
         document.getElementById('modalEditReservasi').classList.add('flex');
     }
