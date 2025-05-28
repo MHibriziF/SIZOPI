@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from utils.db_connection import execute_query, execute_transaction
+from django.db import connection, DatabaseError
 from .decorators import admin_required
 from datetime import datetime
 from django.contrib import messages
@@ -23,6 +24,13 @@ def reservasi(request):
     return get_reservasi(request)
 
 def get_reservasi(request):
+    if not request.session.get('username'):
+        return redirect('main:login')
+    
+    if 'pengunjung' not in request.session.get('roles') and 'admin' not in request.session.get('roles'):
+        return redirect('main:dashboard')
+    
+    tanggal_hari_ini = datetime.now().date()
     data_wahana = execute_query(query_fasilitas("wahana", "peraturan"))
     data_atraksi = execute_query(query_fasilitas("atraksi", "lokasi"))
     data_fasilitas = {
@@ -90,6 +98,32 @@ def get_reservasi(request):
         ) AS semua_reservasi
     """
 
+    query_reservasi_fasilitas = """
+        SELECT 
+            f.nama,
+            TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD') AS tanggal,
+            TO_CHAR(f.jadwal, 'HH24:MI') AS jam,
+            CASE 
+                WHEN a.nama_atraksi IS NOT NULL THEN 'Atraksi'
+                WHEN w.nama_wahana IS NOT NULL THEN 'Wahana'
+                ELSE 'Unknown'
+            END AS jenis,
+            (f.kapasitas_max - COALESCE(SUM(r.jumlah_tiket) , 0)) AS tiket_tersedia,
+            (f.kapasitas_max - COALESCE(SUM(r.jumlah_tiket), 0))::text || ' dari ' || f.kapasitas_max::text AS kapasitas_tersedia,
+            CASE 
+                WHEN a.nama_atraksi IS NOT NULL THEN a.lokasi
+                WHEN w.nama_wahana IS NOT NULL THEN w.peraturan
+                ELSE NULL
+            END AS lokasi_or_peraturan
+        FROM FASILITAS f
+        LEFT JOIN ATRAKSI a ON f.nama = a.nama_atraksi
+        LEFT JOIN WAHANA w ON f.nama = w.nama_wahana
+        LEFT JOIN RESERVASI r ON f.nama = r.nama_fasilitas 
+            AND r.tanggal_kunjungan = CURRENT_DATE
+            AND r.status = 'Terjadwal'
+        GROUP BY f.nama, f.kapasitas_max, a.nama_atraksi, w.nama_wahana, a.lokasi, w.peraturan
+        ORDER BY f.nama;
+    """
     params = []
     if 'admin' in request.session.get("roles", []):
         query_atraksi += " ORDER BY r.tanggal_kunjungan DESC;"
@@ -106,10 +140,12 @@ def get_reservasi(request):
     data_reservasi = execute_query(query_reservasi, params)
     data_reservasi_atraksi = execute_query(query_atraksi, params)
     data_reservasi_wahana = execute_query(query_wahana, params)
+    data_reservasi_fasilitas = execute_query(query_reservasi_fasilitas)
 
     context = {
         'data_fasilitas': data_fasilitas,
-        'data_reservasi': data_reservasi,  # semua reservasi, urut tanggal terdekat
+        'data_reservasi_fasilitas': data_reservasi_fasilitas,
+        'data_reservasi': data_reservasi, 
         'data_reservasi_atraksi': data_reservasi_atraksi,
         'data_reservasi_wahana': data_reservasi_wahana,
         'roles': roles,
@@ -139,20 +175,19 @@ def post_reservasi(request):
             messages.error(request, "Reservasi gagal: Reservasi yang ingin diedit sudah dibatalkan", extra_tags='reservasi')
             return redirect('blue:reservasi')
         
-        sql = """
-            UPDATE RESERVASI
-            SET nama_fasilitas = %s, tanggal_kunjungan = %s, jumlah_tiket = %s
-            WHERE username_p = %s AND nama_fasilitas = %s AND tanggal_kunjungan = %s;
-        """
-        params = (nama_fasilitas, tanggal, int(jumlah_tiket), username_p, nama_fasilitas_lama, tanggal_lama)
-        result = execute_transaction([sql], [params])
-
-        if not result:
-            messages.error(request, "Reservasi gagal: Reservasi yang ingin diedit bertabrakan dengan jadwal reservasi lain", extra_tags='reservasi')
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    UPDATE RESERVASI
+                    SET nama_fasilitas = %s, tanggal_kunjungan = %s, jumlah_tiket = %s
+                    WHERE username_p = %s AND nama_fasilitas = %s AND tanggal_kunjungan = %s
+                """, [nama_fasilitas, tanggal, int(jumlah_tiket), username_p, nama_fasilitas_lama, tanggal_lama])
+        except DatabaseError as e:
+            messages.error(request, f"{str(e)}", extra_tags='reservasi')
             return redirect('blue:reservasi')
         
         messages.success(request, "Reservasi berhasil diperbarui", extra_tags='reservasi')
-        return redirect('blue:reservasi') 
+        return redirect('/reservasi?tab=semua') 
 
     not_valid_reservation = execute_query(
         "SELECT * FROM RESERVASI WHERE username_p = %s AND nama_fasilitas = %s AND tanggal_kunjungan = %s", 
@@ -163,14 +198,17 @@ def post_reservasi(request):
         messages.error(request, "Reservasi gagal: Anda telah membuat reservasi untuk fasilitas ini pada tanggal tersebut", extra_tags='reservasi')
         return redirect('blue:reservasi')
     
-    sql = """
-        INSERT INTO RESERVASI (username_p, nama_fasilitas, tanggal_kunjungan, jumlah_tiket, status)
-        VALUES (%s, %s, %s, %s, %s)
-    """
-    params = (username_p, nama_fasilitas, tanggal, int(jumlah_tiket), "Terjadwal")
-    execute_query(sql, params)
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                INSERT INTO RESERVASI (username_p, nama_fasilitas, tanggal_kunjungan, jumlah_tiket, status)
+                VALUES (%s, %s, %s, %s, %s)
+            """, [username_p, nama_fasilitas, tanggal, int(jumlah_tiket), "Terjadwal"])
+    except DatabaseError as e:
+        messages.error(request, f"{str(e)}", extra_tags='reservasi')
+        return redirect('blue:reservasi')
     messages.success(request, "Reservasi berhasil dibuat", extra_tags='reservasi')
-    return redirect('blue:reservasi') 
+    return redirect('/reservasi?tab=semua') 
 
 
 def cancel_reservasi(request):

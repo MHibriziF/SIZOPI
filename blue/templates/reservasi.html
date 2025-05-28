@@ -36,11 +36,51 @@
     </div>
     <!-- Tab Switcher -->
     <div class="flex mb-4 space-x-4">
-        <button id="tab-semua" onclick="showTab('semua')" class="px-4 py-2 rounded-lg font-semibold bg-green-600 text-white hover:bg-green-700">Semua Reservasi</button>
+        {% if roles == "pengunjung" %}
+        <button id="tab-fasilitas" onclick="showTab('fasilitas')" class="px-4 py-2 rounded-lg font-semibold bg-green-600 text-white hover:bg-green-700">Semua Fasilitas</button>
+        {% endif %}
+        <button id="tab-semua" onclick="showTab('semua')" class="px-4 py-2 rounded-lg font-semibold bg-gray-300 text-gray-800 hover:bg-green-700">Semua Reservasi</button>
         <button id="tab-atraksi" onclick="showTab('atraksi')" class="px-4 py-2 rounded-lg font-semibold bg-gray-300 text-gray-800 hover:bg-green-700">Reservasi Atraksi</button>
         <button id="tab-wahana" onclick="showTab('wahana')" class="px-4 py-2 rounded-lg font-semibold bg-gray-300 text-gray-800 hover:bg-green-700">Reservasi Wahana</button>
     </div>
 
+    {% if roles == "pengunjung" %}
+    <div id="tab-content-fasilitas" class="overflow-x-auto">
+        <table class="min-w-full bg-yellow-50 rounded-xl overflow-hidden">
+            <thead class="bg-[#6F826A] text-white">
+                <tr>
+                    <th class="px-6 py-3 text-left text-sm font-semibold">Jenis Reservasi</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold">Nama Fasilitas</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold">Tanggal</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold">Kapasitas Tersedia</th>
+                    <th class="px-6 py-3 text-center text-sm font-semibold">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fasilitas in data_reservasi_fasilitas %}
+                <tr  class="border-t">
+                    <td class="px-6 py-4">{{ fasilitas.jenis }}</td>
+                    <td class="px-6 py-4">{{ fasilitas.nama }}</td>
+                    <td class="px-6 py-4">{{ fasilitas.tanggal }}</td>
+                    <td class="px-6 py-4">{{ fasilitas.kapasitas_tersedia }}</td>
+                    <td class="px-6 py-4 text-center text-blue-500 hover:text-blue-900">
+                        {% if fasilitas.tiket_tersedia > 0 %}
+                        <button onclick="openModal(this, 'add')" 
+                            data-jenis="{{ fasilitas.jenis }}" 
+                            data-nama="{{ fasilitas.nama }}" 
+                            data-tanggal="{{ fasilitas.tanggal }}" 
+                            data-jam="{{ fasilitas.jam }}"
+                            data-lokasi-or-peraturan="{{ fasilitas.lokasi_or_peraturan }}">Pesan Tiket</button>
+                        {% else %}
+                        <span class="text-gray-400">Pesan Tiket</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
     <div id="tab-content-semua" class="overflow-x-auto">
         <table class="min-w-full bg-yellow-50 rounded-xl overflow-hidden">
             <thead class="bg-[#6F826A] text-white"> 
@@ -229,8 +269,8 @@
         }
         });
     });
-
-    function showTab(tab) {
+    
+    function showTabAdmin(tab) {
         const tabs = {
             atraksi: document.getElementById('tab-content-atraksi'),
             wahana: document.getElementById('tab-content-wahana'),
@@ -238,6 +278,38 @@
         };
 
         const buttons = {
+            atraksi: document.getElementById('tab-atraksi'),
+            wahana: document.getElementById('tab-wahana'),
+            semua: document.getElementById('tab-semua')
+        };
+
+        // Sembunyikan semua tab dan reset style tombol
+        for (const key in tabs) {
+            tabs[key].classList.add('hidden');
+            buttons[key].classList.remove('bg-green-600', 'text-white');
+            buttons[key].classList.add('bg-gray-300', 'text-gray-800');
+        }
+
+        tabs[tab].classList.remove('hidden');
+        buttons[tab].classList.add('bg-green-600', 'text-white');
+        buttons[tab].classList.remove('bg-gray-300', 'text-gray-800');
+    }
+
+    function showTab(tab) {
+        const isAdmin = document.getElementById('roleDetector').value === 'admin';
+        if (isAdmin) {
+            showTabAdmin(tab);
+            return;
+        }
+        const tabs = {
+            fasilitas: document.getElementById('tab-content-fasilitas'),
+            atraksi: document.getElementById('tab-content-atraksi'),
+            wahana: document.getElementById('tab-content-wahana'),
+            semua: document.getElementById('tab-content-semua')
+        };
+
+        const buttons = {
+            fasilitas: document.getElementById('tab-fasilitas'),
             atraksi: document.getElementById('tab-atraksi'),
             wahana: document.getElementById('tab-wahana'),
             semua: document.getElementById('tab-semua')
@@ -258,11 +330,18 @@
 
     document.addEventListener('DOMContentLoaded', function () {
         const params = new URLSearchParams(window.location.search);
-        const tab = params.get('tab') || 'semua'; 
-        showTab(tab);
+        const isAdmin = document.getElementById('roleDetector').value === 'admin';
+        if (isAdmin) {
+            const tab = params.get('tab') || 'semua'; 
+            showTab(tab);
+        } else {
+            const tab = params.get('tab') || 'fasilitas'; 
+            showTab(tab);
+        }
     });
 
-    function openModal(item, type, jenis) {
+    function openModal(item, type) {
+        console.log("Opening modal");
         if (type === 'edit') {
             const jenis = item.getAttribute('data-jenis');
             if (jenis === 'Atraksi') {
@@ -273,10 +352,32 @@
         } else if (type === 'details') {
             const jenis = item.getAttribute('data-jenis');
             if (jenis === 'Atraksi') {
-                console.log("Showing details for Atraksi");
                 showDetailsAtraksi(item);
             } else if (jenis === 'Wahana') {
                 showDetailsWahana(item);
+            }
+        } else if (type === 'add') {
+            const jenis = item.getAttribute('data-jenis');
+            if (jenis === 'Atraksi') {
+                document.getElementById('namaAtraksiSelect').value = item.getAttribute('data-nama') || '';
+                const select = document.getElementById('namaAtraksiSelect');
+                const selectedOption = select.options[select.selectedIndex];
+                document.getElementById('lokasiAtraksi').value = selectedOption.getAttribute('data-lokasi') || '';
+                document.getElementById('jamAtraksi').value = selectedOption.getAttribute('data-jam') || '';
+                document.getElementById('tanggalAtraksi').value = item.getAttribute('data-tanggal') || '';
+                openModalAddReservasi();
+            } else if (jenis === 'Wahana') {
+                document.getElementById('namaWahanaSelect').value = item.getAttribute('data-nama') || '';
+                const select = document.getElementById('namaWahanaSelect');
+                const selectedOption = select.options[select.selectedIndex];
+                const peraturan = selectedOption.getAttribute('data-peraturan') || '';
+                const peraturanArray = peraturan.split(';');
+                const tampilkanPeraturan = peraturanArray.map((item, index) => `${index + 1}. ${item.trim()}`).join('\n');
+                document.getElementById('tampilanPeraturanTambahWahana').value = tampilkanPeraturan;
+                document.getElementById('peraturanWahana').value = peraturan;
+                document.getElementById('jamWahana').value = selectedOption.getAttribute('data-jam') || '';
+                document.getElementById('tanggalWahana').value = item.getAttribute('data-tanggal') || '';
+                openModalAddReservasiWahana();
             }
         }
     }
