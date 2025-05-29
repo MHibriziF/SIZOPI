@@ -231,6 +231,7 @@
                     <table class="w-full text-left">
                         <thead class="bg-[#e8edce] text-[#61785f] border-b border-[#ccd4a7] sticky top-0">
                             <tr>
+                                <th class="py-3 px-2 sm:px-4">Foto</th>
                                 <th class="py-3 px-2 sm:px-4">Nama</th>
                                 <th class="py-3 px-2 sm:px-4 hidden sm:table-cell">Species</th>
                                 <th class="py-3 px-2 sm:px-4 hidden md:table-cell">Asal Hewan</th>
@@ -243,12 +244,27 @@
                         <tbody class="text-gray-700" id="animalTableBody">
                             {% for hewan in hewan_list %}
                             <tr class="table-row-overlay">   
-                                <td class="px-3 py-3 d-flex align-items-center">
-                                    <div class="animal-avatar">
-                                    {{ hewan.nama|default:"?"| slice:":1" }}
-                                    </div>
-                                    {{ hewan.nama|default:"Tidak ada nama" }}
+                                <!-- Kolom Foto Hewan -->
+                                <td class="px-3 py-3">
+                                    {% if hewan.url_foto %}
+                                        <div class="relative group">
+                                            <img src="{{ hewan.url_foto }}" 
+                                                alt="Foto {{ hewan.nama }}" 
+                                                class="w-12 h-12 rounded-full object-cover border-2 border-[#61785f] cursor-pointer hover:opacity-80 transition-opacity"
+                                                onclick="showImageModal('{{ hewan.url_foto }}', '{{ hewan.nama }}')"
+                                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="w-12 h-12 rounded-full bg-[#e8edce] border-2 border-[#61785f] flex items-center justify-center text-[#61785f] font-bold hidden">
+                                                {{ hewan.nama|default:"?"| slice:":1" }}
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <div class="w-12 h-12 rounded-full bg-[#e8edce] border-2 border-[#61785f] flex items-center justify-center text-[#61785f] font-bold">
+                                            {{ hewan.nama|default:"?"| slice:":1" }}
+                                        </div>
+                                    {% endif %}
                                 </td>
+                                <!-- Kolom Nama -->
+                                <td class="px-3 py-3">{{ hewan.nama|default:"Tidak ada nama" }}</td>
                                 <td class="px-3 py-3">{{ hewan.spesies }}</td>
                                 <td class="px-3 py-3">{{ hewan.asal_hewan }}</td>
                                 <td class="px-3 py-3">{{ hewan.tanggal_lahir|date:"d/m/Y"|default:"-" }}</td>
@@ -299,6 +315,26 @@
     <div class="bg-[#61785f] text-white p-2 text-right text-xs">
         <div class="max-w-7xl mx-auto">
             Image by: Freepik
+        </div>
+    </div>
+</div>
+
+<!-- Image Preview Modal -->
+<div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-50 flex items-center justify-center">
+    <div class="relative max-w-4xl max-h-full mx-4 bg-white rounded-lg overflow-hidden">
+        <!-- Modal Header -->
+        <div class="bg-[#61785f] text-white px-4 py-3 flex items-center justify-between">
+            <h3 class="font-bold" id="imageModalTitle">Foto Hewan</h3>
+            <button class="close-image-modal text-white hover:text-gray-200">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Modal Body -->
+        <div class="p-4">
+            <img id="modalImage" src="" alt="" class="w-full h-auto max-h-[70vh] object-contain rounded">
         </div>
     </div>
 </div>
@@ -481,6 +517,23 @@
                 {% csrf_token %}
                 <input type="hidden" id="edit-hewan-id" name="id">
                 
+                <!-- Animal Photo Preview -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Foto Hewan</label>
+                    <div class="flex items-center gap-4">
+                        <img id="edit-foto-preview" src="" alt="Foto Hewan" 
+                             class="w-20 h-20 rounded-full object-cover border-2 border-[#61785f] hidden cursor-pointer"
+                             onclick="showImageModal(this.src, document.getElementById('edit-nama').value)">
+                        <div id="edit-foto-placeholder" class="w-20 h-20 rounded-full bg-[#e8edce] border-2 border-[#61785f] flex items-center justify-center text-[#61785f] font-bold text-xl">
+                            ?
+                        </div>
+                        <div class="flex-1">
+                            <input type="url" id="edit-url-foto" name="url_foto" class="w-full border border-gray-300 rounded px-3 py-2 readonly-field text-sm" readonly>
+                            <small class="text-gray-500">URL foto tidak dapat diubah</small>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Animal Name (Read-only) -->
                 <div class="mb-4">
                     <label for="edit-nama" class="block text-sm font-medium text-gray-700 mb-1">Nama</label>
@@ -551,6 +604,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const editModal = document.getElementById('editAnimalModal');
     const addModal = document.getElementById('addAnimalModal');
     const riwayatModal = document.getElementById('riwayatHewanModal');
+    const imageModal = document.getElementById('imageModal');
     
     // Get trigger buttons
     const editModalTriggers = document.querySelectorAll('.edit-modal-trigger');
@@ -561,6 +615,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeEditButtons = document.querySelectorAll('.close-edit-modal');
     const closeAddButtons = document.querySelectorAll('.close-add-modal');
     const closeRiwayatButtons = document.querySelectorAll('.close-riwayat-modal');
+    const closeImageButtons = document.querySelectorAll('.close-image-modal');
     
     // Helper functions
     function openModal(modal) {
@@ -585,6 +640,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Image modal functionality
+    window.showImageModal = function(imageSrc, animalName) {
+        document.getElementById('modalImage').src = imageSrc;
+        document.getElementById('imageModalTitle').textContent = `Foto ${animalName}`;
+        openModal(imageModal);
+    };
+    
+    closeImageButtons.forEach(button => {
+        button.addEventListener('click', () => closeModal(imageModal));
+    });
+    
+    imageModal.addEventListener('click', function(e) {
+        if (e.target === imageModal) closeModal(imageModal);
+    });
+    
     // Add modal functionality
     addModalTriggers.forEach(button => {
         button.addEventListener('click', () => openModal(addModal));
@@ -598,7 +668,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.target === addModal) closeModal(addModal);
     });
     
-    // Edit modal functionality (existing code)
+    // Edit modal functionality
     editModalTriggers.forEach(button => {
         button.addEventListener('click', async function(e) {
             e.preventDefault();
@@ -624,6 +694,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('edit-asal').value = data.hewan.asal_hewan;
                 document.getElementById('edit-tanggal').value = data.hewan.tanggal_lahir;
                 document.getElementById('edit-status').value = data.hewan.status_kesehatan;
+                document.getElementById('edit-url-foto').value = data.hewan.url_foto || '';
+                
+                // Handle photo preview
+                const fotoPreview = document.getElementById('edit-foto-preview');
+                const fotoPlaceholder = document.getElementById('edit-foto-placeholder');
+                
+                if (data.hewan.url_foto) {
+                    fotoPreview.src = data.hewan.url_foto;
+                    fotoPreview.classList.remove('hidden');
+                    fotoPlaceholder.classList.add('hidden');
+                } else {
+                    fotoPreview.classList.add('hidden');
+                    fotoPlaceholder.classList.remove('hidden');
+                    fotoPlaceholder.textContent = data.hewan.nama ? data.hewan.nama.charAt(0).toUpperCase() : '?';
+                }
                 
                 const habitatSelect = document.getElementById('edit-habitat');
                 habitatSelect.innerHTML = '<option value="">-- Pilih Habitat --</option>';
@@ -646,7 +731,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Riwayat modal functionality
+    // Riwayat modal functionality (existing code...)
     riwayatModalTriggers.forEach(button => {
         button.addEventListener('click', async function(e) {
             e.preventDefault();
@@ -734,7 +819,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.target === riwayatModal) closeModal(riwayatModal);
     });
     
-    // Handle edit form submission (existing code)
+    // Handle edit form submission
     const editForm = document.getElementById('editAnimalForm');
     editForm.addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -764,7 +849,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Search functionality (existing code)
+    // Search functionality
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('input', function(e) {
@@ -782,7 +867,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Sort functionality (existing code)
+    // Sort functionality - Updated for new column structure
     const sortSelect = document.getElementById('sortSelect');
     if (sortSelect) {
         sortSelect.addEventListener('change', function(e) {
@@ -795,20 +880,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 switch(sortBy) {
                     case 'nama':
-                        aVal = a.cells[0].textContent.toLowerCase();
-                        bVal = b.cells[0].textContent.toLowerCase();
-                        return aVal.localeCompare(bVal);
-                    case 'spesies':
-                        aVal = a.cells[1].textContent.toLowerCase();
+                        aVal = a.cells[1].textContent.toLowerCase(); // Nama adalah kolom kedua sekarang
                         bVal = b.cells[1].textContent.toLowerCase();
                         return aVal.localeCompare(bVal);
+                    case 'spesies':
+                        aVal = a.cells[2].textContent.toLowerCase(); // Spesies adalah kolom ketiga
+                        bVal = b.cells[2].textContent.toLowerCase();
+                        return aVal.localeCompare(bVal);
                     case 'status':
-                        aVal = a.cells[5].textContent.toLowerCase();
-                        bVal = b.cells[5].textContent.toLowerCase();
+                        aVal = a.cells[6].textContent.toLowerCase(); // Status adalah kolom ketujuh
+                        bVal = b.cells[6].textContent.toLowerCase();
                         return aVal.localeCompare(bVal);
                     case 'habitat':
-                        aVal = a.cells[4].textContent.toLowerCase();
-                        bVal = b.cells[4].textContent.toLowerCase();
+                        aVal = a.cells[5].textContent.toLowerCase(); // Habitat adalah kolom keenam
+                        bVal = b.cells[5].textContent.toLowerCase();
                         return aVal.localeCompare(bVal);
                     default:
                         return 0;
@@ -825,6 +910,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!editModal.classList.contains('hidden')) closeModal(editModal);
             if (!addModal.classList.contains('hidden')) closeModal(addModal);
             if (!riwayatModal.classList.contains('hidden')) closeModal(riwayatModal);
+            if (!imageModal.classList.contains('hidden')) closeModal(imageModal);
         }
     });
 });

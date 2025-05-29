@@ -16,16 +16,21 @@
         
         {% if 'dokter' in request.session.roles %}
           <a href="{% url 'green:rekam_medis_list' %}" class="hover:text-green-200 transition">Rekam Medis Hewan</a>
+          <a href="{% url 'yellow:hewan_list' %}" class="hover:text-green-200 transition">List Hewan</a>
         {% endif %}
         
         {% if 'penjaga' in request.session.roles %}
           <a href="{% url 'green:riwayat_pemberian_pakan' %}" class="hover:text-green-200 transition">Catatan Perawatan Hewan</a>
-        {% endif %}
+          <a href="{% url 'yellow:hewan_list' %}" class="hover:text-green-200 transition">List Hewan</a>
+          <a href="{% url 'yellow:habitat_list' %}" class="hover:text-green-200 transition">List Habitat</a>
+          {% endif %}
         
         {% if 'admin' in request.session.roles %}
           <a href="{%url 'blue:kelola_pengunjung'%}" class="hover:text-green-200 transition">Kelola Pengunjung</a>
           <a href="{%url 'adopsi:list_adoptions'%}" class="hover:text-green-200 transition">Kelola Adopsi</a>
           <a href="{%url 'adopsi:list_adopters'%}" class="hover:text-green-200 transition">Kelola Adopter</a>
+          <a href="{% url 'yellow:hewan_list' %}" class="hover:text-green-200 transition">List Hewan</a>
+          <a href="{% url 'yellow:habitat_list' %}" class="hover:text-green-200 transition">List Habitat</a>
         {% endif %}
         
         {% if 'pelatih' in request.session.roles %}

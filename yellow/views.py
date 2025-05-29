@@ -17,7 +17,7 @@ def is_staf_administrasi(request):
     username = request.session.get('username')
     roles = request.session.get('roles', [])
     
-    return 'staf_administrasi' in roles
+    return 'admin' in roles
 
 def dokter_penjaga_admin_required(view_func):
     """
@@ -43,7 +43,7 @@ def penjaga_admin_required(view_func):
         return view_func(request, *args, **kwargs)
     return wrapper
 
-@login_required
+
 @dokter_penjaga_admin_required
 def hewan_list_view(request):
     """
@@ -59,7 +59,7 @@ def hewan_list_view(request):
         'habitat_list': habitat_list  # Kirim daftar habitat ke template
     })
 
-@login_required
+
 @dokter_penjaga_admin_required
 def tambah_hewan_view(request):
     """
@@ -118,7 +118,7 @@ def tambah_hewan_view(request):
     # Jika bukan POST, redirect ke halaman daftar hewan
     return redirect('yellow:hewan_list')
 
-@login_required
+
 @dokter_penjaga_admin_required
 def hapus_hewan_view(request, id):
     """
@@ -135,7 +135,7 @@ def hapus_hewan_view(request, id):
     # Redirect kembali ke halaman daftar hewan
     return redirect('yellow:hewan_list')
 
-@login_required
+
 @dokter_penjaga_admin_required
 def edit_hewan_view(request, id):
     """
@@ -243,7 +243,7 @@ def edit_hewan_view(request, id):
     # Jika method lain, redirect ke halaman daftar hewan
     return redirect('yellow:hewan_list')
 
-@login_required
+
 @dokter_penjaga_admin_required
 def riwayat_hewan_view(request, id):
     """
@@ -324,7 +324,7 @@ def riwayat_hewan_view(request, id):
             return JsonResponse({'error': str(e)}, status=500)
         return redirect('yellow:hewan_list')
 
-@login_required
+
 @penjaga_admin_required
 def habitat_list_view(request):
     """
@@ -344,8 +344,6 @@ def habitat_list_view(request):
         'habitat_list': habitat_list
     })
 
-@login_required
-@penjaga_admin_required
 def get_all_habitat():
     """
     Fungsi untuk mendapatkan semua data habitat dari database dalam format dictionary.
@@ -366,8 +364,6 @@ def get_all_habitat():
             })
         return habitat_list
 
-@login_required   
-@penjaga_admin_required 
 def get_all_habitat_nama():
     """
     Fungsi untuk mengambil semua habitat dari database.
@@ -382,7 +378,7 @@ def get_all_habitat_nama():
         print(f"Error saat mengambil data habitat: {str(e)}")
         return []
 
-@login_required  
+  
 @penjaga_admin_required  
 def tambah_habitat_view(request):
     """
@@ -425,7 +421,7 @@ def tambah_habitat_view(request):
     # Jika bukan POST, redirect ke halaman daftar habitat
     return redirect('yellow:habitat_list')
 
-@login_required    
+    
 @penjaga_admin_required
 def hapus_habitat_view(request, nama_habitat):
     """
@@ -459,7 +455,7 @@ def hapus_habitat_view(request, nama_habitat):
     # Redirect kembali ke halaman daftar habitat
     return redirect('yellow:habitat_list')
 
-@login_required  
+  
 @penjaga_admin_required  
 def habitat_detail_view(request, nama_habitat):
     """
@@ -528,7 +524,7 @@ def habitat_detail_view(request, nama_habitat):
         messages.error(request, f"Terjadi kesalahan: {str(e)}")
         return redirect('yellow:habitat_list')
 
-@login_required  
+  
 @penjaga_admin_required      
 def edit_habitat_view(request, nama_habitat):
     """
