@@ -1,3 +1,4 @@
+SET search_path TO SIZOPI;
 CREATE OR REPLACE FUNCTION log_perubahan_hewan()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -54,4 +55,4 @@ DROP TRIGGER IF EXISTS trg_cek_duplikat_satwa ON HEWAN;
 CREATE TRIGGER trg_cek_duplikat_satwa
 BEFORE INSERT ON HEWAN
 FOR EACH ROW
-EXECUTE FUNCTION cek_duplikat_satwa();
+EXECUTE PROCEDURE cek_duplikat_satwa();
