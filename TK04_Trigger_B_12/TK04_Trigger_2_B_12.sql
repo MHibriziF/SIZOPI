@@ -1,6 +1,10 @@
+<<<<<<< HEAD
 -- =================================================================
 -- 1. TRIGGER: PEMERIKSAAN PERUBAHAN HEWAN
 -- =================================================================
+=======
+SET search_path TO SIZOPI;
+>>>>>>> 0282a2b07c465124159a0e51cf7acb375468bbb9
 CREATE OR REPLACE FUNCTION log_perubahan_hewan()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -59,4 +63,47 @@ DROP TRIGGER IF EXISTS trg_cek_duplikat_satwa ON HEWAN;
 CREATE TRIGGER trg_cek_duplikat_satwa
 BEFORE INSERT ON HEWAN
 FOR EACH ROW
+<<<<<<< HEAD
 EXECUTE FUNCTION cek_duplikat_satwa();
+
+-- =================================================================
+-- 3. TRIGGER: PEMERIKSAAN KAPASITAS HABITAT
+-- =================================================================
+
+CREATE OR REPLACE FUNCTION cek_kapasitas_habitat()
+RETURNS TRIGGER AS $$
+DECLARE
+    jumlah_hewan INTEGER;
+    kapasitas_habitat INTEGER;
+BEGIN
+    -- Hitung jumlah hewan yang sudah ada di habitat tujuan
+    SELECT COUNT(*) INTO jumlah_hewan
+    FROM HEWAN
+    WHERE nama_habitat = NEW.nama_habitat
+      AND id IS DISTINCT FROM COALESCE(OLD.id, '00000000-0000-0000-0000-000000000000');
+
+    -- Ambil kapasitas maksimum habitat
+    SELECT kapasitas INTO kapasitas_habitat
+    FROM HABITAT
+    WHERE nama = NEW.nama_habitat;
+
+    -- Jika jumlah hewan >= kapasitas, tolak INSERT/UPDATE
+    IF jumlah_hewan >= kapasitas_habitat THEN
+        RAISE EXCEPTION
+            'Habitat "%" sudah penuh. Tidak dapat menambahkan hewan baru ke habitat ini.',
+            NEW.nama_habitat;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_cek_kapasitas_habitat ON HEWAN;
+
+CREATE TRIGGER trg_cek_kapasitas_habitat
+BEFORE INSERT OR UPDATE ON HEWAN
+FOR EACH ROW
+EXECUTE FUNCTION cek_kapasitas_habitat();
+=======
+EXECUTE PROCEDURE cek_duplikat_satwa();
+>>>>>>> 0282a2b07c465124159a0e51cf7acb375468bbb9
