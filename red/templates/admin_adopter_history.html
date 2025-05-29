@@ -19,11 +19,21 @@
 {% block content %}
 {% include 'components/navbar.html' %}
 
+{% if messages %}
+  <div class="mb-4">
+    {% for message in messages %}
+      <div class="p-3 {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %} rounded">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
 <div class="mx-16 my-8 rounded-2xl shadow-[4px_7px_33px_rgba(0,0,0,0.25)] overflow-hidden bg-white">
   <!-- header bar -->
   <div class="flex flex-col md:flex-row items-center md:justify-between bg-[var(--primary-header)] px-6 py-3">
     <h2 class="text-white text-xl font-bold">Riwayat Adopsi – {{ adopter.nama_adopter }}</h2>
-    <a href="{% url 'adopsi:admin_list_adopters' %}"
+    <a href="{% url 'adopsi:list_adopters' %}"
        class="text-white text-sm underline hover:text-gray-200">Kembali</a>
   </div>
 
@@ -71,7 +81,7 @@
             <td class="px-3 py-2">Rp{{ h.kontribusi_finansial }}</td>
             <td class="px-3 py-2">
               {% if h.tgl_berhenti_adopsi >= today %}
-                <span class="inline-block px-2 py-1 bg-yellow-300 rounded text-xs">Sedang</span>
+                <span class="inline-block px-2 py-1 bg-yellow-300 rounded text-xs">Sedang Berlangsung</span>
               {% else %}
                 <form action="{% url 'adopsi:admin_delete_adoption' id_adopter h.id_hewan h.tgl_mulai_adopsi %}"
                       method="post" class="inline">

@@ -18,6 +18,16 @@
 {% include 'components/navbar.html' %}
 {% load static %}
 
+{% if messages %}
+  <div class="mb-4">
+    {% for message in messages %}
+      <div class="p-3 {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %} rounded">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
 <div class="flex justify-center py-12 px-4">
   <div id="modal-register" class="bg-white rounded-xl shadow-lg w-full max-w-xl">
     
@@ -88,7 +98,7 @@
               class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2"
           />
           </div>
-          <input type="hidden" name="id_adopter" id="field-id_adopter"/>
+          <input type="hidden" name="id_adopter" id="field-id_adopter-individu"/>
 
           <div>
           <label class="block text-[#bf9264] font-medium">Alamat</label>
@@ -192,7 +202,7 @@
                 class="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2" />
         </div>
 
-        <input type="hidden" name="id_adopter" id="field-id_adopter"/>
+        <input type="hidden" name="id_adopter" id="field-id_adopter-organisasi"/>
 
         <div>
           <label class="block text-[#bf9264] font-medium">Alamat</label>
@@ -307,7 +317,8 @@
           return alert('Adopter tidak ditemukan atau belum terdaftar.');
         }
         document.getElementById('step-verify').classList.add('hidden');
-        document.getElementById('field-id_adopter').value = json.id_adopter;
+        document.getElementById('field-id_adopter-individu').value = json.id_adopter;
+        document.getElementById('field-id_adopter-organisasi').value = json.id_adopter;
         document.getElementById('field-alamat').value = json.alamat;
         document.getElementById('field-alamat_organisasi').value = json.alamat;
         document.getElementById('field-no_telepon').value= Number(json.no_telepon);

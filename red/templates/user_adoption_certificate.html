@@ -3,6 +3,16 @@
 {% block content %}
 {% include 'components/navbar.html' %}
 
+{% if messages %}
+  <div class="mb-4">
+    {% for message in messages %}
+      <div class="p-3 {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %} rounded">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
 <!-- Modal Sertifikat -->
 <div id="cert-modal"
      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">

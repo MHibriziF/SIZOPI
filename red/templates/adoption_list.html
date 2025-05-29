@@ -2,6 +2,17 @@
 {% block content %}
 {% load static %}
 {% include 'components/navbar.html' %}
+
+{% if messages %}
+  <div class="mb-4">
+    {% for message in messages %}
+      <div class="p-3 {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %} rounded">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
 <!-- semi-transparent header container -->
 <div class="flex flex-col items-center space-y-4 mt-8">
   <div class="bg-[#6F826A] bg-opacity-75 backdrop-filter backdrop-blur-md rounded-xl px-10 py-10">
@@ -43,7 +54,7 @@
           </p>
         </div>
         <div class="text-right mt-4">
-          {% if r.status == "Diadopsi" %}
+          {% if r.status == "Diadopsi" or r.status == "Menunggu Pembayaran" %}
             <a href="{% url 'adopsi:update_adoption' r.id_adopter r.id_hewan r.tgl_mulai_adopsi %}"
                class="text-green-100 hover:underline text-sm">Detail</a>
           {% else %}
