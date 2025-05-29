@@ -185,6 +185,7 @@ def dashboard(request):
             (username,)
         )[0]
         
+        print("adwhibahdbaiwbduai",dokter_data)
         spesialisasi = execute_query(
             """
             SELECT nama_spesialis

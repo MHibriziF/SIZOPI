@@ -25,3 +25,33 @@ CREATE TRIGGER trg_log_perubahan_hewan
 AFTER UPDATE ON HEWAN
 FOR EACH ROW
 EXECUTE PROCEDURE log_perubahan_hewan();
+
+
+CREATE OR REPLACE FUNCTION cek_duplikat_satwa()
+RETURNS TRIGGER AS $$
+DECLARE
+    sudah_ada INTEGER;
+BEGIN
+    SELECT COUNT(*) INTO sudah_ada
+    FROM HEWAN
+    WHERE nama = NEW.nama
+      AND spesies = NEW.spesies
+      AND asal_hewan = NEW.asal_hewan;
+
+    IF sudah_ada > 0 THEN
+        RAISE EXCEPTION
+        'Data satwa atas nama "%", spesies "%", dan berasal dari "%" sudah terdaftar.',
+        NEW.nama, NEW.spesies, NEW.asal_hewan;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+DROP TRIGGER IF EXISTS trg_cek_duplikat_satwa ON HEWAN;
+
+CREATE TRIGGER trg_cek_duplikat_satwa
+BEFORE INSERT ON HEWAN
+FOR EACH ROW
+EXECUTE FUNCTION cek_duplikat_satwa();
