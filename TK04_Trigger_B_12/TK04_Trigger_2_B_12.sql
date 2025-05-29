@@ -53,9 +53,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- =================================================================
--- 3. TRIGGER: PEMERIKSAAN KAPASITAS HABITAT
--- =================================================================
 
 DROP TRIGGER IF EXISTS trg_cek_duplikat_satwa ON HEWAN;
 
@@ -63,6 +60,10 @@ CREATE TRIGGER trg_cek_duplikat_satwa
 BEFORE INSERT ON HEWAN
 FOR EACH ROW
 EXECUTE FUNCTION cek_duplikat_satwa();
+
+-- =================================================================
+-- 3. TRIGGER: PEMERIKSAAN KAPASITAS HABITAT
+-- =================================================================
 
 CREATE OR REPLACE FUNCTION cek_kapasitas_habitat()
 RETURNS TRIGGER AS $$
