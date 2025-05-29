@@ -8,6 +8,5 @@ urlpatterns = [
     path('kelola-atraksi/', kelola_atraksi, name='kelola_atraksi'),
     path('kelola-pengunjung/', kelola_pengunjung, name='kelola_pengunjung'),
     path('cancel-reservasi/', cancel_reservasi, name='cancel_reservasi'),
-    path('delete-wahana/<str:nama_wahana>/', delete_wahana, name='delete_wahana'),
-    path('delete-atraksi/<str:nama_atraksi>/', delete_atraksi, name='delete_atraksi'),
+    path('delete-fasilitas/', delete_fasilitas, name='delete_fasilitas'),
 ]

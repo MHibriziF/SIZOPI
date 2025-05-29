@@ -322,18 +322,6 @@ def post_kelola_wahana(request):
 
 
 @admin_required
-def delete_wahana(request, nama_wahana):
-    try:
-        with connection.cursor() as cursor:
-            cursor.execute("""
-                DELETE FROM SIZOPI.FASILITAS WHERE nama = %s
-            """, [nama_wahana])
-        messages.success(request, "Wahana berhasil dihapus", extra_tags='wahana')
-    except Exception as e:
-        messages.error(request, f"Terjadi kesalahan: {str(e)}", extra_tags='wahana')
-    return redirect('blue:kelola_wahana')
-
-@admin_required
 def kelola_atraksi(request):
     if request.method == 'POST':
         return post_kelola_atraksi(request)
@@ -485,15 +473,20 @@ def post_kelola_atraksi(request):
     return redirect('blue:kelola_atraksi')
 
 @admin_required
-def delete_atraksi(request, nama_atraksi):
+def delete_fasilitas(request):
+    nama_fasilitas = request.POST.get('nama_fasilitas')
+    jenis_fasilitas = request.POST.get('jenis_fasilitas')
     try:
         with connection.cursor() as cursor:
             cursor.execute("""
                 DELETE FROM SIZOPI.FASILITAS WHERE nama = %s
-            """, [nama_atraksi])
-        messages.success(request, "Atraksi berhasil dihapus", extra_tags='atraksi')
+            """, [nama_fasilitas])
+        messages.success(request, f"{jenis_fasilitas.capitalize()} berhasil dihapus", extra_tags=jenis_fasilitas.lower())
     except Exception as e:
-        messages.error(request, f"Terjadi kesalahan: {str(e)}", extra_tags='atraksi')
+        messages.error(request, f"Terjadi kesalahan: {str(e)}", extra_tags=jenis_fasilitas.lower())
+        
+    if jenis_fasilitas == 'wahana':
+        return redirect('blue:kelola_wahana')
     return redirect('blue:kelola_atraksi')
 
 @admin_required

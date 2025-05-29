@@ -3,26 +3,22 @@
     <div class="bg-white rounded-2xl p-8 w-full max-w-md relative">
         <h2 class="text-2xl font-bold mb-4 text-center text-red-600">Konfirmasi Hapus</h2>
         <p id="deleteItemName" class="text-center mb-6 text-gray-700"></p>
+        <form id="deleteFacilityForm" method="post" action="/delete-fasilitas/">
+        {% csrf_token %}
+        <input type="hidden" name="nama_fasilitas" id="deleteNamaFasilitas" value="">
+        <input type="hidden" name="jenis_fasilitas" id="deleteJenisFasilitas" value="">
         <div class="flex justify-center space-x-4">
             <button type="button" onclick="cancelDelete()" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100">Batal</button>
-            <a id="deleteConfirmButton" href="#" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg">Hapus</a>
+            <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg">Hapus</button>
         </div>
+        </form>
     </div>
 </div>
 
 <script>
-    let deleteTarget = null;
-    let deleteType = null;
-
     function confirmDelete(name, type) {
-        deleteTarget = name;
-        deleteType = type;
-
-        const actionUrl = type === 'wahana'
-            ? `/delete-wahana/${encodeURIComponent(name)}/`
-            : `/delete-atraksi/${encodeURIComponent(name)}/`;
-
-        document.getElementById('deleteConfirmButton').href = actionUrl;
+        document.getElementById('deleteNamaFasilitas').value = name;
+        document.getElementById('deleteJenisFasilitas').value = type;
         document.getElementById('deleteItemName').textContent = `Apakah Anda yakin ingin menghapus ${type} "${name}"?`;
 
         document.getElementById('modalDeleteConfirm').classList.remove('hidden');
