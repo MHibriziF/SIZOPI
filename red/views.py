@@ -232,7 +232,7 @@ def create_adoption(request, hewan_id):
         id_adopter = request.POST.get("id_adopter")
         periode    = int(request.POST.get("periode"))
         start      = datetime.date.today()
-        end        = start + relativedelta(months=periode)
+        end        = start + relativedelta(months=periode) # type: ignore
         kontribusi = int(request.POST.get("kontribusi_finansial"))
         status     = 'tertunda'
 
