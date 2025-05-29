@@ -7,6 +7,7 @@ from django.db import connection
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
+from urllib.parse import unquote
 
 def is_dokter_hewan(request):
     if not request.session.get('username'):
@@ -460,6 +461,7 @@ def pemberian_pakan_create(request, id_hewan):
 
 @penjaga_hewan_required
 def pemberian_pakan_update(request, id_hewan, jadwal):
+    jadwal = unquote(jadwal)
     hewan = get_hewan_by_id(id_hewan)
     if not hewan:
         messages.error(request, "Hewan tidak ditemukan")
@@ -525,6 +527,7 @@ def pemberian_pakan_update(request, id_hewan, jadwal):
 
 @penjaga_hewan_required
 def pemberian_pakan_delete(request, id_hewan, jadwal):
+    jadwal = unquote(jadwal)
     if request.method == 'POST':
         try:
             with connection.cursor() as cursor:
