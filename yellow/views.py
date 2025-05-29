@@ -80,44 +80,43 @@ def tambah_hewan_view(request):
         print(f"Data yang diterima: {nama}, {spesies}, {asal_hewan}, {tanggal_lahir}, {status_kesehatan}, {nama_habitat}, {url_foto}")
 
         try:
-            # Periksa apakah data satwa sudah ada
+            # Langsung insert ke database, biarkan trigger yang mengecek duplikat
             with connection.cursor() as cursor:
                 cursor.execute("""
-                    SELECT COUNT(*) FROM SIZOPI.HEWAN
-                    WHERE nama = %s AND spesies = %s AND asal_hewan = %s
-                """, [nama, spesies, asal_hewan])
-                result = cursor.fetchone()
-
-            if result[0] > 0:
-                # Jika data sudah ada, tampilkan pesan error
-                messages.error(request, f"Data satwa atas nama “{nama}”, spesies “{spesies}”, dan berasal dari “{asal_hewan}” sudah terdaftar.")
-                print(f"Data satwa sudah ada: {nama}, {spesies}, {asal_hewan}")
-            else:
-                # Jika data belum ada, simpan ke database
-                with connection.cursor() as cursor:
-                    cursor.execute("""
-                        INSERT INTO SIZOPI.HEWAN (id, nama, spesies, asal_hewan, tanggal_lahir, status_kesehatan, nama_habitat, url_foto)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                    """, [
-                        str(uuid.uuid4()),  # Generate UUID untuk ID
-                        nama,
-                        spesies,
-                        asal_hewan,
-                        tanggal_lahir,
-                        status_kesehatan,
-                        nama_habitat,
-                        url_foto
-                    ])
-                messages.success(request, "Hewan berhasil ditambahkan!")
+                    INSERT INTO SIZOPI.HEWAN (id, nama, spesies, asal_hewan, tanggal_lahir, status_kesehatan, nama_habitat, url_foto)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """, [
+                    str(uuid.uuid4()),  # Generate UUID untuk ID
+                    nama,
+                    spesies,
+                    asal_hewan,
+                    tanggal_lahir,
+                    status_kesehatan,
+                    nama_habitat,
+                    url_foto
+                ])
+            messages.success(request, "Hewan berhasil ditambahkan!")
+            
         except Exception as e:
-            messages.error(request, f"Terjadi kesalahan: {str(e)}")
+            error_message = str(e)
+            print(f"Error dari database: {error_message}")
+            
+            # Cek apakah error berasal dari trigger duplikat
+            if "sudah terdaftar" in error_message.lower() or "duplicate" in error_message.lower():
+                # Ambil pesan error dari trigger dan tampilkan ke user
+                messages.error(request, error_message)
+            elif "sudah penuh" in error_message.lower() or "kapasitas" in error_message.lower():
+                # Error dari trigger kapasitas habitat
+                messages.error(request, error_message)
+            else:
+                # Error lainnya
+                messages.error(request, f"Terjadi kesalahan: {error_message}")
 
         # Redirect kembali ke halaman daftar hewan
         return redirect('yellow:hewan_list')
 
     # Jika bukan POST, redirect ke halaman daftar hewan
     return redirect('yellow:hewan_list')
-
 
 @dokter_penjaga_admin_required
 def hapus_hewan_view(request, id):
@@ -138,10 +137,6 @@ def hapus_hewan_view(request, id):
 
 @dokter_penjaga_admin_required
 def edit_hewan_view(request, id):
-    """
-    Fungsi untuk mengedit hewan berdasarkan ID.
-    Hanya dapat mengedit status kesehatan dan nama habitat.
-    """
     if request.method == 'POST':
         print("Fungsi edit_hewan_view dipanggil")
         
@@ -177,24 +172,59 @@ def edit_hewan_view(request, id):
                         messages.error(request, f"Habitat dengan nama '{nama_habitat}' tidak ditemukan.")
                         return redirect('yellow:hewan_list')
                 
-                # Update hewan di database
+                # Clear any existing notices
+                if hasattr(connection.connection, 'notices'):
+                    connection.connection.notices.clear()
+                
+                # Update hewan di database - trigger akan otomatis mencatat riwayat
                 with connection.cursor() as cursor:
                     cursor.execute("""
                         UPDATE SIZOPI.HEWAN 
                         SET status_kesehatan = %s, nama_habitat = %s
                         WHERE id = %s
                     """, [status_kesehatan, nama_habitat, id])
-                messages.success(request, "Data hewan berhasil diperbarui!")
+                
+                # Tangkap pesan NOTICE dari trigger
+                trigger_notices = []
+                if hasattr(connection.connection, 'notices'):
+                    for notice in connection.connection.notices:
+                        # Ambil pesan notice yang sebenarnya
+                        if hasattr(notice, 'message_primary'):
+                            notice_message = notice.message_primary
+                        elif hasattr(notice, 'message'):
+                            notice_message = notice.message
+                        else:
+                            notice_message = str(notice)
+                        
+                        # Hanya ambil notice yang mengandung 'SUKSES:'
+                        if 'SUKSES:' in notice_message:
+                            trigger_notices.append(notice_message)
+                            print(f"[DEBUG] Trigger Notice: {notice_message}")
+                
+                combined_message = " ".join(trigger_notices)
+                messages.error(request, combined_message)
                 
         except Exception as e:
-            messages.error(request, f"Terjadi kesalahan saat memperbarui hewan: {str(e)}")
-            print(f"Error saat memperbarui hewan: {str(e)}")
+            error_message = str(e)
+            print(f"Error dari database: {error_message}")
+            
+            # Tangkap pesan dari trigger atau error lainnya
+            if "kapasitas" in error_message.lower() or "sudah penuh" in error_message.lower():
+                # Error dari trigger kapasitas habitat
+                messages.error(request, error_message)
+            elif "tidak ditemukan" in error_message.lower():
+                # Error validasi
+                messages.error(request, error_message)
+            else:
+                # Error lainnya
+                messages.error(request, f"Terjadi kesalahan saat memperbarui hewan: {error_message}")
+            
+            print(f"Error saat memperbarui hewan: {error_message}")
 
         # Redirect kembali ke halaman daftar hewan
         return redirect('yellow:hewan_list')
 
     elif request.method == 'GET':
-        # Jika GET request, ambil data hewan untuk ditampilkan di form
         try:
             with connection.cursor() as cursor:
                 cursor.execute("""

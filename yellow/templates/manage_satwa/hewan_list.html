@@ -166,6 +166,65 @@
         background-color: #f8f9fa;
         color: #6c757d;
       }
+
+        /* Messages Styling */
+        .alert {
+            background-color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .alert-success {
+            background-color: rgba(34, 197, 94, 0.1);
+            border-left-color: #22c55e;
+        }
+
+        .alert-error {
+            background-color: rgba(239, 68, 68, 0.1);
+            border-left-color: #ef4444;
+        }
+
+        .alert-warning {
+            background-color: rgba(245, 158, 11, 0.1);
+            border-left-color: #f59e0b;
+        }
+
+        .alert-info {
+            background-color: rgba(59, 130, 246, 0.1);
+            border-left-color: #3b82f6;
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fadeIn {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* Auto-hide animation */
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+
+        .animate-fadeOut {
+            animation: fadeOut 0.3s ease-out forwards;
+        }
     </style>
 {% endblock meta %}
 
@@ -175,15 +234,57 @@
     <!-- Main Content -->
     <div class="flex-grow bg-[rgba(236,240,202,0.5)] p-4 md:p-6 lg:p-8">
         <div class="w-full max-w-full mx-auto bg-[#61785f] rounded-xl p-3 md:p-4 shadow-md text-white">
-            {% if messages %}
-                <div class="mb-4">
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }} p-4 rounded-lg mb-4 text-black bg-white">
-                            {{ message }}
+        {% if messages %}
+            <div class="mb-4 space-y-3">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }} p-4 rounded-lg border-l-4 flex items-start gap-3 animate-fadeIn" role="alert">
+                        <!-- Icon berdasarkan tipe pesan -->
+                        <div class="flex-shrink-0 mt-0.5">
+                            {% if message.tags == 'success' %}
+                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            {% elif message.tags == 'error' %}
+                                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            {% elif message.tags == 'warning' %}
+                                <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                            {% else %}
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            {% endif %}
                         </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
+                        
+                        <!-- Konten pesan -->
+                        <div class="flex-1">
+                            <div class="text-sm font-medium
+                                {% if message.tags == 'success' %}text-green-800
+                                {% elif message.tags == 'error' %}text-red-800
+                                {% elif message.tags == 'warning' %}text-yellow-800
+                                {% else %}text-blue-800{% endif %}">
+                                {{ message }}
+                            </div>
+                        </div>
+                        
+                        <!-- Tombol close -->
+                        <button type="button" class="flex-shrink-0 ml-2 
+                            {% if message.tags == 'success' %}text-green-500 hover:text-green-700
+                            {% elif message.tags == 'error' %}text-red-500 hover:text-red-700
+                            {% elif message.tags == 'warning' %}text-yellow-500 hover:text-yellow-700
+                            {% else %}text-blue-500 hover:text-blue-700{% endif %}"
+                            onclick="this.parentElement.style.display='none'">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
             <!-- Header and Search -->
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
                 <h1 class="text-xl sm:text-2xl font-bold">Animal List</h1>
@@ -839,7 +940,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (response.ok) {
                 alert('Data hewan berhasil diperbarui!');
                 closeModal(editModal);
-                window.location.reload();
             } else {
                 throw new Error('Failed to update hewan');
             }
@@ -913,6 +1013,17 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!imageModal.classList.contains('hidden')) closeModal(imageModal);
         }
     });
+});
+
+const messages = document.querySelectorAll('.alert');
+messages.forEach(function(message, index) {
+    // Stagger the hiding so multiple messages don't disappear at once
+    setTimeout(function() {
+        message.classList.add('animate-fadeOut');
+        setTimeout(function() {
+            message.style.display = 'none';
+        }, 300); // Wait for animation to complete
+    }, 5000 + (index * 500)); // Each message disappears 500ms after the previous one
 });
 </script>
 {% endblock content %}
