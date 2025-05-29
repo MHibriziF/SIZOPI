@@ -34,12 +34,7 @@
         
         {% if 'pengunjung' in request.session.roles %}
           <a href="{%url 'blue:reservasi'%}" class="hover:text-green-200 transition">Reservasi</a>
-          
-          {% comment %}
-          {% if is_adopter %}
-            <a href="{% url 'adopsi:list_adoptions' %}" class="hover:text-green-200 transition">Hewan Adopsi</a>
-          {% endif %}
-          {% endcomment %}
+          <a href="{% url 'adopsi:list_adoptions' %}" class="hover:text-green-200 transition">Adopsi Saya</a>
         {% endif %}
       </div>
       
