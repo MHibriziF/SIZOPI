@@ -19,7 +19,7 @@
         {% endif %}
         
         {% if 'penjaga' in request.session.roles %}
-          <a href="#" class="hover:text-green-200 transition">Catatan Perawatan Hewan</a>
+          <a href="{% url 'green:riwayat_pemberian_pakan' %}" class="hover:text-green-200 transition">Catatan Perawatan Hewan</a>
         {% endif %}
         
         {% if 'admin' in request.session.roles %}
@@ -34,11 +34,10 @@
         
         {% if 'pengunjung' in request.session.roles %}
           <a href="{%url 'blue:reservasi'%}" class="hover:text-green-200 transition">Reservasi</a>
-          <a href="#" class="hover:text-green-200 transition">Informasi Kebun Binatang</a>
           
           {% comment %}
           {% if is_adopter %}
-            <a href="#" class="hover:text-green-200 transition">Hewan Adopsi</a>
+            <a href="{% url 'adopsi:list_adoptions' %}" class="hover:text-green-200 transition">Hewan Adopsi</a>
           {% endif %}
           {% endcomment %}
         {% endif %}

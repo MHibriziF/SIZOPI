@@ -19,6 +19,8 @@ def query_fasilitas(fasilitas : str, field : str) -> str:
 def reservasi(request):
     if not request.session.get('username'):
         return redirect('main:login')
+    if 'pengunjung' not in request.session.get('roles') and 'admin' not in request.session.get('roles'):
+        return redirect('main:dashboard')
     if request.method == 'POST':
         return post_reservasi(request)
     return get_reservasi(request)
@@ -321,16 +323,14 @@ def post_kelola_wahana(request):
 
 @admin_required
 def delete_wahana(request, nama_wahana):
-    # Cek dulu apakah wahana ada
-    check = execute_query("SELECT 1 FROM FASILITAS WHERE nama = %s", [nama_wahana])
-    if not check:
-        messages.error(request, "Wahana tidak ditemukan", extra_tags='wahana')
-        return redirect('blue:kelola_wahana')
-
-    # hapus wahana
-    execute_query("DELETE FROM FASILITAS WHERE nama = %s", [nama_wahana])
-
-    messages.success(request, "Wahana berhasil dihapus", extra_tags='wahana')
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                DELETE FROM SIZOPI.FASILITAS WHERE nama = %s
+            """, [nama_wahana])
+        messages.success(request, "Wahana berhasil dihapus", extra_tags='wahana')
+    except Exception as e:
+        messages.error(request, f"Terjadi kesalahan: {str(e)}", extra_tags='wahana')
     return redirect('blue:kelola_wahana')
 
 @admin_required
@@ -471,6 +471,7 @@ def post_kelola_atraksi(request):
                     if result_edit:
                         pesan = result_edit[0]
                         messages.success(request, pesan, extra_tags='atraksi')
+                    messages.success(request, "Atraksi berhasil diupdate", extra_tags='atraksi')
             except DatabaseError as e:
                 messages.error(request, f"{str(e)}", extra_tags='atraksi')
                 return redirect('blue:kelola_atraksi')
@@ -485,16 +486,14 @@ def post_kelola_atraksi(request):
 
 @admin_required
 def delete_atraksi(request, nama_atraksi):
-    # Cek dulu apakah wahana ada
-    check = execute_query("SELECT 1 FROM FASILITAS WHERE nama = %s", [nama_atraksi])
-    if not check:
-        messages.error(request, "Atraksi tidak ditemukan", extra_tags='atraksi')
-        return redirect('blue:kelola_atraksi')
-
-    # hapus wahana
-    execute_query("DELETE FROM FASILITAS WHERE nama = %s", [nama_atraksi])
-
-    messages.success(request, "Atraksi berhasil dihapus", extra_tags='atraksi')
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                DELETE FROM SIZOPI.FASILITAS WHERE nama = %s
+            """, [nama_atraksi])
+        messages.success(request, "Atraksi berhasil dihapus", extra_tags='atraksi')
+    except Exception as e:
+        messages.error(request, f"Terjadi kesalahan: {str(e)}", extra_tags='atraksi')
     return redirect('blue:kelola_atraksi')
 
 @admin_required

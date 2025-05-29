@@ -57,7 +57,7 @@ WHEN (NEW.status = 'Terjadwal')
 EXECUTE FUNCTION cek_kapasitas_atraksi();
 
 -- =================================================================
--- 2. STORED PROCEDURE: PEMERIKSAAN KAPASITAS ATRAKSI SAAT RESERVASI 
+-- 2. STORED PROCEDURE: ROTASI PELATIH HEWAN OTOMATIS
 -- =================================================================
 CREATE OR REPLACE FUNCTION rotasi_oto_pelatih_func(atraksi VARCHAR)
 RETURNS TEXT
