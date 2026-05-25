@@ -236,7 +236,7 @@ CREATE TABLE RESERVASI (
 	PRIMARY KEY (username_p, nama_fasilitas, tanggal_kunjungan),
 	FOREIGN KEY (username_p) REFERENCES PENGUNJUNG(username_p)
 		ON DELETE CASCADE ON UPDATE CASCADE,
-	FOREIGN KEY (nama_fasilitas) REFERENCES FASILITAS(nama_fasilitas)
+	FOREIGN KEY (nama_fasilitas) REFERENCES FASILITAS(nama)
 		ON DELETE CASCADE ON UPDATE CASCADE		
 );
 
