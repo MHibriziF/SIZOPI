@@ -1,10 +1,8 @@
-<<<<<<< HEAD
+SET search_path TO SIZOPI;
+
 -- =================================================================
 -- 1. TRIGGER: PEMERIKSAAN PERUBAHAN HEWAN
 -- =================================================================
-=======
-SET search_path TO SIZOPI;
->>>>>>> 0282a2b07c465124159a0e51cf7acb375468bbb9
 CREATE OR REPLACE FUNCTION log_perubahan_hewan()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -63,7 +61,6 @@ DROP TRIGGER IF EXISTS trg_cek_duplikat_satwa ON HEWAN;
 CREATE TRIGGER trg_cek_duplikat_satwa
 BEFORE INSERT ON HEWAN
 FOR EACH ROW
-<<<<<<< HEAD
 EXECUTE FUNCTION cek_duplikat_satwa();
 
 -- =================================================================
@@ -104,6 +101,3 @@ CREATE TRIGGER trg_cek_kapasitas_habitat
 BEFORE INSERT OR UPDATE ON HEWAN
 FOR EACH ROW
 EXECUTE FUNCTION cek_kapasitas_habitat();
-=======
-EXECUTE PROCEDURE cek_duplikat_satwa();
->>>>>>> 0282a2b07c465124159a0e51cf7acb375468bbb9
