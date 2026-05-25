@@ -32,6 +32,7 @@ DATABASES = {
         ssl_require=os.getenv('DB_SSL_REQUIRE', 'True') == 'True',
     )
 }
+DATABASES['default'].setdefault('OPTIONS', {})['options'] = '-c search_path=sizopi'
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key')
 # SECURITY WARNING: don't run with debug turned on in production!
