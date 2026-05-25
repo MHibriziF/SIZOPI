@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: sizopi
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./TK03_DUMP_SQL_B_12.sql:/docker-entrypoint-initdb.d/01_seed.sql
+      - ./TK04_Trigger_B_12/TK04_Trigger_1_B_12.sql:/docker-entrypoint-initdb.d/02_trigger1.sql
+      - ./TK04_Trigger_B_12/TK04_Trigger_2_B_12.sql:/docker-entrypoint-initdb.d/03_trigger2.sql
+      - ./TK04_Trigger_B_12/TK04_Trigger_3_B_12.sql:/docker-entrypoint-initdb.d/04_trigger3.sql
+      - ./TK04_Trigger_B_12/TK04_Trigger_4_B_12.sql:/docker-entrypoint-initdb.d/05_trigger4.sql
+      - ./TK04_Trigger_B_12/TK04_Trigger_5_B_12.sql:/docker-entrypoint-initdb.d/06_trigger5.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/sizopi
+      DB_SSL_REQUIRE: "False"
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
