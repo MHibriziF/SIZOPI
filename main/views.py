@@ -106,6 +106,7 @@ def login(request):
                     (username,)
                 )
                 
+                request.session.set_expiry(60 * 60 * 24 * 7)  # 7 days
                 request.session["username"] = username
                 request.session["roles"] = roles
                 request.session["full_name"] = f"{user_data[0]['nama_depan']} {user_data[0]['nama_belakang']}"

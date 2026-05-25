@@ -29,19 +29,26 @@ DATABASES = {
     'default': dj_database_url.config(
         default=os.getenv('DATABASE_URL'),
         conn_max_age=600,
-        ssl_require=True,
+        ssl_require=os.getenv('DB_SSL_REQUIRE', 'True') == 'True',
     )
 }
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key')
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
-    ".vercel.app",       
+    ".vercel.app",
+    ".up.railway.app",
+    ".railway.app",
+    ".mhibrizif.site",
 ]
+
+_extra_hosts = os.getenv('ALLOWED_HOSTS', '')
+if _extra_hosts:
+    ALLOWED_HOSTS += [h.strip() for h in _extra_hosts.split(',')]
 
 # Application definition
 
@@ -154,7 +161,15 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_URL = '/login'  
+LOGIN_URL = '/login'
+
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 7  # 7 days
+SESSION_SAVE_EVERY_REQUEST = True       # reset expiry on activity
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  
 CSRF_TRUSTED_ORIGINS = [
     "https://*.vercel.app",
+    "https://*.up.railway.app",
+    "https://*.railway.app",
+    "https://*.mhibrizif.site",
+    "https://mhibrizif.site",
 ]
